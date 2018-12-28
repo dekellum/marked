@@ -19,14 +19,15 @@ fn main() {
         },
         ..Default::default()
     };
-    let stdin = io::stdin();
 
     let parser_sink = parse_document(RcDom::default(), opts);
 
-    // Decoders are "Sink adaptors" (e.g. they also implement TendrilSink)
+    // Decoders are "Sink adaptors"—like the Parser, they also impl trait
+    // TendrilSink.
     let decoder = LossyDecoder::new_encoding_rs(WINDOWS_1252, parser_sink);
-    let dom = decoder.read_from(&mut stdin.lock())
-        .expect("parse");
+
+    let stdin = io::stdin();
+    let dom = decoder.read_from(&mut stdin.lock()).expect("parse");
 
     serialize(&mut io::stdout(), &dom.document, Default::default())
         .expect("serialization failed");
