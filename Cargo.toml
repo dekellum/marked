@@ -1,0 +1,10 @@
+[package]
+name = "prescan"
+version = "0.1.0"
+authors = ["David Kellum <dek-oss@gravitext.com>"]
+edition = "2018"
+
+[dependencies]
+html5ever       = { version=">=0.22.5, <2.0" }
+tendril         = { features=["encoding_rs"] }
+encoding_rs     = { version=">=0.8.13, <2.0" }
