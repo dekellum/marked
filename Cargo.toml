@@ -6,5 +6,5 @@ edition = "2018"
 
 [dependencies]
 html5ever       = { version=">=0.22.5, <2.0" }
-tendril         = { features=["encoding_rs"] }
+tendril         = { version=">=0.4.0,  <2.0", features=["encoding_rs"] }
 encoding_rs     = { version=">=0.8.13, <2.0" }

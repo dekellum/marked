@@ -9,7 +9,9 @@ use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::TreeBuilderOpts;
 use html5ever::{parse_document, serialize};
 
-use tendril::stream::LossyDecoder;
+pub mod decode;
+
+use self::decode::Decoder;
 
 fn main() {
    let opts = ParseOpts {
@@ -24,7 +26,7 @@ fn main() {
 
     // Decoders are "Sink adaptors"—like the Parser, they also impl trait
     // TendrilSink.
-    let decoder = LossyDecoder::new_encoding_rs(WINDOWS_1252, parser_sink);
+    let decoder = Decoder::new(WINDOWS_1252, parser_sink);
 
     let stdin = io::stdin();
     let dom = decoder.read_from(&mut stdin.lock()).expect("parse");
