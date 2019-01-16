@@ -24,6 +24,7 @@ pub struct Decoder<Sink, A=NonAtomic>
     where Sink: TendrilSink<form::UTF8, A>, A: Atomicity
 {
     inner: DecoderInner<Sink, A>,
+    truncated: bool,
 }
 
 enum DecoderInner<Sink, A>
@@ -41,10 +42,12 @@ impl<Sink, A> Decoder<Sink, A>
         -> Self
     {
         if encoding == enc::UTF_8 {
-            return Self::utf8(sink);
-        }
-        Self {
-            inner: DecoderInner::EncodingRs(encoding.new_decoder(), sink)
+            Self::utf8(sink)
+        } else {
+            Self {
+                inner: DecoderInner::EncodingRs(encoding.new_decoder(), sink),
+                truncated: false
+            }
         }
     }
 
@@ -54,8 +57,15 @@ impl<Sink, A> Decoder<Sink, A>
     /// (whereas `Utf8LossyDecoder` requires knowning at compile-time.)
     pub fn utf8(sink: Sink) -> Decoder<Sink, A> {
         Decoder {
-            inner: DecoderInner::Utf8(Utf8LossyDecoder::new(sink))
+            inner: DecoderInner::Utf8(Utf8LossyDecoder::new(sink)),
+            truncated: false
         }
+    }
+
+    /// Early truncate this decoder, which will now act as though no more
+    /// bytes are available.
+    pub fn truncate(&mut self) {
+        self.truncated = true;
     }
 
     /// Give a reference to the inner sink.
@@ -83,6 +93,9 @@ impl<Sink, A> TendrilSink<form::Bytes, A> for Decoder<Sink, A>
     type Output = Sink::Output;
 
     fn process(&mut self, t: Tendril<form::Bytes, A>) {
+        if self.truncated {
+            return;
+        }
         match self.inner {
             DecoderInner::Utf8(ref mut utf8) => return utf8.process(t),
             DecoderInner::EncodingRs(ref mut decoder, ref mut sink) => {
