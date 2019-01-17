@@ -1,13 +1,15 @@
 // Copyright ⓒ 2019 David Kellum
 //
 // The `Decoder` implemented here was originally derived from
-// `tendil::stream::LossyDecoder` (version 0.4.1) source as found:
+// `tendril::stream::LossyDecoder` and `tendril::stream::TendrilSink`
+// (version 0.4.1) source as found:
 //
 // https://github.com/servo/tendril
 // Copyright ⓒ 2015 Keegan McAllister
 // Licensed under the Apache license, v2.0, or the MIT license
 
 use std::borrow::Cow;
+use std::io;
 
 use encoding_rs::{self as enc, DecoderResult};
 
@@ -66,6 +68,40 @@ impl<Sink, A> Decoder<Sink, A>
     /// bytes are available.
     pub fn truncate(&mut self) {
         self.truncated = true;
+    }
+
+    /// Read from the given stream of bytes until exhaustion or early
+    /// truncate, processing incrementally. Return `Err` at the first IO
+    /// error.
+    ///
+    /// FIXME: Adapted from TendrilSink::read_from
+    pub fn read_until<R>(mut self, r: &mut R)
+        -> Result<Sink::Output, io::Error>
+        where Self: Sized, R: io::Read
+    {
+        const BUFFER_SIZE: u32 = 4 * 1024;
+        loop {
+            if self.truncated {
+                // FIXME: Better error return for this case. Interupted? Flare?
+                return Err(io::Error::from_raw_os_error(666));
+            }
+            let mut tendril = Tendril::<form::Bytes, A>::new();
+            unsafe {
+                tendril.push_uninitialized(BUFFER_SIZE);
+            }
+            loop {
+                match r.read(&mut tendril) {
+                    Ok(0) => return Ok(self.finish()),
+                    Ok(n) => {
+                        tendril.pop_back(BUFFER_SIZE - n as u32);
+                        self.process(tendril);
+                        break;
+                    }
+                    Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+                    Err(e) => return Err(e)
+                }
+            }
+        }
     }
 
     /// Give a reference to the inner sink.
