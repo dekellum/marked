@@ -25,15 +25,15 @@ use tendril::stream::Utf8LossyDecoder;
 pub struct Decoder<Sink, A=NonAtomic>
     where Sink: TendrilSink<form::UTF8, A>, A: Atomicity
 {
-    inner: DecoderInner<Sink, A>,
+    mode: Mode<Sink, A>,
     truncated: bool,
 }
 
-enum DecoderInner<Sink, A>
+enum Mode<Sink, A>
     where Sink: TendrilSink<form::UTF8, A>, A: Atomicity
 {
     Utf8(Utf8LossyDecoder<Sink, A>),
-    EncodingRs(enc::Decoder, Sink),
+    Other(enc::Decoder, Sink),
 }
 
 impl<Sink, A> Decoder<Sink, A>
@@ -47,7 +47,7 @@ impl<Sink, A> Decoder<Sink, A>
             Self::utf8(sink)
         } else {
             Self {
-                inner: DecoderInner::EncodingRs(encoding.new_decoder(), sink),
+                mode: Mode::Other(encoding.new_decoder(), sink),
                 truncated: false
             }
         }
@@ -59,7 +59,7 @@ impl<Sink, A> Decoder<Sink, A>
     /// (whereas `Utf8LossyDecoder` requires knowning at compile-time.)
     pub fn utf8(sink: Sink) -> Decoder<Sink, A> {
         Decoder {
-            inner: DecoderInner::Utf8(Utf8LossyDecoder::new(sink)),
+            mode: Mode::Utf8(Utf8LossyDecoder::new(sink)),
             truncated: false
         }
     }
@@ -104,21 +104,21 @@ impl<Sink, A> Decoder<Sink, A>
         }
     }
 
-    /// Give a reference to the inner sink.
+    /// Give a reference to the mode sink.
     /// FIXME: unused
     pub fn inner_sink(&self) -> &Sink {
-        match self.inner {
-            DecoderInner::Utf8(ref utf8) => &utf8.inner_sink,
-            DecoderInner::EncodingRs(_, ref inner_sink) => inner_sink,
+        match self.mode {
+            Mode::Utf8(ref utf8) => &utf8.inner_sink,
+            Mode::Other(_, ref inner_sink) => inner_sink,
         }
     }
 
     /// Give a mutable reference to the inner sink.
     /// FIXME: unused
     pub fn inner_sink_mut(&mut self) -> &mut Sink {
-        match self.inner {
-            DecoderInner::Utf8(ref mut utf8) => &mut utf8.inner_sink,
-            DecoderInner::EncodingRs(_, ref mut inner_sink) => inner_sink,
+        match self.mode {
+            Mode::Utf8(ref mut utf8) => &mut utf8.inner_sink,
+            Mode::Other(_, ref mut inner_sink) => inner_sink,
         }
     }
 }
@@ -132,9 +132,9 @@ impl<Sink, A> TendrilSink<form::Bytes, A> for Decoder<Sink, A>
         if self.truncated {
             return;
         }
-        match self.inner {
-            DecoderInner::Utf8(ref mut utf8) => return utf8.process(t),
-            DecoderInner::EncodingRs(ref mut decoder, ref mut sink) => {
+        match self.mode {
+            Mode::Utf8(ref mut utf8) => utf8.process(t),
+            Mode::Other(ref mut decoder, ref mut sink) => {
                 if t.is_empty() {
                     return;
                 }
@@ -144,16 +144,16 @@ impl<Sink, A> TendrilSink<form::Bytes, A> for Decoder<Sink, A>
     }
 
     fn error(&mut self, desc: Cow<'static, str>) {
-        match self.inner {
-            DecoderInner::Utf8(ref mut utf8) => utf8.error(desc),
-            DecoderInner::EncodingRs(_, ref mut sink) => sink.error(desc),
+        match self.mode {
+            Mode::Utf8(ref mut utf8) => utf8.error(desc),
+            Mode::Other(_, ref mut sink) => sink.error(desc),
         }
     }
 
     fn finish(self) -> Sink::Output {
-        match self.inner {
-            DecoderInner::Utf8(utf8) => return utf8.finish(),
-            DecoderInner::EncodingRs(mut decoder, mut sink) => {
+        match self.mode {
+            Mode::Utf8(utf8) => utf8.finish(),
+            Mode::Other(mut decoder, mut sink) => {
                 decode_to_sink(Tendril::new(), &mut decoder, &mut sink, true);
                 sink.finish()
             }
