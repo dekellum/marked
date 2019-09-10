@@ -1,8 +1,16 @@
-[workspace]
-default-members = ["victor"]
-members = [
-    "lester",
-    "victor",
-    "proc-macros",
-    "tests",
-]
+[package]
+name = "victor"
+version = "0.0.1"
+authors = ["Simon Sapin <simon.sapin@exyr.org>"]
+license = "MIT OR Apache-2.0"
+description = "Victor makes vectors"
+repository = "https://github.com/SimonSapin/victor"
+edition = "2018"
+
+[lib]
+doctest = false
+
+[dependencies]
+html5ever = "0.22"
+matches = "0.1"
+xml-rs = {package = "xml-rs", version = "0.8"}
