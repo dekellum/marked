@@ -1,30 +1,10 @@
-pub use euclid;
-
 pub mod dom;
-pub mod fonts;
-pub mod pdf;
-pub mod primitives;
-pub mod text;
-pub mod text_plain;
-
-#[macro_use]
-mod tagged_union_with_jump_tables;
-mod geom;
-mod layout;
-mod paint;
-mod style;
-
-#[macro_use]
-extern crate cssparser;
 
 #[macro_use]
 extern crate html5ever;
 
 #[macro_use]
 extern crate matches;
-
-#[macro_use]
-extern crate victor_internal_proc_macros;
 
 /*
 

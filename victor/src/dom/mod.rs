@@ -3,7 +3,6 @@
 mod html;
 mod xml;
 
-use crate::style::{StyleSet, StyleSetBuilder};
 use html5ever::{LocalName, QualName};
 use std::borrow::Cow;
 use std::fmt;
@@ -42,21 +41,6 @@ impl Document {
 
     pub(crate) fn document_node_id() -> NodeId {
         NodeId(std::num::NonZeroUsize::new(1).unwrap())
-    }
-
-    pub(crate) fn parse_stylesheets(&self) -> StyleSet {
-        let mut style_set = StyleSetBuilder::new();
-        for &id in &self.style_elements {
-            let element = &self[id];
-            // https://html.spec.whatwg.org/multipage/semantics.html#update-a-style-block
-            if let Some(type_attr) = element.as_element().unwrap().get_attr(&local_name!("type")) {
-                if !type_attr.eq_ignore_ascii_case("text/css") {
-                    continue;
-                }
-            }
-            style_set.add_stylesheet(&self.child_text_content(id))
-        }
-        style_set.finish()
     }
 
     /// (rel_attribute, href_attribute)
@@ -240,7 +224,6 @@ pub(crate) struct ElementData {
     pub(crate) name: QualName,
     pub(crate) attrs: Vec<Attribute>,
     pub(crate) mathml_annotation_xml_integration_point: bool,
-    pub(crate) layout_data: atomic_refcell::AtomicRefCell<crate::layout::LayoutDataForElement>,
 }
 
 pub(crate) struct Attribute {
