@@ -11,6 +11,6 @@ edition = "2018"
 doctest = false
 
 [dependencies]
-html5ever = "0.22"
+html5ever = "0.24"
 matches = "0.1"
 xml-rs = {package = "xml-rs", version = "0.8"}
