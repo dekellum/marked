@@ -61,7 +61,10 @@ impl Document {
 
     pub(crate) fn root_element(&self) -> NodeId {
         let document_node = &self[Document::document_node_id()];
-        assert!(matches!(document_node.data, NodeData::Document));
+        assert!(match document_node.data {
+            NodeData::Document => true,
+            _ => false
+        });
         assert!(document_node.parent.is_none());
         assert!(document_node.next_sibling.is_none());
         assert!(document_node.previous_sibling.is_none());

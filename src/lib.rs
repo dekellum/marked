@@ -1,10 +1,6 @@
 pub mod dom;
 
-#[macro_use]
-extern crate html5ever;
-
-#[macro_use]
-extern crate matches;
+#[macro_use] extern crate html5ever;
 
 /*
 
