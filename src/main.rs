@@ -1,3 +1,5 @@
+#![warn(rust_2018_idioms)]
+
 use std::default::Default;
 use std::io;
 
@@ -10,7 +12,7 @@ use html5ever::{parse_document, serialize};
 
 pub mod decode;
 
-use self::decode::Decoder;
+use decode::Decoder;
 
 fn main() {
    let opts = ParseOpts {
