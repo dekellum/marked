@@ -257,11 +257,6 @@ fn size_of() {
 }
 
 impl Node {
-    pub(crate) fn in_html_document(&self) -> bool {
-        // FIXME: track something when we add XML parsing
-        true
-    }
-
     pub fn as_element(&self) -> Option<&ElementData> {
         match self.data {
             NodeData::Element(ref data) => Some(data),
