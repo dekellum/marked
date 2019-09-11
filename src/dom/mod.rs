@@ -12,7 +12,6 @@ pub use self::xml::XmlError;
 
 pub struct Document {
     nodes: Vec<Node>,
-    style_elements: Vec<NodeId>,
 }
 
 pub struct Node {
@@ -35,7 +34,6 @@ impl Document {
         let document_node = Node::new(NodeData::Document);
         Document {
             nodes: vec![dummy, document_node],
-            style_elements: Vec::new(),
         }
     }
 

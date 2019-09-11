@@ -109,16 +109,11 @@ impl TreeSink for Sink {
             ..
         }: ElementFlags,
     ) -> NodeId {
-        let is_style = name.expanded() == expanded_name!(html "style");
-        let element = self.new_node(NodeData::Element(ElementData {
+        self.new_node(NodeData::Element(ElementData {
             name,
             attrs: attrs.into_iter().map(Attribute::from).collect(),
             mathml_annotation_xml_integration_point,
-        }));
-        if is_style {
-            self.document.style_elements.push(element)
-        }
-        element
+        }))
     }
 
     fn create_comment(&mut self, text: StrTendril) -> NodeId {
