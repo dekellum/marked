@@ -47,10 +47,9 @@ impl Document {
             .filter_map(move |node| self[node].as_element())
             .filter(|e| e.name.expanded() == expanded_name!(html "link"))
             .filter_map(|e| {
-                match (
-                    e.get_attr(&local_name!("rel")),
-                    e.get_attr(&local_name!("href")),
-                ) {
+                match (e.get_attr(&local_name!("rel")),
+                       e.get_attr(&local_name!("href")))
+                {
                     (Some(rel), Some(href)) => Some((rel, href)),
                     _ => None,
                 }
@@ -67,17 +66,19 @@ impl Document {
         assert!(document_node.next_sibling.is_none());
         assert!(document_node.previous_sibling.is_none());
         let mut root = None;
-        for child in self.node_and_following_siblings(document_node.first_child.unwrap()) {
+        for child in self.node_and_following_siblings(
+            document_node.first_child.unwrap())
+        {
             match &self[child].data {
                 NodeData::Doctype { .. }
                 | NodeData::Comment { .. }
                 | NodeData::ProcessingInstruction { .. } => {}
                 NodeData::Document | NodeData::Text { .. } => {
-                    panic!("Unexpected node type under document node")
+                    panic!("Unexpected node type under document node");
                 }
                 NodeData::Element(_) => {
                     assert!(root.is_none(), "Found two root elements");
-                    root = Some(child)
+                    root = Some(child);
                 }
             }
         }
@@ -133,7 +134,10 @@ impl Document {
         self[new_sibling].next_sibling = Some(sibling);
         if let Some(previous_sibling) = self[sibling].previous_sibling.take() {
             self[new_sibling].previous_sibling = Some(previous_sibling);
-            debug_assert_eq!(self[previous_sibling].next_sibling, Some(sibling));
+            debug_assert_eq!(
+                self[previous_sibling].next_sibling,
+                Some(sibling)
+            );
             self[previous_sibling].next_sibling = Some(new_sibling);
         } else if let Some(parent) = self[sibling].parent {
             debug_assert_eq!(self[parent].first_child, Some(sibling));
