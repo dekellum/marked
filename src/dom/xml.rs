@@ -18,7 +18,7 @@ impl Document {
                             .map(
                                 |xml_rs::attribute::OwnedAttribute { name, value }| Attribute {
                                     name: convert_name(name),
-                                    value: value.into(),
+                                    value,
                                 },
                             )
                             .collect(),
@@ -40,13 +40,13 @@ impl Document {
                             continue;
                         }
                     }
-                    let id = document.push_node(Node::new(NodeData::Text { contents: s.into() }));
+                    let id = document.push_node(Node::new(NodeData::Text { contents: s }));
                     document.append(current, id);
                 }
                 XmlEvent::ProcessingInstruction { name, data } => {
                     let id = document.push_node(Node::new(NodeData::ProcessingInstruction {
-                        _target: name.into(),
-                        _contents: data.unwrap_or_else(String::new).into(),
+                        _target: name,
+                        _contents: data.unwrap_or_else(String::new),
                     }));
                     document.append(current, id);
                 }

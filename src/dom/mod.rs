@@ -24,7 +24,7 @@ pub struct Node {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct NodeId(std::num::NonZeroUsize);
+pub struct NodeId(std::num::NonZeroUsize);
 
 impl Document {
     fn new() -> Self {
@@ -57,7 +57,7 @@ impl Document {
             })
     }
 
-    pub(crate) fn root_element(&self) -> NodeId {
+    pub fn root_element(&self) -> NodeId {
         let document_node = &self[Document::document_node_id()];
         assert!(match document_node.data {
             NodeData::Document => true,
@@ -143,7 +143,7 @@ impl Document {
     }
 
     /// <https://dom.spec.whatwg.org/#concept-child-text-content>
-    fn child_text_content(&self, node: NodeId) -> Cow<String> {
+    pub fn child_text_content(&self, node: NodeId) -> Cow<String> {
         let mut link = self[node].first_child;
         let mut text = None;
         while let Some(child) = link {
@@ -221,7 +221,7 @@ pub(crate) enum NodeData {
     },
 }
 
-pub(crate) struct ElementData {
+pub struct ElementData {
     pub(crate) name: QualName,
     pub(crate) attrs: Vec<Attribute>,
     pub(crate) mathml_annotation_xml_integration_point: bool,
@@ -258,14 +258,14 @@ impl Node {
         true
     }
 
-    pub(crate) fn as_element(&self) -> Option<&ElementData> {
+    pub fn as_element(&self) -> Option<&ElementData> {
         match self.data {
             NodeData::Element(ref data) => Some(data),
             _ => None,
         }
     }
 
-    pub(crate) fn as_text(&self) -> Option<&String> {
+    pub fn as_text(&self) -> Option<&String> {
         match self.data {
             NodeData::Text { ref contents } => Some(contents),
             _ => None,
@@ -279,7 +279,7 @@ impl Node {
             next_sibling: None,
             first_child: None,
             last_child: None,
-            data: data,
+            data,
         }
     }
 }
