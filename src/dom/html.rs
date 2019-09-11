@@ -27,10 +27,13 @@ impl Sink {
         self.document.push_node(Node::new(data))
     }
 
-    fn append_common<P, A>(&mut self, child: NodeOrText<NodeId>, previous: P, append: A)
-    where
-        P: FnOnce(&mut Document) -> Option<NodeId>,
-        A: FnOnce(&mut Document, NodeId),
+    fn append_common<P, A>(
+        &mut self,
+        child: NodeOrText<NodeId>,
+        previous: P,
+        append: A)
+        where P: FnOnce(&mut Document) -> Option<NodeId>,
+              A: FnOnce(&mut Document, NodeId)
     {
         let new_node = match child {
             NodeOrText::AppendText(text) => {
