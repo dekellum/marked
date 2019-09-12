@@ -157,7 +157,7 @@ impl Document {
     }
 
     /// <https://dom.spec.whatwg.org/#concept-child-text-content>
-    pub fn child_text_content(&self, node: NodeId) -> Cow<String> {
+    pub fn child_text_content(&self, node: NodeId) -> Cow<'_, String> {
         let mut link = self[node].first_child;
         let mut text = None;
         while let Some(child) = link {
@@ -294,7 +294,7 @@ impl Node {
 }
 
 impl fmt::Debug for Node {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let ptr: *const Node = self;
         f.debug_tuple("Node").field(&ptr).finish()
     }
