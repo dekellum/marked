@@ -7,12 +7,15 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
-use super::*;
-use html5ever::interface::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
-use html5ever::tendril::{StrTendril, TendrilSink};
-use html5ever::{self, parse_document, ExpandedName};
 use std::borrow::Cow;
 use std::collections::HashSet;
+use std::default::Default;
+
+use html5ever::interface::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
+use html5ever::tendril::{StrTendril, TendrilSink};
+use html5ever::{self, parse_document, ExpandedName, QualName};
+
+use crate::dom::{Attribute, Document, ElementData, Node, NodeData, NodeId};
 
 impl Document {
     pub fn parse_html(utf8_bytes: &[u8]) -> Self {

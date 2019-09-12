@@ -14,12 +14,14 @@
 // Copyright © 2014-2017 The html5ever Project Developers.
 // Licensed under the Apache license v2.0, or the MIT license
 
-use html5ever::serialize::TraversalScope::*;
-use html5ever::serialize::{serialize, Serialize, SerializeOpts, Serializer, TraversalScope};
 use std::fs::File;
-use std::io::{Result, Write};
+use std::io;
+use std::io::Write;
 use std::path::Path;
 use std::string::ToString;
+
+use html5ever::serialize::TraversalScope::*;
+use html5ever::serialize::{serialize, Serialize, SerializeOpts, Serializer, TraversalScope};
 
 use crate::dom::{Document, NodeId, NodeData};
 
@@ -32,7 +34,7 @@ impl<'a> Serialize for DocNode<'a> {
         &self,
         serializer: &mut S,
         traversal_scope: TraversalScope)
-        -> Result<()>
+        -> io::Result<()>
         where S: Serializer
     {
         let node = &self.0[self.1];
@@ -107,7 +109,7 @@ impl<'a> ToString for Document {
 impl Document {
     /// Serialize this node and its descendants in HTML syntax to the given stream.
     #[inline]
-    pub fn serialize<W: Write>(&self, writer: &mut W) -> Result<()> {
+    pub fn serialize<W: Write>(&self, writer: &mut W) -> io::Result<()> {
         serialize(
             writer,
             &DocNode(self, Document::document_node_id()),
@@ -120,7 +122,7 @@ impl Document {
 
     /// Serialize this node and its descendants in HTML syntax to a new file at the given path.
     #[inline]
-    pub fn serialize_to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+    pub fn serialize_to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
         let mut file = File::create(&path)?;
         self.serialize(&mut file)
     }

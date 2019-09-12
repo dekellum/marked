@@ -6,13 +6,13 @@ use std::io;
 use encoding_rs as enc;
 
 use html5ever::driver::ParseOpts;
-use html5ever::rcdom::RcDom;
+use html5ever::parse_document;
 use html5ever::tree_builder::TreeBuilderOpts;
-use html5ever::{parse_document, serialize};
 
-pub mod decode;
+use prescan;
 
-use decode::Decoder;
+use prescan::dom::html::Sink;
+use prescan::decode::Decoder;
 
 fn main() {
    let opts = ParseOpts {

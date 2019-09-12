@@ -7,9 +7,13 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
-use super::*;
+use std::fmt;
+use std::error::Error as StdError;
+
 use xml_rs::reader::XmlEvent;
 use xml_rs::attribute::OwnedAttribute;
+
+use crate::dom::{Attribute, Document, ElementData, Node, NodeData, QualName};
 
 impl Document {
     pub fn parse_xml(utf8_bytes: &[u8]) -> Result<Self, XmlError> {
@@ -74,18 +78,18 @@ fn convert_name(name: xml_rs::name::OwnedName) -> QualName {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct XmlError(xml_rs::reader::Error);
 
-impl std::fmt::Display for XmlError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl fmt::Display for XmlError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
 }
 
-impl std::error::Error for XmlError {
+impl StdError for XmlError {
     fn description(&self) -> &str {
         self.0.description()
     }
 
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         self.0.source()
     }
 }

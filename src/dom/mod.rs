@@ -7,16 +7,18 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
-mod html;
-mod xml;
-mod serializer;
-
-use html5ever::{LocalName, QualName};
 use std::borrow::Cow;
 use std::fmt;
 use std::iter::successors;
 
-pub use self::xml::XmlError;
+pub mod html;
+pub mod xml;
+mod serializer;
+
+use html5ever::LocalName;
+pub use html5ever::QualName;
+
+pub use xml::XmlError;
 
 pub struct Document {
     nodes: Vec<Node>,
