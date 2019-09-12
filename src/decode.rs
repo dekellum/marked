@@ -1,11 +1,11 @@
-// Copyright ⓒ 2019 David Kellum
+// Copyright © 2019 David Kellum
 //
 // The `Decoder` implemented here was originally derived from
 // `tendril::stream::LossyDecoder` and `tendril::stream::TendrilSink`
 // (version 0.4.1) source as found:
 //
 // https://github.com/servo/tendril
-// Copyright ⓒ 2015 Keegan McAllister
+// Copyright © 2015 Keegan McAllister
 // Licensed under the Apache license v2.0, or the MIT license
 
 use std::borrow::Cow;

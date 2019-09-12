@@ -4,7 +4,10 @@ version = "0.1.0"
 authors = ["David Kellum <dek-oss@gravitext.com>"]
 edition = "2018"
 
+[lib]
+doctest = false
+
 [dependencies]
-html5ever       = { version=">=0.22.5, <2.0" }
-tendril         = { version=">=0.4.0,  <2.0", features=["encoding_rs"] }
+html5ever       = { version=">=0.24.0, <2.0" }
+tendril         = { version=">=0.4.1,  <2.0", features=["encoding_rs"] }
 encoding_rs     = { version=">=0.8.13, <2.0" }
