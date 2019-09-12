@@ -3,10 +3,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut next = || args.next().ok_or("Usage: victor input.html (output.pdf)");
     let _self = next()?;
     let input = next()?;
-    //let _output = next()?;
+    let output = next()?;
     let bytes = std::fs::read(&input)?;
-    let _doc = victor::dom::Document::parse_html(&bytes);
-    //let pdf = doc.to_pdf_bytes();
-    //std::fs::write(&output, &pdf)?;
+    let doc = victor::dom::Document::parse_html(&bytes);
+    doc.serialize_to_file(&output)?;
     Ok(())
 }

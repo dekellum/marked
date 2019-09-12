@@ -9,6 +9,7 @@
 
 mod html;
 mod xml;
+mod serializer;
 
 use html5ever::{LocalName, QualName};
 use std::borrow::Cow;
