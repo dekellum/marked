@@ -23,18 +23,18 @@ fn main() {
         ..Default::default()
     };
 
-    let parser_sink = parse_document(RcDom::default(), opts);
+    let parser_sink = parse_document(Sink::default(), opts);
 
     // Decoders are "Sink adaptors"—like the Parser, they also impl trait
     // TendrilSink.
-    let decoder = Decoder::new(enc::WINDOWS_1252, parser_sink);
-    // (or enc::UTF_8, etc.)
+    let decoder = Decoder::new(enc::UTF_8, parser_sink);
+    // (or enc::WINDOWS_1252, etc.)
 
     let stdin = io::stdin();
-    let dom = decoder.read_until(&mut stdin.lock()).expect("parse");
+    let doc = decoder.read_until(&mut stdin.lock()).expect("parse");
 
     // check dom.errors?
 
-    serialize(&mut io::stdout(), &dom.document, Default::default())
+    doc.serialize(&mut io::stdout())
         .expect("serialization failed");
 }

@@ -29,7 +29,7 @@ impl Document {
     }
 }
 
-struct Sink {
+pub struct Sink {
     document: Document,
     quirks_mode: QuirksMode,
 }
@@ -68,6 +68,15 @@ impl Sink {
         };
 
         append(&mut self.document, new_node)
+    }
+}
+
+impl Default for Sink {
+    fn default() -> Self {
+        Sink {
+            document: Document::new(),
+            quirks_mode: QuirksMode::NoQuirks,
+        }
     }
 }
 
