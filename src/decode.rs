@@ -6,7 +6,7 @@
 //
 // https://github.com/servo/tendril
 // Copyright ⓒ 2015 Keegan McAllister
-// Licensed under the Apache license, v2.0, or the MIT license
+// Licensed under the Apache license v2.0, or the MIT license
 
 use std::borrow::Cow;
 use std::io;
