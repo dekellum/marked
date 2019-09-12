@@ -9,6 +9,7 @@
 
 use super::*;
 use xml_rs::reader::XmlEvent;
+use xml_rs::attribute::OwnedAttribute;
 
 impl Document {
     pub fn parse_xml(utf8_bytes: &[u8]) -> Result<Self, XmlError> {
@@ -24,12 +25,10 @@ impl Document {
                         name: convert_name(name),
                         attrs: attributes
                             .into_iter()
-                            .map(
-                                |xml_rs::attribute::OwnedAttribute { name, value }| Attribute {
-                                    name: convert_name(name),
-                                    value,
-                                },
-                            )
+                            .map(|OwnedAttribute { name, value }| Attribute {
+                                name: convert_name(name),
+                                value
+                            })
                             .collect(),
                         mathml_annotation_xml_integration_point: false,
                     })));
@@ -40,10 +39,8 @@ impl Document {
                 XmlEvent::EndElement { .. } => current = ancestors.pop().unwrap(),
                 XmlEvent::CData(s) | XmlEvent::Characters(s) | XmlEvent::Whitespace(s) => {
                     if let Some(last_child) = document[current].last_child {
-                        if let Node {
-                            data: NodeData::Text { contents },
-                            ..
-                        } = &mut document[last_child]
+                        if let Node { data: NodeData::Text { contents }, .. } =
+                            &mut document[last_child]
                         {
                             contents.push_str(&s);
                             continue;
