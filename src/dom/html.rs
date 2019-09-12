@@ -1,3 +1,12 @@
+// Copyright ⓒ 2019 David Kellum
+//
+// This DOM-like markup tree module was originally based on `victor::dom`, as
+// of commit fdb11f3e8 of the source as found here:
+//
+// https://github.com/SimonSapin/victor
+// (No copyright notice.)
+// Licensed under the Apache license v2.0, or the MIT license
+
 use super::*;
 use html5ever::interface::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
 use html5ever::tendril::{StrTendril, TendrilSink};

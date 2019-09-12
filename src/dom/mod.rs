@@ -1,4 +1,11 @@
-//! This is *a* Document Object Model, but is not necessarily compatible with *the* DOM.
+// Copyright ⓒ 2019 David Kellum
+//
+// This DOM-like markup tree module was originally based on `victor::dom`, as
+// of commit fdb11f3e8 of the source as found here:
+//
+// https://github.com/SimonSapin/victor
+// (No copyright notice.)
+// Licensed under the Apache license v2.0, or the MIT license
 
 mod html;
 mod xml;
