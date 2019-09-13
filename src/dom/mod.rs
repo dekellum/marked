@@ -11,12 +11,12 @@ use std::borrow::Cow;
 use std::fmt;
 use std::iter::successors;
 
+use html5ever::LocalName;
+pub use html5ever::QualName;
+
 pub mod html;
 pub mod xml;
 mod serializer;
-
-use html5ever::LocalName;
-pub use html5ever::QualName;
 
 pub use xml::XmlError;
 
@@ -257,15 +257,6 @@ impl ElementData {
     }
 }
 
-#[test]
-#[cfg(target_pointer_width = "64")]
-fn size_of() {
-    use std::mem::size_of;
-    assert_eq!(size_of::<Node>(), 120);
-    assert_eq!(size_of::<NodeData>(), 80);
-    assert_eq!(size_of::<ElementData>(), 64);
-}
-
 impl Node {
     pub fn as_element(&self) -> Option<&ElementData> {
         match self.data {
@@ -298,4 +289,13 @@ impl fmt::Debug for Node {
         let ptr: *const Node = self;
         f.debug_tuple("Node").field(&ptr).finish()
     }
+}
+
+#[test]
+#[cfg(target_pointer_width = "64")]
+fn size_of() {
+    use std::mem::size_of;
+    assert_eq!(size_of::<Node>(), 120);
+    assert_eq!(size_of::<NodeData>(), 80);
+    assert_eq!(size_of::<ElementData>(), 64);
 }
