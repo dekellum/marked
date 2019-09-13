@@ -15,7 +15,7 @@ use prescan::dom::html::Sink;
 use prescan::decode::Decoder;
 
 fn main() {
-   let opts = ParseOpts {
+   let _opts = ParseOpts {
         tree_builder: TreeBuilderOpts {
             drop_doctype: true,
             ..Default::default()
@@ -23,7 +23,7 @@ fn main() {
         ..Default::default()
     };
 
-    let parser_sink = parse_document(Sink::default(), opts);
+    let parser_sink = parse_document(Sink::default(), ParseOpts::default());
 
     // Decoders are "Sink adaptors"—like the Parser, they also impl trait
     // TendrilSink.
