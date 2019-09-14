@@ -189,9 +189,9 @@ impl TreeSink for Sink {
         system_id: StrTendril)
     {
         let node = self.new_node(NodeData::Doctype {
-            name: name.into(),
-            _public_id: public_id.into(),
-            _system_id: system_id.into(),
+            name,
+            _public_id: public_id,
+            _system_id: system_id,
         });
         self.document.append(Document::document_node_id(), node)
     }
