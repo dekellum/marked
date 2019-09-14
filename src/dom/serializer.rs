@@ -89,9 +89,9 @@ impl<'a> Serialize for DocNode<'a> {
                 serializer.write_comment(&t)
             }
             (IncludeNode,
-             &NodeData::ProcessingInstruction { ref target, ref contents }
+             &NodeData::ProcessingInstruction { ref target, ref data }
             ) => {
-                serializer.write_processing_instruction(&target, &contents)
+                serializer.write_processing_instruction(&target, &data)
             }
         }
     }

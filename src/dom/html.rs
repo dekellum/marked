@@ -146,10 +146,7 @@ impl TreeSink for Sink {
     fn create_pi(&mut self, target: StrTendril, data: StrTendril)
         -> NodeId
     {
-        self.new_node(NodeData::ProcessingInstruction {
-            target: target.into(),
-            contents: data.into(),
-        })
+        self.new_node(NodeData::ProcessingInstruction { target, data })
     }
 
     fn append(&mut self, &parent: &NodeId, child: NodeOrText<NodeId>) {

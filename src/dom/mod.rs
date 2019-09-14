@@ -227,8 +227,8 @@ pub(crate) enum NodeData {
     Comment(StrTendril),
     Element(ElementData),
     ProcessingInstruction {
-        target: String,
-        contents: String,
+        target: StrTendril,
+        data: StrTendril,
     },
 }
 

@@ -13,7 +13,9 @@ use std::error::Error as StdError;
 use xml_rs::reader::XmlEvent;
 use xml_rs::attribute::OwnedAttribute;
 
-use crate::dom::{Attribute, Document, ElementData, Node, NodeData, QualName};
+use crate::dom::{
+    Attribute, Document, ElementData, Node, NodeData, QualName, StrTendril
+};
 
 impl Document {
     pub fn parse_xml(utf8_bytes: &[u8]) -> Result<Self, XmlError> {
@@ -53,9 +55,14 @@ impl Document {
                     document.append(current, id);
                 }
                 XmlEvent::ProcessingInstruction { name, data } => {
+                    let data = if let Some(s) = data {
+                        s.into()
+                    } else {
+                        StrTendril::new()
+                    };
                     let id = document.push_node(Node::new(NodeData::ProcessingInstruction {
-                        target: name,
-                        contents: data.unwrap_or_else(String::new),
+                        target: name.into(),
+                        data
                     }));
                     document.append(current, id);
                 }
