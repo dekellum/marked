@@ -79,19 +79,19 @@ impl<'a> Serialize for DocNode<'a> {
 
             (ChildrenOnly(_), _) => Ok(()),
 
-            (IncludeNode, &NodeData::Doctype { ref _name, ..}) => {
-                serializer.write_doctype(_name)
+            (IncludeNode, &NodeData::Doctype { ref name, .. }) => {
+                serializer.write_doctype(name)
             }
             (IncludeNode, &NodeData::Text { ref contents }) => {
                 serializer.write_text(&contents)
             }
-            (IncludeNode, &NodeData::Comment { ref _contents }) => {
-                serializer.write_comment(&_contents)
+            (IncludeNode, &NodeData::Comment { ref contents }) => {
+                serializer.write_comment(&contents)
             }
             (IncludeNode,
-             &NodeData::ProcessingInstruction { ref _target, ref _contents }
+             &NodeData::ProcessingInstruction { ref target, ref contents }
             ) => {
-                serializer.write_processing_instruction(&_target, &_contents)
+                serializer.write_processing_instruction(&target, &contents)
             }
         }
     }

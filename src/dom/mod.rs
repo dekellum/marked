@@ -219,7 +219,7 @@ impl std::ops::IndexMut<NodeId> for Document {
 pub(crate) enum NodeData {
     Document,
     Doctype {
-        _name: String,
+        name: String,
         _public_id: String,
         _system_id: String,
     },
@@ -227,12 +227,12 @@ pub(crate) enum NodeData {
         contents: StrTendril,
     },
     Comment {
-        _contents: String,
+        contents: String,
     },
     Element(ElementData),
     ProcessingInstruction {
-        _target: String,
-        _contents: String,
+        target: String,
+        contents: String,
     },
 }
 

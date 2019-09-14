@@ -146,7 +146,7 @@ impl TreeSink for Sink {
 
     fn create_comment(&mut self, text: StrTendril) -> NodeId {
         self.new_node(NodeData::Comment {
-            _contents: text.into(),
+            contents: text.into(),
         })
     }
 
@@ -154,8 +154,8 @@ impl TreeSink for Sink {
         -> NodeId
     {
         self.new_node(NodeData::ProcessingInstruction {
-            _target: target.into(),
-            _contents: data.into(),
+            target: target.into(),
+            contents: data.into(),
         })
     }
 
@@ -199,7 +199,7 @@ impl TreeSink for Sink {
         system_id: StrTendril)
     {
         let node = self.new_node(NodeData::Doctype {
-            _name: name.into(),
+            name: name.into(),
             _public_id: public_id.into(),
             _system_id: system_id.into(),
         });

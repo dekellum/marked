@@ -55,8 +55,8 @@ impl Document {
                 }
                 XmlEvent::ProcessingInstruction { name, data } => {
                     let id = document.push_node(Node::new(NodeData::ProcessingInstruction {
-                        _target: name,
-                        _contents: data.unwrap_or_else(String::new),
+                        target: name,
+                        contents: data.unwrap_or_else(String::new),
                     }));
                     document.append(current, id);
                 }
