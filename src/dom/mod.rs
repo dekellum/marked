@@ -288,4 +288,8 @@ fn size_of() {
     assert_eq!(size_of::<Node>(), 112);
     assert_eq!(size_of::<NodeData>(), 72);
     assert_eq!(size_of::<ElementData>(), 64);
+    assert_eq!(size_of::<Attribute>(), 48);
+    assert_eq!(size_of::<Vec<Attribute>>(), 24);
+    assert_eq!(size_of::<QualName>(), 32);
+    assert_eq!(size_of::<StrTendril>(), 16);
 }
