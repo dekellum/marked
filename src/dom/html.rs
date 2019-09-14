@@ -55,12 +55,9 @@ impl Sink {
                 if let Some(id) = previous(&mut self.document) {
                     // FIXME: Frequently done in test, possibly a minor perf
                     // gain over independent text nodes?
-                    if let Node {
-                        data: NodeData::Text(contents),
-                        ..
-                    } = &mut self.document[id]
-                    {
-                        contents.push_tendril(&text);
+                    let node = &mut self.document[id];
+                    if let NodeData::Text(t) = &mut node.data {
+                        t.push_tendril(&text);
                         return;
                     }
                 }

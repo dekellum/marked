@@ -162,10 +162,10 @@ impl Document {
         let mut link = self[node].first_child;
         let mut text = None;
         while let Some(child) = link {
-            if let NodeData::Text(contents) = &self[child].data {
+            if let NodeData::Text(t) = &self[child].data {
                 match &mut text {
-                    None => text = Some(Cow::Borrowed(contents)),
-                    Some(text) => text.to_mut().push_tendril(&contents),
+                    None => text = Some(Cow::Borrowed(t)),
+                    Some(text) => text.to_mut().push_tendril(&t),
                 }
             }
             link = self[child].next_sibling;
@@ -257,7 +257,7 @@ impl Node {
 
     pub fn as_text(&self) -> Option<&StrTendril> {
         match self.data {
-            NodeData::Text(ref contents) => Some(contents),
+            NodeData::Text(ref t) => Some(t),
             _ => None,
         }
     }
