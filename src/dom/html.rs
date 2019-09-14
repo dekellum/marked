@@ -56,7 +56,7 @@ impl Sink {
                     // FIXME: Frequently done in test, possibly a minor perf
                     // gain over independent text nodes?
                     if let Node {
-                        data: NodeData::Text { contents },
+                        data: NodeData::Text(contents),
                         ..
                     } = &mut self.document[id]
                     {
@@ -64,9 +64,7 @@ impl Sink {
                         return;
                     }
                 }
-                self.new_node(NodeData::Text {
-                    contents: text.into(),
-                })
+                self.new_node(NodeData::Text(text))
             }
             NodeOrText::AppendNode(node) => node,
         };

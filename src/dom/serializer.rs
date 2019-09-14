@@ -82,7 +82,7 @@ impl<'a> Serialize for DocNode<'a> {
             (IncludeNode, &NodeData::Doctype { ref name, .. }) => {
                 serializer.write_doctype(name)
             }
-            (IncludeNode, &NodeData::Text { ref contents }) => {
+            (IncludeNode, &NodeData::Text(ref contents)) => {
                 serializer.write_text(&contents)
             }
             (IncludeNode, &NodeData::Comment { ref contents }) => {

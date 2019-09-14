@@ -84,7 +84,7 @@ impl Document {
                 NodeData::Doctype { .. }
                 | NodeData::Comment { .. }
                 | NodeData::ProcessingInstruction { .. } => {}
-                NodeData::Document | NodeData::Text { .. } => {
+                NodeData::Document | NodeData::Text(_) => {
                     panic!("Unexpected node type under document node");
                 }
                 NodeData::Element(_) => {
@@ -162,7 +162,7 @@ impl Document {
         let mut link = self[node].first_child;
         let mut text = None;
         while let Some(child) = link {
-            if let NodeData::Text { contents } = &self[child].data {
+            if let NodeData::Text(contents) = &self[child].data {
                 match &mut text {
                     None => text = Some(Cow::Borrowed(contents)),
                     Some(text) => text.to_mut().push_tendril(&contents),
@@ -223,9 +223,7 @@ pub(crate) enum NodeData {
         _public_id: String,
         _system_id: String,
     },
-    Text {
-        contents: StrTendril,
-    },
+    Text(StrTendril),
     Comment {
         contents: String,
     },
@@ -261,7 +259,7 @@ impl Node {
 
     pub fn as_text(&self) -> Option<&StrTendril> {
         match self.data {
-            NodeData::Text { ref contents } => Some(contents),
+            NodeData::Text(ref contents) => Some(contents),
             _ => None,
         }
     }

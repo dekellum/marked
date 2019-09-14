@@ -43,14 +43,14 @@ impl Document {
                 XmlEvent::EndElement { .. } => current = ancestors.pop().unwrap(),
                 XmlEvent::CData(s) | XmlEvent::Characters(s) | XmlEvent::Whitespace(s) => {
                     if let Some(last_child) = document[current].last_child {
-                        if let Node { data: NodeData::Text { contents }, .. } =
+                        if let Node { data: NodeData::Text(contents), .. } =
                             &mut document[last_child]
                         {
                             contents.push_slice(&s);
                             continue;
                         }
                     }
-                    let id = document.push_node(Node::new(NodeData::Text { contents: s.into() }));
+                    let id = document.push_node(Node::new(NodeData::Text(s.into())));
                     document.append(current, id);
                 }
                 XmlEvent::ProcessingInstruction { name, data } => {
