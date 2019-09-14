@@ -82,7 +82,7 @@ impl Document {
         {
             match &self[child].data {
                 NodeData::Doctype { .. }
-                | NodeData::Comment { .. }
+                | NodeData::Comment(_)
                 | NodeData::ProcessingInstruction { .. } => {}
                 NodeData::Document | NodeData::Text(_) => {
                     panic!("Unexpected node type under document node");
@@ -224,9 +224,7 @@ pub(crate) enum NodeData {
         _system_id: String,
     },
     Text(StrTendril),
-    Comment {
-        contents: String,
-    },
+    Comment(StrTendril),
     Element(ElementData),
     ProcessingInstruction {
         target: String,

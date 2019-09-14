@@ -143,9 +143,7 @@ impl TreeSink for Sink {
     }
 
     fn create_comment(&mut self, text: StrTendril) -> NodeId {
-        self.new_node(NodeData::Comment {
-            contents: text.into(),
-        })
+        self.new_node(NodeData::Comment(text))
     }
 
     fn create_pi(&mut self, target: StrTendril, data: StrTendril)
