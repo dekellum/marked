@@ -12,7 +12,7 @@ use std::fmt;
 use std::iter::successors;
 
 use html5ever::LocalName;
-pub use html5ever::QualName;
+pub use html5ever::{Attribute, QualName};
 
 pub mod html;
 pub mod xml;
@@ -239,13 +239,6 @@ pub struct ElementData {
     pub(crate) name: QualName,
     pub(crate) attrs: Vec<Attribute>,
     pub(crate) mathml_annotation_xml_integration_point: bool,
-}
-
-pub(crate) struct Attribute {
-    /// The name of the attribute (e.g. the `class` in `<div class="test">`)
-    pub name: QualName,
-    /// The value of the attribute (e.g. the `"test"` in `<div class="test">`)
-    pub value: String,
 }
 
 impl ElementData {

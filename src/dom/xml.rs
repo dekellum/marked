@@ -31,7 +31,7 @@ impl Document {
                             .into_iter()
                             .map(|OwnedAttribute { name, value }| Attribute {
                                 name: convert_name(name),
-                                value
+                                value: value.into()
                             })
                             .collect(),
                         mathml_annotation_xml_integration_point: false,

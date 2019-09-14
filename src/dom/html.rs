@@ -128,7 +128,7 @@ impl TreeSink for Sink {
     fn create_element(
         &mut self,
         name: QualName,
-        attrs: Vec<html5ever::Attribute>,
+        attrs: Vec<Attribute>,
         ElementFlags {
             mathml_annotation_xml_integration_point,
             ..
@@ -137,7 +137,7 @@ impl TreeSink for Sink {
     {
         self.new_node(NodeData::Element(ElementData {
             name,
-            attrs: attrs.into_iter().map(Attribute::from).collect(),
+            attrs,
             mathml_annotation_xml_integration_point,
         }))
     }
@@ -207,7 +207,7 @@ impl TreeSink for Sink {
     fn add_attrs_if_missing(
         &mut self,
         &target: &NodeId,
-        attrs: Vec<html5ever::Attribute>)
+        attrs: Vec<Attribute>)
     {
         // FIXME: Never called in our normal/test usage thus far?
         let node = &mut self.document[target];
@@ -225,7 +225,6 @@ impl TreeSink for Sink {
         element.attrs.extend(
             attrs
                 .into_iter()
-                .map(Attribute::from)
                 .filter(|attr| !existing_names.contains(&attr.name)),
         );
     }
@@ -244,11 +243,3 @@ impl TreeSink for Sink {
     }
 }
 
-impl From<html5ever::Attribute> for Attribute {
-    fn from(attr: html5ever::Attribute) -> Self {
-        Self {
-            name: attr.name,
-            value: attr.value.into(),
-        }
-    }
-}
