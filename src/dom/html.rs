@@ -11,7 +11,9 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 use std::default::Default;
 
-use html5ever::interface::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
+use html5ever::interface::tree_builder::{
+    ElementFlags, NodeOrText, QuirksMode, TreeSink
+};
 use html5ever::tendril::{StrTendril, TendrilSink};
 use html5ever::{self, parse_document, ExpandedName, QualName};
 
@@ -114,7 +116,9 @@ impl TreeSink for Sink {
         target
     }
 
-    fn is_mathml_annotation_xml_integration_point(&self, &target: &NodeId) -> bool {
+    fn is_mathml_annotation_xml_integration_point(&self, &target: &NodeId)
+        -> bool
+    {
         self.document[target]
             .as_element()
             .expect("not an element")
@@ -128,8 +132,9 @@ impl TreeSink for Sink {
         ElementFlags {
             mathml_annotation_xml_integration_point,
             ..
-        }: ElementFlags,
-    ) -> NodeId {
+        }: ElementFlags)
+        -> NodeId
+    {
         self.new_node(NodeData::Element(ElementData {
             name,
             attrs: attrs.into_iter().map(Attribute::from).collect(),
@@ -143,7 +148,9 @@ impl TreeSink for Sink {
         })
     }
 
-    fn create_pi(&mut self, target: StrTendril, data: StrTendril) -> NodeId {
+    fn create_pi(&mut self, target: StrTendril, data: StrTendril)
+        -> NodeId
+    {
         self.new_node(NodeData::ProcessingInstruction {
             _target: target.into(),
             _contents: data.into(),
@@ -158,7 +165,11 @@ impl TreeSink for Sink {
         )
     }
 
-    fn append_before_sibling(&mut self, &sibling: &NodeId, child: NodeOrText<NodeId>) {
+    fn append_before_sibling(
+        &mut self,
+        &sibling: &NodeId,
+        child: NodeOrText<NodeId>)
+    {
         self.append_common(
             child,
             |document| document[sibling].previous_sibling,
@@ -170,8 +181,8 @@ impl TreeSink for Sink {
         &mut self,
         element: &NodeId,
         prev_element: &NodeId,
-        child: NodeOrText<NodeId>,
-    ) {
+        child: NodeOrText<NodeId>)
+    {
         if self.document[*element].parent.is_some() {
             self.append_before_sibling(element, child)
         } else {
@@ -183,8 +194,8 @@ impl TreeSink for Sink {
         &mut self,
         name: StrTendril,
         public_id: StrTendril,
-        system_id: StrTendril,
-    ) {
+        system_id: StrTendril)
+    {
         let node = self.new_node(NodeData::Doctype {
             _name: name.into(),
             _public_id: public_id.into(),
@@ -193,12 +204,19 @@ impl TreeSink for Sink {
         self.document.append(Document::document_node_id(), node)
     }
 
-    fn add_attrs_if_missing(&mut self, &target: &NodeId, attrs: Vec<html5ever::Attribute>) {
-        let element = if let NodeData::Element(element) = &mut self.document[target].data {
-            element
+    fn add_attrs_if_missing(
+        &mut self,
+        &target: &NodeId,
+        attrs: Vec<html5ever::Attribute>)
+    {
+        // FIXME: Never called in our normal/test usage thus far?
+        let node = &mut self.document[target];
+        let element = if let NodeData::Element(e) = &mut node.data {
+            e
         } else {
-            panic!("not an element")
+            panic!("not an element");
         };
+
         let existing_names = element
             .attrs
             .iter()
