@@ -53,12 +53,14 @@ impl Sink {
             NodeOrText::AppendText(text) => {
                 // Append to an existing Text node if we have one.
                 if let Some(id) = previous(&mut self.document) {
+                    // FIXME: Frequently done in test, possibly a minor perf
+                    // gain over independent text nodes?
                     if let Node {
                         data: NodeData::Text { contents },
                         ..
                     } = &mut self.document[id]
                     {
-                        contents.push_str(&text);
+                        contents.push_tendril(&text);
                         return;
                     }
                 }
@@ -242,4 +244,3 @@ impl TreeSink for Sink {
         }
     }
 }
-

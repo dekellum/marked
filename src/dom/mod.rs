@@ -13,6 +13,7 @@ use std::iter::successors;
 
 use html5ever::LocalName;
 pub use html5ever::{Attribute, QualName};
+pub use tendril::StrTendril;
 
 pub mod html;
 pub mod xml;
@@ -157,19 +158,19 @@ impl Document {
     }
 
     /// <https://dom.spec.whatwg.org/#concept-child-text-content>
-    pub fn child_text_content(&self, node: NodeId) -> Cow<'_, String> {
+    pub fn child_text_content(&self, node: NodeId) -> Cow<'_, StrTendril> {
         let mut link = self[node].first_child;
         let mut text = None;
         while let Some(child) = link {
             if let NodeData::Text { contents } = &self[child].data {
                 match &mut text {
                     None => text = Some(Cow::Borrowed(contents)),
-                    Some(text) => text.to_mut().push_str(&contents),
+                    Some(text) => text.to_mut().push_tendril(&contents),
                 }
             }
             link = self[child].next_sibling;
         }
-        text.unwrap_or_else(|| Cow::Owned(String::new()))
+        text.unwrap_or_else(|| Cow::Owned(StrTendril::new()))
     }
 
     pub(crate) fn node_and_following_siblings<'a>(
@@ -223,7 +224,7 @@ pub(crate) enum NodeData {
         _system_id: String,
     },
     Text {
-        contents: String,
+        contents: StrTendril,
     },
     Comment {
         _contents: String,
@@ -258,7 +259,7 @@ impl Node {
         }
     }
 
-    pub fn as_text(&self) -> Option<&String> {
+    pub fn as_text(&self) -> Option<&StrTendril> {
         match self.data {
             NodeData::Text { ref contents } => Some(contents),
             _ => None,

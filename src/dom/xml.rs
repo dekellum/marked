@@ -46,11 +46,11 @@ impl Document {
                         if let Node { data: NodeData::Text { contents }, .. } =
                             &mut document[last_child]
                         {
-                            contents.push_str(&s);
+                            contents.push_slice(&s);
                             continue;
                         }
                     }
-                    let id = document.push_node(Node::new(NodeData::Text { contents: s }));
+                    let id = document.push_node(Node::new(NodeData::Text { contents: s.into() }));
                     document.append(current, id);
                 }
                 XmlEvent::ProcessingInstruction { name, data } => {
