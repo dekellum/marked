@@ -113,30 +113,20 @@ impl TreeSink for Sink {
         target
     }
 
-    fn is_mathml_annotation_xml_integration_point(&self, &target: &NodeId)
+    fn is_mathml_annotation_xml_integration_point(&self, _target: &NodeId)
         -> bool
     {
-        self.document[target]
-            .as_element()
-            .expect("not an element")
-            .mathml_annotation_xml_integration_point
+        false
     }
 
     fn create_element(
         &mut self,
         name: QualName,
         attrs: Vec<Attribute>,
-        ElementFlags {
-            mathml_annotation_xml_integration_point,
-            ..
-        }: ElementFlags)
+        _flags: ElementFlags)
         -> NodeId
     {
-        self.new_node(NodeData::Element(ElementData {
-            name,
-            attrs,
-            mathml_annotation_xml_integration_point,
-        }))
+        self.new_node(NodeData::Element(ElementData { name, attrs }))
     }
 
     fn create_comment(&mut self, text: StrTendril) -> NodeId {

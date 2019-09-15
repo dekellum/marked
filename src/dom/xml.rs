@@ -35,8 +35,7 @@ impl Document {
                                 name: convert_name(name),
                                 value: value.into()
                             })
-                            .collect(),
-                        mathml_annotation_xml_integration_point: false,
+                            .collect()
                     })));
                     document.append(current, id);
                     ancestors.push(current);
