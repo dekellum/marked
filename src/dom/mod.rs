@@ -8,6 +8,7 @@
 // Licensed under the Apache license v2.0, or the MIT license
 
 use std::borrow::Cow;
+use std::convert::TryInto;
 use std::fmt;
 use std::iter::successors;
 
@@ -35,7 +36,7 @@ pub struct Node {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct NodeId(std::num::NonZeroUsize);
+pub struct NodeId(std::num::NonZeroU32);
 
 impl Document {
     fn new() -> Self {
@@ -49,7 +50,7 @@ impl Document {
     }
 
     pub(crate) fn document_node_id() -> NodeId {
-        NodeId(std::num::NonZeroUsize::new(1).unwrap())
+        NodeId(std::num::NonZeroU32::new(1).unwrap())
     }
 
     /// (rel_attribute, href_attribute)
@@ -97,9 +98,11 @@ impl Document {
     }
 
     fn push_node(&mut self, node: Node) -> NodeId {
-        let next_index = self.nodes.len();
+        let next_index = self.nodes.len()
+            .try_into()
+            .expect("dom::Document (u32) Node index overflow");
         self.nodes.push(node);
-        NodeId(std::num::NonZeroUsize::new(next_index).unwrap())
+        NodeId(std::num::NonZeroU32::new(next_index).unwrap())
     }
 
     fn detach(&mut self, node: NodeId) {
@@ -205,14 +208,14 @@ impl std::ops::Index<NodeId> for Document {
 
     #[inline]
     fn index(&self, id: NodeId) -> &Node {
-        &self.nodes[id.0.get()]
+        &self.nodes[id.0.get() as usize]
     }
 }
 
 impl std::ops::IndexMut<NodeId> for Document {
     #[inline]
     fn index_mut(&mut self, id: NodeId) -> &mut Node {
-        &mut self.nodes[id.0.get()]
+        &mut self.nodes[id.0.get() as usize]
     }
 }
 
@@ -285,7 +288,7 @@ impl fmt::Debug for Node {
 #[cfg(target_pointer_width = "64")]
 fn size_of() {
     use std::mem::size_of;
-    assert_eq!(size_of::<Node>(), 112);
+    assert_eq!(size_of::<Node>(), 96);
     assert_eq!(size_of::<NodeData>(), 72);
     assert_eq!(size_of::<ElementData>(), 64);
     assert_eq!(size_of::<Attribute>(), 48);
