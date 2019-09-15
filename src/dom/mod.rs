@@ -22,10 +22,13 @@ mod serializer;
 
 pub use xml::XmlError;
 
+/// A DOM-like container for markup, using a vector of `Node`s and 32-bit
+/// indexes for parent/child and sibling ordering.
 pub struct Document {
     nodes: Vec<Node>,
 }
 
+/// A typed node (e.g. text, element, etc.) within a `Document`.
 pub struct Node {
     pub(crate) parent: Option<NodeId>,
     pub(crate) next_sibling: Option<NodeId>,
@@ -144,6 +147,9 @@ impl Document {
         self[sibling].previous_sibling = Some(new_sibling);
     }
 
+    /// Return concatenation of all text under the given node, in tree
+    /// order. May return the empty string.
+    ///
     /// <https://dom.spec.whatwg.org/#concept-child-text-content>
     pub fn child_text_content(&self, node: NodeId) -> Cow<'_, StrTendril> {
         let mut link = self[node].first_child;
@@ -157,6 +163,7 @@ impl Document {
             }
             link = self[child].next_sibling;
         }
+        // FIXME: Use an option for empty case instead?
         text.unwrap_or_else(|| Cow::Owned(StrTendril::new()))
     }
 
@@ -179,7 +186,8 @@ impl Document {
         })
     }
 
-    pub(crate) fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
+    /// Iterate over all nodes, from the root of this document.
+    pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
         let root = Self::document_node_id();
         successors(Some(root), move |&node| self.next_in_tree_order(node))
     }
@@ -217,16 +225,18 @@ pub(crate) enum NodeData {
     },
 }
 
+/// A markup element with name and attributes.
 pub struct ElementData {
     pub(crate) name: QualName,
     pub(crate) attrs: Vec<Attribute>,
 }
 
 impl ElementData {
-    pub(crate) fn get_attr(&self, name: &LocalName) -> Option<&str> {
+    /// Get attribute value by local name.
+    pub fn attr_local(&self, name: &LocalName) -> Option<&str> {
         self.attrs
             .iter()
-            .find(|attr| attr.name.ns == ns!() && attr.name.local == *name)
+            .find(|attr| &attr.name.local == name)
             .map(|attr| &*attr.value)
     }
 }
