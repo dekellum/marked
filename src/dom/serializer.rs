@@ -47,15 +47,12 @@ impl<'a> Serialize for DocNode<'a> {
                         edata.attrs.iter().map(|a| (&a.name, &a.value[..]))
                     )?
                 }
-
-                if let Some(c) = node.first_child {
-                    for child in self.0.node_and_following_siblings(c) {
-                        Serialize::serialize(
-                            &DocNode(self.0, child),
-                            serializer,
-                            IncludeNode
-                        )?
-                    }
+                for child in self.0.children(self.1) {
+                    Serialize::serialize(
+                        &DocNode(self.0, child),
+                        serializer,
+                        IncludeNode
+                    )?
                 }
 
                 if *scope == IncludeNode {
@@ -65,14 +62,12 @@ impl<'a> Serialize for DocNode<'a> {
             }
 
             (_, &NodeData::Document) => {
-                if let Some(c) = node.first_child {
-                    for child in self.0.node_and_following_siblings(c) {
-                        Serialize::serialize(
-                            &DocNode(self.0, child),
-                            serializer,
-                            IncludeNode
-                        )?
-                    }
+                for child in self.0.children(self.1) {
+                    Serialize::serialize(
+                        &DocNode(self.0, child),
+                        serializer,
+                        IncludeNode
+                    )?
                 }
                 Ok(())
             }

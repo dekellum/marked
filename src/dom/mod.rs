@@ -65,9 +65,7 @@ impl Document {
         assert!(document_node.next_sibling.is_none());
         assert!(document_node.previous_sibling.is_none());
         let mut root = None;
-        for child in self.node_and_following_siblings(
-            document_node.first_child.unwrap())
-        {
+        for child in self.children(Document::document_node_id()) {
             match &self[child].data {
                 NodeData::Doctype { .. }
                 | NodeData::Comment(_)
@@ -167,7 +165,21 @@ impl Document {
         text.unwrap_or_else(|| Cow::Owned(StrTendril::new()))
     }
 
-    pub(crate) fn node_and_following_siblings<'a>(&'a self, node: NodeId)
+    /// Return an iterator over this node's direct children.
+    ///
+    /// Will be empty if the node can not or does not have children.
+    pub fn children<'a>(&'a self, node: NodeId)
+        -> impl Iterator<Item = NodeId> + 'a
+    {
+        iter::successors(
+            self[node].first_child,
+            move |&node| self[node].next_sibling
+        )
+    }
+
+    /// Return an iterator over the specified node and all its following
+    /// siblings, within the same parent.
+    pub fn node_and_following_siblings<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(Some(node), move |&node| self[node].next_sibling)
