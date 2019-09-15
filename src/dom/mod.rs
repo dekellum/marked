@@ -10,7 +10,7 @@
 use std::borrow::Cow;
 use std::convert::TryInto;
 use std::fmt;
-use std::iter::successors;
+use std::iter;
 
 use html5ever::LocalName;
 pub use html5ever::{Attribute, QualName};
@@ -170,13 +170,13 @@ impl Document {
     pub(crate) fn node_and_following_siblings<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
-        successors(Some(node), move |&node| self[node].next_sibling)
+        iter::successors(Some(node), move |&node| self[node].next_sibling)
     }
 
     pub(crate) fn node_and_ancestors<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
-        successors(Some(node), move |&node| self[node].parent)
+        iter::successors(Some(node), move |&node| self[node].parent)
     }
 
     fn next_in_tree_order(&self, node: NodeId) -> Option<NodeId> {
@@ -186,10 +186,14 @@ impl Document {
         })
     }
 
-    /// Iterate over all nodes, from the root of this document.
+    /// Iterate over all nodes, including all descendants, from the root of
+    /// this document in tree order.
     pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
         let root = Self::document_node_id();
-        successors(Some(root), move |&node| self.next_in_tree_order(node))
+        iter::successors(
+            Some(root),
+            move |&node| self.next_in_tree_order(node)
+        )
     }
 }
 
