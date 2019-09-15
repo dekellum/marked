@@ -52,21 +52,6 @@ impl Document {
         NodeId(std::num::NonZeroU32::new(1).unwrap())
     }
 
-    /// (rel_attribute, href_attribute)
-    pub fn html_link_elements(&self) -> impl Iterator<Item = (&str, &str)> {
-        self.nodes()
-            .filter_map(move |node| self[node].as_element())
-            .filter(|e| e.name.expanded() == expanded_name!(html "link"))
-            .filter_map(|e| {
-                match (e.get_attr(&local_name!("rel")),
-                       e.get_attr(&local_name!("href")))
-                {
-                    (Some(rel), Some(href)) => Some((rel, href)),
-                    _ => None,
-                }
-            })
-    }
-
     pub fn root_element(&self) -> NodeId {
         let document_node = &self[Document::document_node_id()];
         assert!(match document_node.data {
