@@ -107,7 +107,8 @@ impl<'a> ToString for Document {
 }
 
 impl Document {
-    /// Serialize this node and its descendants in HTML syntax to the given stream.
+    /// Serialize this node and its descendants in HTML syntax to the given
+    /// stream.
     #[inline]
     pub fn serialize<W: Write>(&self, writer: &mut W) -> io::Result<()> {
         serialize(
@@ -120,9 +121,11 @@ impl Document {
         )
     }
 
-    /// Serialize this node and its descendants in HTML syntax to a new file at the given path.
+    /// Serialize this node and its descendants in HTML syntax to a new file at
+    /// the given path.
     #[inline]
-    pub fn serialize_to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
+    pub fn serialize_to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()>
+    {
         let mut file = File::create(&path)?;
         self.serialize(&mut file)
     }

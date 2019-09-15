@@ -35,18 +35,17 @@ pub struct Node {
     pub(crate) data: NodeData,
 }
 
+/// A `Node` identifier, as index into a `Document` vector. Should only be used
+/// with the `Document` it was obtained from.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct NodeId(std::num::NonZeroU32);
 
 impl Document {
     fn new() -> Self {
-        // Dummy node at index 0 so that other indices fit in NonZero
-        let dummy = Node::new(NodeData::Document);
-
-        let document_node = Node::new(NodeData::Document);
-        Document {
-            nodes: vec![dummy, document_node],
-        }
+        Document { nodes: vec![
+            Node::new(NodeData::Document), // dummy padding, index 0
+            Node::new(NodeData::Document)  // the real root, index 1
+        ]}
     }
 
     pub(crate) fn document_node_id() -> NodeId {
@@ -176,17 +175,15 @@ impl Document {
         text.unwrap_or_else(|| Cow::Owned(StrTendril::new()))
     }
 
-    pub(crate) fn node_and_following_siblings<'a>(
-        &'a self,
-        node: NodeId,
-    ) -> impl Iterator<Item = NodeId> + 'a {
+    pub(crate) fn node_and_following_siblings<'a>(&'a self, node: NodeId)
+        -> impl Iterator<Item = NodeId> + 'a
+    {
         successors(Some(node), move |&node| self[node].next_sibling)
     }
 
-    pub(crate) fn node_and_ancestors<'a>(
-        &'a self,
-        node: NodeId,
-    ) -> impl Iterator<Item = NodeId> + 'a {
+    pub(crate) fn node_and_ancestors<'a>(&'a self, node: NodeId)
+        -> impl Iterator<Item = NodeId> + 'a
+    {
         successors(Some(node), move |&node| self[node].parent)
     }
 
