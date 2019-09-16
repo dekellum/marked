@@ -62,15 +62,23 @@ impl Document {
         NodeId(unsafe { NonZeroU32::new_unchecked(1) })
     }
 
-    pub fn root_element(&self) -> NodeId {
+    /// Return the root element NodeId for this Document, or None if there is
+    /// no element.
+    ///
+    /// ## Panics
+    ///
+    /// Panics on various malformed structures, including multiple "root"
+    /// elements or a text node as direct child of the Documnent.
+    #[allow(unused)]
+    pub(crate) fn root_element(&self) -> Option<NodeId> {
         let document_node = &self[Document::document_node_id()];
-        assert!(match document_node.data {
+        debug_assert!(match document_node.data {
             NodeData::Document => true,
             _ => false
         });
-        assert!(document_node.parent.is_none());
-        assert!(document_node.next_sibling.is_none());
-        assert!(document_node.previous_sibling.is_none());
+        debug_assert!(document_node.parent.is_none());
+        debug_assert!(document_node.next_sibling.is_none());
+        debug_assert!(document_node.previous_sibling.is_none());
         let mut root = None;
         for child in self.children(Document::document_node_id()) {
             match &self[child].data {
@@ -86,8 +94,7 @@ impl Document {
                 }
             }
         }
-        // FIXME: Overkill assertions here?
-        root.unwrap()
+        root
     }
 
     fn push_node(&mut self, node: Node) -> NodeId {
@@ -310,4 +317,28 @@ fn size_of() {
     assert_eq!(size_of::<Vec<Attribute>>(), 24);
     assert_eq!(size_of::<QualName>(), 32);
     assert_eq!(size_of::<StrTendril>(), 16);
+}
+
+#[test]
+fn empty_document() {
+    let doc = Document::new();
+    assert_eq!(None, doc.root_element(), "no root Element");
+    assert_eq!(1, doc.nodes().count(), "one Document node");
+}
+
+#[test]
+fn one_element() {
+    let mut doc = Document::new();
+    let element = Node::new(NodeData::Element(
+        ElementData {
+            name: QualName::new(None, ns!(), "one".into()),
+            attrs: vec![]
+        }
+    ));
+    let id = doc.push_node(element);
+    doc.append(Document::document_node_id(), id);
+
+    assert!(doc.root_element().is_some(), "pushed root Element");
+    assert_eq!(id, doc.root_element().unwrap());
+    assert_eq!(2, doc.nodes().count(), "one Document node");
 }
