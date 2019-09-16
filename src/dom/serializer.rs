@@ -15,8 +15,9 @@
 // Licensed under the Apache license v2.0, or the MIT license
 
 use std::fs::File;
-use std::io;
 use std::io::Write;
+use std::io;
+use std::iter;
 use std::path::Path;
 use std::string::ToString;
 
@@ -33,8 +34,26 @@ struct DocNode<'a>{
 }
 
 impl<'a> DocNode<'a> {
-    fn new(doc: &'a Document, id: NodeId) -> DocNode<'a> {
-        DocNode { doc, id }
+    fn document(doc: &'a Document) -> DocNode<'a> {
+        DocNode { doc, id: Document::document_node_id() }
+    }
+
+    /// Return an iterator over node's direct children.
+    ///
+    /// Will be empty if the node can not or does not have children.
+    fn children(&'a self) -> impl Iterator<Item = DocNode<'a>> + 'a {
+        iter::successors(
+            self.for_node(self.doc[self.id].first_child),
+            move |dn| self.for_node(dn.doc[dn.id].next_sibling)
+        )
+    }
+
+    fn for_node(&self, id: Option<NodeId>) -> Option<DocNode<'a>> {
+        if let Some(id) = id {
+            Some(DocNode { doc: self.doc, id })
+        } else {
+            None
+        }
     }
 }
 
@@ -54,29 +73,21 @@ impl<'a> Serialize for DocNode<'a> {
                     serializer.start_elem(
                         edata.name.clone(),
                         edata.attrs.iter().map(|a| (&a.name, &a.value[..]))
-                    )?
+                    )?;
                 }
-                for child in self.doc.children(self.id) {
-                    Serialize::serialize(
-                        &DocNode::new(self.doc, child),
-                        serializer,
-                        IncludeNode
-                    )?
+                for child in self.children() {
+                    Serialize::serialize(&child, serializer, IncludeNode)?;
                 }
 
                 if *scope == IncludeNode {
-                    serializer.end_elem(edata.name.clone())?
+                    serializer.end_elem(edata.name.clone())?;
                 }
                 Ok(())
             }
 
             (_, &NodeData::Document) => {
-                for child in self.doc.children(self.id) {
-                    Serialize::serialize(
-                        &DocNode::new(self.doc, child),
-                        serializer,
-                        IncludeNode
-                    )?
+                for child in self.children() {
+                    Serialize::serialize(&child, serializer, IncludeNode)?;
                 }
                 Ok(())
             }
@@ -93,8 +104,7 @@ impl<'a> Serialize for DocNode<'a> {
                 serializer.write_comment(&t)
             }
             (IncludeNode,
-             &NodeData::ProcessingInstruction { ref target, ref data }
-            ) => {
+             &NodeData::ProcessingInstruction { ref target, ref data }) => {
                 serializer.write_processing_instruction(&target, &data)
             }
         }
@@ -117,7 +127,7 @@ impl Document {
     pub fn serialize<W: Write>(&self, writer: &mut W) -> io::Result<()> {
         serialize(
             writer,
-            &DocNode::new(self, Document::document_node_id()),
+            &DocNode::document(self),
             SerializeOpts {
                 traversal_scope: IncludeNode,
                 ..Default::default()
