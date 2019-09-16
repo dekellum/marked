@@ -10,6 +10,7 @@
 use std::borrow::Cow;
 use std::convert::TryInto;
 use std::iter;
+use std::num::NonZeroU32;
 
 use html5ever::LocalName;
 pub use html5ever::{Attribute, QualName};
@@ -41,7 +42,7 @@ pub struct Node {
 /// A `Node` identifier, as index into a `Document` vector. Should only be used
 /// with the `Document` it was obtained from.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct NodeId(std::num::NonZeroU32);
+pub struct NodeId(NonZeroU32);
 
 impl Document {
     fn new() -> Self {
@@ -51,8 +52,9 @@ impl Document {
         ]}
     }
 
-    pub(crate) fn document_node_id() -> NodeId {
-        NodeId(std::num::NonZeroU32::new(1).unwrap())
+    /// Return the constant document node id for a Document.
+    pub const fn document_node_id() -> NodeId {
+        NodeId(unsafe { NonZeroU32::new_unchecked(1) })
     }
 
     pub fn root_element(&self) -> NodeId {
@@ -87,8 +89,9 @@ impl Document {
         let next_index = self.nodes.len()
             .try_into()
             .expect("dom::Document (u32) Node index overflow");
+        debug_assert!(next_index > 1);
         self.nodes.push(node);
-        NodeId(std::num::NonZeroU32::new(next_index).unwrap())
+        NodeId(unsafe { NonZeroU32::new_unchecked(next_index) })
     }
 
     fn detach(&mut self, node: NodeId) {
