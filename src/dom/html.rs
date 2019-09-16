@@ -113,12 +113,6 @@ impl TreeSink for Sink {
         target
     }
 
-    fn is_mathml_annotation_xml_integration_point(&self, _target: &NodeId)
-        -> bool
-    {
-        false
-    }
-
     fn create_element(
         &mut self,
         name: QualName,
