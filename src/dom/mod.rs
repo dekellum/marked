@@ -22,8 +22,12 @@ mod serializer;
 
 pub use xml::XmlError;
 
-/// A DOM-like container for markup, using a vector of `Node`s and 32-bit
-/// indexes for parent/child and sibling ordering.
+/// A DOM-like container for a tree of markup elements and text.
+///
+/// Unlike `RcDom`, this uses a simple vector of `Node`s and indexes for
+/// parent/child and sibling ordering. Attributes are stored as separately
+/// allocated vectors for each element. For memory efficiency, a single
+/// document is limited to 4 billion (2^32) total nodes.
 pub struct Document {
     nodes: Vec<Node>,
 }
@@ -39,8 +43,9 @@ pub struct Node {
     pub(crate) data: NodeData,
 }
 
-/// A `Node` identifier, as index into a `Document` vector. Should only be used
-/// with the `Document` it was obtained from.
+/// A `Node` identifier, as u32 index into a `Document`s `Node` vector.
+///
+/// Should only be used with the `Document` it was obtained from.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct NodeId(NonZeroU32);
 
@@ -153,7 +158,8 @@ impl Document {
     /// order. May return the empty string.
     ///
     /// <https://dom.spec.whatwg.org/#concept-child-text-content>
-    pub fn child_text_content(&self, node: NodeId) -> Cow<'_, StrTendril> {
+    #[allow(unused)]
+    pub(crate) fn child_text_content(&self, node: NodeId) -> Cow<'_, StrTendril> {
         // FIXME: What if the initial node is a text node?
         // FIXME: Use children iterator?
         let mut link = self[node].first_child;
@@ -183,18 +189,29 @@ impl Document {
         )
     }
 
-    /// Return an iterator over the specified node and all its following
-    /// siblings, within the same parent.
+    /// Return an iterator over the specified node and all its following,
+    /// direct siblings, within the same parent.
     pub fn node_and_following_siblings<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(Some(node), move |&node| self[node].next_sibling)
     }
 
-    pub(crate) fn node_and_ancestors<'a>(&'a self, node: NodeId)
+    /// Return an iterator over the specified node and all its ancestors,
+    /// terminating at the root document node.
+    pub fn node_and_ancestors<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(Some(node), move |&node| self[node].parent)
+    }
+
+    /// Return an iterator over all nodes, starting with the Document node, and
+    /// including all descendants in tree order.
+    pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
+        iter::successors(
+            Some(Document::document_node_id()),
+            move |&node| self.next_in_tree_order(node)
+        )
     }
 
     fn next_in_tree_order(&self, node: NodeId) -> Option<NodeId> {
@@ -202,16 +219,6 @@ impl Document {
             self.node_and_ancestors(node)
                 .find_map(|ancestor| self[ancestor].next_sibling)
         })
-    }
-
-    /// Iterate over all nodes, including all descendants, from the root of
-    /// this document in tree order.
-    pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
-        let root = Self::document_node_id();
-        iter::successors(
-            Some(root),
-            move |&node| self.next_in_tree_order(node)
-        )
     }
 }
 
