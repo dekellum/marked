@@ -14,11 +14,9 @@
 // Copyright © 2014-2017 The html5ever Project Developers.
 // Licensed under the Apache license v2.0, or the MIT license
 
-use std::fs::File;
 use std::io::Write;
 use std::io;
 use std::iter;
-use std::path::Path;
 use std::string::ToString;
 
 use html5ever::serialize::TraversalScope::*;
@@ -112,7 +110,6 @@ impl<'a> Serialize for DocNode<'a> {
 }
 
 impl<'a> ToString for Document {
-    #[inline]
     fn to_string(&self) -> String {
         let mut u8_vec = Vec::new();
         self.serialize(&mut u8_vec).unwrap();
@@ -123,24 +120,16 @@ impl<'a> ToString for Document {
 impl Document {
     /// Serialize this node and its descendants in HTML syntax to the given
     /// stream.
-    #[inline]
-    pub fn serialize<W: Write>(&self, writer: &mut W) -> io::Result<()> {
+    pub fn serialize<W>(&self, writer: &mut W) -> io::Result<()>
+        where W: Write
+    {
         serialize(
             writer,
             &DocNode::document(self),
             SerializeOpts {
-                traversal_scope: IncludeNode,
+                traversal_scope: IncludeNode, //ignored for document
                 ..Default::default()
             },
         )
-    }
-
-    /// Serialize this node and its descendants in HTML syntax to a new file at
-    /// the given path.
-    #[inline]
-    pub fn serialize_to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()>
-    {
-        let mut file = File::create(&path)?;
-        self.serialize(&mut file)
     }
 }
