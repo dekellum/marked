@@ -9,7 +9,6 @@
 
 use std::borrow::Cow;
 use std::convert::TryInto;
-use std::fmt;
 use std::iter;
 
 use html5ever::LocalName;
@@ -29,6 +28,7 @@ pub struct Document {
 }
 
 /// A typed node (e.g. text, element, etc.) within a `Document`.
+#[derive(Debug)]
 pub struct Node {
     pub(crate) parent: Option<NodeId>,
     pub(crate) next_sibling: Option<NodeId>,
@@ -228,6 +228,7 @@ impl std::ops::IndexMut<NodeId> for Document {
     }
 }
 
+#[derive(Debug)]
 pub(crate) enum NodeData {
     Document,
     Doctype {
@@ -245,6 +246,7 @@ pub(crate) enum NodeData {
 }
 
 /// A markup element with name and attributes.
+#[derive(Debug)]
 pub struct ElementData {
     pub(crate) name: QualName,
     pub(crate) attrs: Vec<Attribute>,
@@ -284,13 +286,6 @@ impl Node {
             last_child: None,
             data,
         }
-    }
-}
-
-impl fmt::Debug for Node {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let ptr: *const Node = self;
-        f.debug_tuple("Node").field(&ptr).finish()
     }
 }
 
