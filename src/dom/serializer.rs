@@ -70,7 +70,7 @@ impl<'a> Serialize for DocNode<'a> {
                 if *scope == IncludeNode {
                     serializer.start_elem(
                         edata.name.clone(),
-                        edata.attrs.iter().map(|a| (&a.name, &a.value[..]))
+                        edata.attrs.iter().map(|a| (&a.name, a.value.as_ref()))
                     )?;
                 }
                 for child in self.children() {
