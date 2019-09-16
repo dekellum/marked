@@ -19,43 +19,45 @@ use std::io;
 use std::iter;
 use std::string::ToString;
 
-use html5ever::serialize::TraversalScope::*;
-use html5ever::serialize::{serialize, Serialize, SerializeOpts, Serializer, TraversalScope};
+use html5ever::serialize::{
+    serialize, Serialize, SerializeOpts, Serializer,
+    TraversalScope, TraversalScope::*
+};
 
 use crate::dom::{Document, NodeId, NodeData};
 
 /// Welcome visitors (the pattern as used for `Serialize`) by combining a
 /// `NodeId` with its containing `Document` reference.
-struct DocNode<'a>{
+struct NodeRef<'a>{
     doc: &'a Document,
     id: NodeId
 }
 
-impl<'a> DocNode<'a> {
-    fn document(doc: &'a Document) -> DocNode<'a> {
-        DocNode { doc, id: Document::document_node_id() }
+impl<'a> NodeRef<'a> {
+    fn document(doc: &'a Document) -> NodeRef<'a> {
+        NodeRef { doc, id: Document::document_node_id() }
     }
 
     /// Return an iterator over node's direct children.
     ///
     /// Will be empty if the node can not or does not have children.
-    fn children(&'a self) -> impl Iterator<Item = DocNode<'a>> + 'a {
+    fn children(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
         iter::successors(
             self.for_node(self.doc[self.id].first_child),
             move |dn| self.for_node(dn.doc[dn.id].next_sibling)
         )
     }
 
-    fn for_node(&self, id: Option<NodeId>) -> Option<DocNode<'a>> {
+    fn for_node(&self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
         if let Some(id) = id {
-            Some(DocNode { doc: self.doc, id })
+            Some(NodeRef { doc: self.doc, id })
         } else {
             None
         }
     }
 }
 
-impl<'a> Serialize for DocNode<'a> {
+impl<'a> Serialize for NodeRef<'a> {
     fn serialize<S>(
         &self,
         serializer: &mut S,
@@ -125,7 +127,7 @@ impl Document {
     {
         serialize(
             writer,
-            &DocNode::document(self),
+            &NodeRef::document(self),
             SerializeOpts {
                 traversal_scope: IncludeNode, //ignored for document
                 ..Default::default()
