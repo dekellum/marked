@@ -79,6 +79,7 @@ impl Document {
                 }
             }
         }
+        // FIXME: Overkill assertions here?
         root.unwrap()
     }
 
@@ -150,6 +151,8 @@ impl Document {
     ///
     /// <https://dom.spec.whatwg.org/#concept-child-text-content>
     pub fn child_text_content(&self, node: NodeId) -> Cow<'_, StrTendril> {
+        // FIXME: What if the initial node is a text node?
+        // FIXME: Use children iterator?
         let mut link = self[node].first_child;
         let mut text = None;
         while let Some(child) = link {
