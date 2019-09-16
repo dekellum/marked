@@ -90,7 +90,7 @@ impl TreeSink for Sink {
     fn parse_error(&mut self, _: Cow<'static, str>) {}
 
     fn get_document(&mut self) -> NodeId {
-        Document::document_node_id()
+        Document::DOCUMENT_NODE_ID
     }
 
     fn set_quirks_mode(&mut self, mode: QuirksMode) {
@@ -177,7 +177,7 @@ impl TreeSink for Sink {
             _public_id: public_id,
             _system_id: system_id,
         });
-        self.document.append(Document::document_node_id(), node)
+        self.document.append(Document::DOCUMENT_NODE_ID, node)
     }
 
     fn add_attrs_if_missing(

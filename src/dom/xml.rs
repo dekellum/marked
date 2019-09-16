@@ -20,7 +20,7 @@ use crate::dom::{
 impl Document {
     pub fn parse_xml(utf8_bytes: &[u8]) -> Result<Self, XmlError> {
         let mut document = Document::new();
-        let mut current = Document::document_node_id();
+        let mut current = Document::DOCUMENT_NODE_ID;
         let mut ancestors = Vec::new();
         for event in xml_rs::EventReader::new(utf8_bytes) {
             match event.map_err(XmlError)? {

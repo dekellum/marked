@@ -50,16 +50,17 @@ pub struct Node {
 pub struct NodeId(NonZeroU32);
 
 impl Document {
+
+    /// The constant `NodeId` for the document root node of all `Document`s.
+    pub const DOCUMENT_NODE_ID: NodeId = NodeId(
+        unsafe { NonZeroU32::new_unchecked(1) }
+    );
+
     fn new() -> Self {
         Document { nodes: vec![
             Node::new(NodeData::Document), // dummy padding, index 0
             Node::new(NodeData::Document)  // the real root, index 1
         ]}
-    }
-
-    /// Return the constant document node id for a Document.
-    pub const fn document_node_id() -> NodeId {
-        NodeId(unsafe { NonZeroU32::new_unchecked(1) })
     }
 
     /// Return the root element NodeId for this Document, or None if there is
@@ -71,7 +72,7 @@ impl Document {
     /// elements or a text node as direct child of the Documnent.
     #[allow(unused)]
     pub(crate) fn root_element(&self) -> Option<NodeId> {
-        let document_node = &self[Document::document_node_id()];
+        let document_node = &self[Document::DOCUMENT_NODE_ID];
         debug_assert!(match document_node.data {
             NodeData::Document => true,
             _ => false
@@ -80,7 +81,7 @@ impl Document {
         debug_assert!(document_node.next_sibling.is_none());
         debug_assert!(document_node.previous_sibling.is_none());
         let mut root = None;
-        for child in self.children(Document::document_node_id()) {
+        for child in self.children(Document::DOCUMENT_NODE_ID) {
             match &self[child].data {
                 NodeData::Doctype { .. }
                 | NodeData::Comment(_)
@@ -216,7 +217,7 @@ impl Document {
     /// including all descendants in tree order.
     pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
         iter::successors(
-            Some(Document::document_node_id()),
+            Some(Document::DOCUMENT_NODE_ID),
             move |&node| self.next_in_tree_order(node)
         )
     }
@@ -336,7 +337,7 @@ fn one_element() {
         }
     ));
     let id = doc.push_node(element);
-    doc.append(Document::document_node_id(), id);
+    doc.append(Document::DOCUMENT_NODE_ID, id);
 
     assert!(doc.root_element().is_some(), "pushed root Element");
     assert_eq!(id, doc.root_element().unwrap());
