@@ -14,9 +14,8 @@
 // Copyright © 2014-2017 The html5ever Project Developers.
 // Licensed under the Apache license v2.0, or the MIT license
 
-use std::io::Write;
 use std::io;
-use std::iter;
+use std::io::Write;
 use std::string::ToString;
 
 use html5ever::serialize::{
@@ -24,38 +23,7 @@ use html5ever::serialize::{
     TraversalScope, TraversalScope::*
 };
 
-use crate::dom::{Document, NodeId, NodeData};
-
-/// Welcome visitors (the pattern as used for `Serialize`) by combining a
-/// `NodeId` with its containing `Document` reference.
-struct NodeRef<'a>{
-    doc: &'a Document,
-    id: NodeId
-}
-
-impl<'a> NodeRef<'a> {
-    fn document(doc: &'a Document) -> NodeRef<'a> {
-        NodeRef { doc, id: Document::document_node_id() }
-    }
-
-    /// Return an iterator over node's direct children.
-    ///
-    /// Will be empty if the node can not or does not have children.
-    fn children(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
-        iter::successors(
-            self.for_node(self.doc[self.id].first_child),
-            move |dn| self.for_node(dn.doc[dn.id].next_sibling)
-        )
-    }
-
-    fn for_node(&self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
-        if let Some(id) = id {
-            Some(NodeRef { doc: self.doc, id })
-        } else {
-            None
-        }
-    }
-}
+use crate::dom::{Document, NodeData, NodeRef};
 
 impl<'a> Serialize for NodeRef<'a> {
     fn serialize<S>(
@@ -65,9 +33,7 @@ impl<'a> Serialize for NodeRef<'a> {
         -> io::Result<()>
         where S: Serializer
     {
-        let node = &self.doc[self.id];
-
-        match (traversal_scope, &node.data) {
+        match (traversal_scope, &self.data) {
             (ref scope, &NodeData::Element(ref edata)) => {
                 if *scope == IncludeNode {
                     serializer.start_elem(
@@ -127,9 +93,9 @@ impl Document {
     {
         serialize(
             writer,
-            &NodeRef::document(self),
+            &self.document_node_ref(),
             SerializeOpts {
-                traversal_scope: IncludeNode, //ignored for document
+                traversal_scope: ChildrenOnly(None),
                 ..Default::default()
             },
         )

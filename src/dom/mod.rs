@@ -9,8 +9,10 @@
 
 use std::borrow::Cow;
 use std::convert::TryInto;
+use std::fmt;
 use std::iter;
 use std::num::NonZeroU32;
+use std::ops::Deref;
 
 use html5ever::LocalName;
 pub use html5ever::{Attribute, QualName};
@@ -49,6 +51,82 @@ pub struct Node {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct NodeId(NonZeroU32);
 
+/// A `Node` within `Document` lifetime reference.
+#[derive(Copy, Clone)]
+pub struct NodeRef<'a>{
+    pub(crate) doc: &'a Document,
+    pub(crate) id: NodeId
+}
+
+impl<'a> NodeRef<'a> {
+
+    #[inline]
+    fn new(doc: &'a Document, id: NodeId) -> Self {
+        NodeRef { doc, id }
+    }
+
+    /// Return the associated `NodeId`
+    pub fn id(&self) -> NodeId {
+        self.id
+    }
+
+    /// Return an iterator over node's direct children.
+    ///
+    /// Will yield nothing if the node can not or does not have children.
+    pub fn children(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
+        iter::successors(
+            self.for_node(self.first_child),
+            move |nref| self.for_node(nref.next_sibling)
+        )
+    }
+
+    /// Return an iterator yielding self and all ancestors, terminating at the
+    /// root document node.
+    pub fn node_and_ancestors(&'a self)
+        -> impl Iterator<Item = NodeRef<'a>> + 'a
+    {
+        iter::successors(
+            Some(*self),
+            move |nref| self.for_node(nref.parent)
+        )
+    }
+
+    /// Return any parent node or None.
+    pub fn parent(&'a self) -> Option<NodeRef<'a>> {
+        self.for_node(self.parent)
+    }
+
+    #[inline]
+    fn for_node(&'a self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
+        if let Some(id) = id {
+            Some(NodeRef::new(self.doc, id))
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a> Deref for NodeRef<'a> {
+    type Target = Node;
+
+    #[inline]
+    fn deref(&self) -> &Node {
+        &self.doc[self.id]
+    }
+}
+
+impl PartialEq for NodeRef<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        (std::ptr::eq(self.doc, other.doc) && self.id == other.id)
+    }
+}
+
+impl fmt::Debug for NodeRef<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "NodeRef({:p}, {:?})", self.doc, self.id)
+    }
+}
+
 impl Document {
 
     /// The constant `NodeId` for the document root node of all `Document`s.
@@ -61,6 +139,11 @@ impl Document {
             Node::new(NodeData::Document), // dummy padding, index 0
             Node::new(NodeData::Document)  // the real root, index 1
         ]}
+    }
+
+    /// Return the document root node reference.
+    pub fn document_node_ref(&self) -> NodeRef<'_> {
+        NodeRef::new(self, Document::DOCUMENT_NODE_ID)
     }
 
     /// Return the root element NodeId for this Document, or None if there is
