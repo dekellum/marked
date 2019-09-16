@@ -27,7 +27,16 @@ use crate::dom::{Document, NodeId, NodeData};
 
 /// Welcome visitors (the pattern as used for `Serialize`) by combining a
 /// `NodeId` with its containing `Document` reference.
-struct DocNode<'a>(&'a Document, NodeId);
+struct DocNode<'a>{
+    doc: &'a Document,
+    id: NodeId
+}
+
+impl<'a> DocNode<'a> {
+    fn new(doc: &'a Document, id: NodeId) -> DocNode<'a> {
+        DocNode { doc, id }
+    }
+}
 
 impl<'a> Serialize for DocNode<'a> {
     fn serialize<S>(
@@ -37,7 +46,7 @@ impl<'a> Serialize for DocNode<'a> {
         -> io::Result<()>
         where S: Serializer
     {
-        let node = &self.0[self.1];
+        let node = &self.doc[self.id];
 
         match (traversal_scope, &node.data) {
             (ref scope, &NodeData::Element(ref edata)) => {
@@ -47,9 +56,9 @@ impl<'a> Serialize for DocNode<'a> {
                         edata.attrs.iter().map(|a| (&a.name, &a.value[..]))
                     )?
                 }
-                for child in self.0.children(self.1) {
+                for child in self.doc.children(self.id) {
                     Serialize::serialize(
-                        &DocNode(self.0, child),
+                        &DocNode::new(self.doc, child),
                         serializer,
                         IncludeNode
                     )?
@@ -62,9 +71,9 @@ impl<'a> Serialize for DocNode<'a> {
             }
 
             (_, &NodeData::Document) => {
-                for child in self.0.children(self.1) {
+                for child in self.doc.children(self.id) {
                     Serialize::serialize(
-                        &DocNode(self.0, child),
+                        &DocNode::new(self.doc, child),
                         serializer,
                         IncludeNode
                     )?
@@ -108,7 +117,7 @@ impl Document {
     pub fn serialize<W: Write>(&self, writer: &mut W) -> io::Result<()> {
         serialize(
             writer,
-            &DocNode(self, Document::document_node_id()),
+            &DocNode::new(self, Document::document_node_id()),
             SerializeOpts {
                 traversal_scope: IncludeNode,
                 ..Default::default()
