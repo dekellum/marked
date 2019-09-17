@@ -271,7 +271,7 @@ impl Document {
     /// Return an iterator over this node's direct children.
     ///
     /// Will be empty if the node can not or does not have children.
-    pub fn children<'a>(&'a self, node: NodeId)
+    pub(crate) fn children<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(
@@ -282,7 +282,8 @@ impl Document {
 
     /// Return an iterator over the specified node and all its following,
     /// direct siblings, within the same parent.
-    pub fn node_and_following_siblings<'a>(&'a self, node: NodeId)
+    #[allow(unused)]
+    pub(crate) fn node_and_following_siblings<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(Some(node), move |&node| self[node].next_sibling)
@@ -290,7 +291,7 @@ impl Document {
 
     /// Return an iterator over the specified node and all its ancestors,
     /// terminating at the root document node.
-    pub fn node_and_ancestors<'a>(&'a self, node: NodeId)
+    pub(crate) fn node_and_ancestors<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(Some(node), move |&node| self[node].parent)
@@ -298,7 +299,8 @@ impl Document {
 
     /// Return an iterator over all nodes, starting with the Document node, and
     /// including all descendants in tree order.
-    pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
+    #[allow(unused)]
+    pub(crate) fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
         iter::successors(
             Some(Document::DOCUMENT_NODE_ID),
             move |&node| self.next_in_tree_order(node)
