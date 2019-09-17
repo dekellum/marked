@@ -17,7 +17,7 @@ use html5ever::interface::tree_builder::{
 use html5ever::tendril::{StrTendril, TendrilSink};
 use html5ever::{self, parse_document, ExpandedName, QualName};
 
-use crate::dom::{Attribute, Document, ElementData, Node, NodeData, NodeId};
+use crate::vdom::{Attribute, Document, ElementData, Node, NodeData, NodeId};
 
 impl Document {
     pub fn parse_html(utf8_bytes: &[u8]) -> Self {

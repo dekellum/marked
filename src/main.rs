@@ -11,7 +11,7 @@ use html5ever::tree_builder::TreeBuilderOpts;
 
 use prescan;
 
-use prescan::dom::html::Sink;
+use prescan::vdom::html::Sink;
 use prescan::decode::Decoder;
 
 fn main() {

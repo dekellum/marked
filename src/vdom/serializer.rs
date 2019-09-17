@@ -23,7 +23,7 @@ use html5ever::serialize::{
     TraversalScope, TraversalScope::*
 };
 
-use crate::dom::{Document, NodeData, NodeRef};
+use crate::vdom::{Document, NodeData, NodeRef};
 
 impl<'a> Serialize for NodeRef<'a> {
     fn serialize<S>(

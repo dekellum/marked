@@ -16,7 +16,7 @@ use html5ever::rcdom::RcDom;
 use html5ever::serialize as rc_serialize;
 
 use prescan;
-use prescan::dom::html::Sink;
+use prescan::vdom::html::Sink;
 use prescan::decode::Decoder;
 
 #[bench]

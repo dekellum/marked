@@ -2,5 +2,5 @@
 
 #[macro_use] extern crate html5ever;
 
-pub mod dom;
+pub mod vdom;
 pub mod decode;
