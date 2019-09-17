@@ -227,6 +227,15 @@ impl Document {
         self[parent].last_child = Some(new_child);
     }
 
+    #[allow(unused)]
+    pub(crate) fn append_child(&mut self, parent: NodeId, node: Node)
+        -> NodeId
+    {
+        let id = self.push_node(node);
+        self.append(parent, id);
+        id
+    }
+
     fn insert_before(&mut self, sibling: NodeId, new_sibling: NodeId) {
         self.detach(new_sibling);
         self[new_sibling].parent = self[sibling].parent;
@@ -421,8 +430,7 @@ fn one_element() {
             attrs: vec![]
         }
     ));
-    let id = doc.push_node(element);
-    doc.append(Document::DOCUMENT_NODE_ID, id);
+    let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
 
     assert!(doc.root_element_ref().is_some(), "pushed root Element");
     assert_eq!(id, doc.root_element_ref().unwrap().id);
