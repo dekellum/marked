@@ -146,15 +146,15 @@ impl Document {
         NodeRef::new(self, Document::DOCUMENT_NODE_ID)
     }
 
-    /// Return the root element NodeId for this Document, or None if there is
-    /// no element.
+    /// Return the root element node for this Document, or None if there is no
+    /// element.
     ///
     /// ## Panics
     ///
     /// Panics on various malformed structures, including multiple "root"
     /// elements or a text node as direct child of the Documnent.
     #[allow(unused)]
-    pub(crate) fn root_element(&self) -> Option<NodeId> {
+    pub(crate) fn root_element_ref(&self) -> Option<NodeRef<'_>> {
         let document_node = &self[Document::DOCUMENT_NODE_ID];
         debug_assert!(match document_node.data {
             NodeData::Document => true,
@@ -178,7 +178,7 @@ impl Document {
                 }
             }
         }
-        root
+        root.map(|r| NodeRef::new(self, r))
     }
 
     fn push_node(&mut self, node: Node) -> NodeId {
@@ -408,7 +408,7 @@ fn size_of() {
 #[test]
 fn empty_document() {
     let doc = Document::new();
-    assert_eq!(None, doc.root_element(), "no root Element");
+    assert_eq!(None, doc.root_element_ref(), "no root Element");
     assert_eq!(1, doc.nodes().count(), "one Document node");
 }
 
@@ -424,7 +424,7 @@ fn one_element() {
     let id = doc.push_node(element);
     doc.append(Document::DOCUMENT_NODE_ID, id);
 
-    assert!(doc.root_element().is_some(), "pushed root Element");
-    assert_eq!(id, doc.root_element().unwrap());
-    assert_eq!(2, doc.nodes().count(), "one Document node");
+    assert!(doc.root_element_ref().is_some(), "pushed root Element");
+    assert_eq!(id, doc.root_element_ref().unwrap().id);
+    assert_eq!(2, doc.nodes().count(), "root + 1 element");
 }
