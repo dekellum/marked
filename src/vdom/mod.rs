@@ -21,6 +21,7 @@ pub use tendril::StrTendril;
 pub mod html;
 pub mod xml;
 mod serializer;
+mod filter;
 
 pub use xml::XmlError;
 
@@ -435,4 +436,68 @@ fn one_element() {
     assert!(doc.root_element_ref().is_some(), "pushed root Element");
     assert_eq!(id, doc.root_element_ref().unwrap().id);
     assert_eq!(2, doc.nodes().count(), "root + 1 element");
+}
+
+#[test]
+fn test_fold_filter() {
+    let mut doc = Document::parse_html(
+        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
+            .as_bytes()
+    );
+    doc.filter(&filter::StrikeFoldFilter {});
+    assert_eq!(
+        "<html><head></head><body>\
+         <div>foo <i>bar</i>s baz</div>\
+         </body></html>",
+        doc.to_string()
+    );
+}
+
+#[test]
+fn test_remove_filter() {
+    let mut doc = Document::parse_html(
+        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
+            .as_bytes()
+    );
+    doc.filter(&filter::StrikeRemoveFilter {});
+    assert_eq!(
+        "<html><head></head><body>\
+         <div>foo  baz</div>\
+         </body></html>",
+        doc.to_string()
+    );
+}
+
+#[test]
+fn test_filter_chain() {
+    let mut doc = Document::parse_html(
+        "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
+            .as_bytes()
+    );
+    let fltrs = filter::FilterChain::new(vec![
+        Box::new(filter::StrikeRemoveFilter {}),
+        Box::new(filter::TextNormalizer)
+    ]);
+
+    doc.filter(&fltrs);
+    assert_eq!(
+        "<html><head></head><body>\
+         <div>foo baz</div>\
+         </body></html>",
+        doc.to_string()
+    );
+}
+
+#[test]
+fn test_xmp() {
+    let doc = Document::parse_html(
+        "<div>foo <xmp><i>bar</i></xmp> baz</div>"
+            .as_bytes()
+    );
+    assert_eq!(
+        "<html><head></head><body>\
+         <div>foo <xmp><i>bar</i></xmp> baz</div>\
+         </body></html>",
+        doc.to_string()
+    );
 }

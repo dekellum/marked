@@ -4,3 +4,4 @@
 
 pub mod vdom;
 pub mod decode;
+mod chars;
