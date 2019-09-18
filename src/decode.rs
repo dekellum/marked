@@ -104,7 +104,7 @@ impl<Sink, A> Decoder<Sink, A>
         }
     }
 
-    /// Give a reference to the mode sink.
+    /// Give a reference to the inner sink.
     /// FIXME: unused
     pub fn inner_sink(&self) -> &Sink {
         match self.mode {
