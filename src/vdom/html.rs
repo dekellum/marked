@@ -213,8 +213,10 @@ impl TreeSink for Sink {
         let mut next_child = self.document[node].first_child;
         while let Some(child) = next_child {
             debug_assert_eq!(self.document[child].parent, Some(node));
+            // Preserve iteration by updating this here, before `append`
+            // detaches the association.
+            next_child = self.document[child].next_sibling;
             self.document.append(new_parent, child);
-            next_child = self.document[child].next_sibling
         }
     }
 }
