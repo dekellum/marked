@@ -153,7 +153,7 @@ impl Document {
     ///
     /// Panics on various malformed structures, including multiple "root"
     /// elements or a text node as direct child of the Documnent.
-    #[allow(unused)]
+    #[allow(unused)] //FIXME
     pub(crate) fn root_element_ref(&self) -> Option<NodeRef<'_>> {
         let document_node = &self[Document::DOCUMENT_NODE_ID];
         debug_assert!(match document_node.data {
@@ -227,7 +227,7 @@ impl Document {
         self[parent].last_child = Some(new_child);
     }
 
-    #[allow(unused)]
+    #[allow(unused)] //FIXME
     pub(crate) fn append_child(&mut self, parent: NodeId, node: Node)
         -> NodeId
     {
@@ -258,7 +258,7 @@ impl Document {
     /// order. May return the empty string.
     ///
     /// <https://dom.spec.whatwg.org/#concept-child-text-content>
-    #[allow(unused)]
+    #[allow(unused)] //FIXME
     pub(crate) fn child_text_content(&self, node: NodeId) -> Cow<'_, StrTendril> {
         // FIXME: What if the initial node is a text node?
         // FIXME: Use children iterator?
@@ -291,7 +291,7 @@ impl Document {
 
     /// Return an iterator over the specified node and all its following,
     /// direct siblings, within the same parent.
-    #[allow(unused)]
+    #[allow(unused)] //FIXME
     pub(crate) fn node_and_following_siblings<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
@@ -308,7 +308,7 @@ impl Document {
 
     /// Return an iterator over all nodes, starting with the Document node, and
     /// including all descendants in tree order.
-    #[allow(unused)]
+    #[allow(unused)] //FIXME
     pub(crate) fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
         iter::successors(
             Some(Document::DOCUMENT_NODE_ID),
