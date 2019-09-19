@@ -46,6 +46,12 @@ pub struct Node {
     pub(crate) data: NodeData,
 }
 
+impl Clone for Node {
+    fn clone(&self) -> Self {
+        Node::new(self.data.clone())
+    }
+}
+
 /// A `Node` identifier, as u32 index into a `Document`s `Node` vector.
 ///
 /// Should only be used with the `Document` it was obtained from.
@@ -353,7 +359,7 @@ impl std::ops::IndexMut<NodeId> for Document {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub(crate) enum NodeData {
     Document,
     Doctype {
@@ -371,7 +377,7 @@ pub(crate) enum NodeData {
 }
 
 /// A markup element with name and attributes.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ElementData {
     pub(crate) name: QualName,
     pub(crate) attrs: Vec<Attribute>,
