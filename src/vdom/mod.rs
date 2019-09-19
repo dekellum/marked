@@ -490,14 +490,15 @@ fn test_filter_chain() {
 
 #[test]
 fn test_xmp() {
-    let doc = Document::parse_html(
+    let doc = Document::parse_html_fragment(
         "<div>foo <xmp><i>bar</i></xmp> baz</div>"
             .as_bytes()
     );
+    eprintln!("the doc nodes:\n{:#?}", &doc.nodes[1..]);
     assert_eq!(
-        "<html><head></head><body>\
+        "<html>\
          <div>foo <xmp><i>bar</i></xmp> baz</div>\
-         </body></html>",
+         </html>",
         doc.to_string()
     );
 }

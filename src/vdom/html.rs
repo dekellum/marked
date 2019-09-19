@@ -15,7 +15,7 @@ use html5ever::interface::tree_builder::{
     ElementFlags, NodeOrText, QuirksMode, TreeSink
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
-use html5ever::{self, parse_document, ExpandedName, QualName};
+use html5ever::{self, parse_document, parse_fragment, ExpandedName, QualName};
 
 use crate::vdom::{Attribute, Document, ElementData, Node, NodeData, NodeId};
 
@@ -28,6 +28,24 @@ impl Document {
         parse_document(sink, Default::default())
             .from_utf8()
             .one(utf8_bytes)
+    }
+
+    pub fn parse_html_fragment(utf8_bytes: &[u8]) -> Self {
+        let sink = Sink {
+            document: Document::new(),
+            quirks_mode: QuirksMode::NoQuirks,
+        };
+
+        parse_fragment(
+            sink,
+            Default::default(),
+            QualName::new(None, ns!(html), "div".into()),
+            vec![])
+            .from_utf8()
+            .one(utf8_bytes)
+
+        // Note that the context name and attrs, don't really get
+        // appended and used as the parent in the resulting document.
     }
 }
 
