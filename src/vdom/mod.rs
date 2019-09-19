@@ -514,9 +514,19 @@ fn test_xmp() {
     );
     eprintln!("the doc nodes:\n{:#?}", &doc.nodes[1..]);
     assert_eq!(
-        "<html>\
-         <div>foo <xmp><i>bar</i></xmp> baz</div>\
-         </html>",
+        "<div>foo <xmp><i>bar</i></xmp> baz</div>",
+        doc.to_string()
+    );
+}
+
+#[test]
+fn test_text_fragment() {
+    let doc = Document::parse_html_fragment(
+        "plain &lt; text".as_bytes()
+    );
+    eprintln!("the doc nodes:\n{:#?}", &doc.nodes[1..]);
+    assert_eq!(
+        "<div>plain &lt; text</div>",
         doc.to_string()
     );
 }

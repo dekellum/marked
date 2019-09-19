@@ -125,7 +125,7 @@ impl Document {
     }
 
     /// Replace the given node with its children.
-    fn fold(&mut self, id: NodeId) {
+    pub(crate) fn fold(&mut self, id: NodeId) {
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
             debug_assert_eq!(self[child].parent, Some(id));

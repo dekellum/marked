@@ -30,22 +30,53 @@ impl Document {
             .one(utf8_bytes)
     }
 
-    pub fn parse_html_fragment(utf8_bytes: &[u8]) -> Self {
+    #[allow(unused)] //FIXME
+    pub(crate) fn parse_html_fragment(utf8_bytes: &[u8]) -> Self {
         let sink = Sink {
             document: Document::new(),
             quirks_mode: QuirksMode::NoQuirks,
         };
 
-        parse_fragment(
+        let mut doc = parse_fragment(
             sink,
             Default::default(),
-            QualName::new(None, ns!(html), "div".into()),
+            QualName::new(None, ns!(html), local_name!("div")),
             vec![])
             .from_utf8()
-            .one(utf8_bytes)
+            .one(utf8_bytes);
 
-        // Note that the context name and attrs, don't really get
-        // appended and used as the parent in the resulting document.
+        // Note that the context name and attrs, don't really get used as the
+        // parent in the resulting document. They only get pushed, not
+        // appended to, which is kind of weird.
+
+        let root_id = doc.root_element().expect("a root");
+        debug_assert!(match doc[root_id].as_element() {
+            Some(ElementData { name, ..}) => {
+                name.local == local_name!("html")
+            }
+            _ => false
+        });
+        assert_eq!(1, doc.children(root_id).count());
+        let child_id = doc[root_id].first_child.unwrap();
+
+        // Cleanup the doc such that its root element is a the desired div.
+        if doc[child_id].as_element().is_some() {
+            doc.fold(root_id);
+        } else {
+            let mut new_doc = Document::new();
+            let div = Node::new(NodeData::Element(
+                ElementData {
+                    name: QualName::new(None, ns!(html), local_name!("div")),
+                    attrs: vec![]
+                }
+            ));
+            let id = new_doc.append_child(Document::DOCUMENT_NODE_ID, div);
+            new_doc.append_child(id, doc[child_id].clone());
+            doc = new_doc;
+        }
+        debug_assert!(doc.root_element().is_some());
+
+        doc
     }
 }
 
