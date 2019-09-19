@@ -44,8 +44,7 @@ pub(crate) fn replace_ctrl_ws(
 /// invalid.
 fn is_ctrl_ws(c: char) -> bool {
     // FIXME: Should probably break this up into several different
-    // classifications. For now we treat all of maches as something to replace
-    // with a single space.
+    // classifications. For now, treat all matches as as a single class.
      match c {
         '\u{0000}'..='\u{0008}' | // C0 control chars (XML disallowed)
         '\u{0009}'              | // HT
@@ -80,8 +79,8 @@ fn is_ctrl_ws(c: char) -> bool {
         '\u{FEFF}'              | // BOM
         '\u{FFFE}'              | // Bad BOM (not assigned)
         '\u{FFFF}'                // Not assigned (invalid Unicode)
-            => return true,
-        _ => return false,
+            => true,
+        _ => false
     }
 }
 
