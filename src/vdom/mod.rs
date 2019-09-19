@@ -156,6 +156,18 @@ impl Document {
     /// elements or a text node as direct child of the Documnent.
     #[allow(unused)] //FIXME
     pub(crate) fn root_element_ref(&self) -> Option<NodeRef<'_>> {
+        self.root_element().map(|r| NodeRef::new(self, r))
+    }
+
+    /// Return the root element NodeId for this Document, or None if there is
+    /// no element.
+    ///
+    /// ## Panics
+    ///
+    /// Panics on various malformed structures, including multiple "root"
+    /// elements or a text node as direct child of the Documnent.
+    #[allow(unused)] //FIXME
+    pub(crate) fn root_element(&self) -> Option<NodeId> {
         let document_node = &self[Document::DOCUMENT_NODE_ID];
         debug_assert!(match document_node.data {
             NodeData::Document => true,
@@ -179,7 +191,7 @@ impl Document {
                 }
             }
         }
-        root.map(|r| NodeRef::new(self, r))
+        root
     }
 
     fn push_node(&mut self, node: Node) -> NodeId {
