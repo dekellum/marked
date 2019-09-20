@@ -44,7 +44,7 @@ pub(crate) fn replace_ctrl_ws(
 /// invalid.
 fn is_ctrl_ws(c: char) -> bool {
     // FIXME: Should probably break this up into several different
-    // classifications. For now, treat all matches as as a single class.
+    // classifications. For now, treat all matches as a single class.
      match c {
         '\u{0000}'..='\u{0008}' | // C0 control chars (XML disallowed)
         '\u{0009}'              | // HT

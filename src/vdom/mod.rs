@@ -46,6 +46,12 @@ pub struct Node {
     pub(crate) data: NodeData,
 }
 
+impl Clone for Node {
+    fn clone(&self) -> Self {
+        Node::new(self.data.clone())
+    }
+}
+
 /// A `Node` identifier, as u32 index into a `Document`s `Node` vector.
 ///
 /// Should only be used with the `Document` it was obtained from.
@@ -156,6 +162,18 @@ impl Document {
     /// elements or a text node as direct child of the Documnent.
     #[allow(unused)] //FIXME
     pub(crate) fn root_element_ref(&self) -> Option<NodeRef<'_>> {
+        self.root_element().map(|r| NodeRef::new(self, r))
+    }
+
+    /// Return the root element NodeId for this Document, or None if there is
+    /// no element.
+    ///
+    /// ## Panics
+    ///
+    /// Panics on various malformed structures, including multiple "root"
+    /// elements or a text node as direct child of the Documnent.
+    #[allow(unused)] //FIXME
+    pub(crate) fn root_element(&self) -> Option<NodeId> {
         let document_node = &self[Document::DOCUMENT_NODE_ID];
         debug_assert!(match document_node.data {
             NodeData::Document => true,
@@ -179,7 +197,7 @@ impl Document {
                 }
             }
         }
-        root.map(|r| NodeRef::new(self, r))
+        root
     }
 
     fn push_node(&mut self, node: Node) -> NodeId {
@@ -323,6 +341,22 @@ impl Document {
                 .find_map(|ancestor| self[ancestor].next_sibling)
         })
     }
+
+    /// Create a new document from the ordered sub-tree rooted in the node
+    /// referenced by id.
+    #[allow(unused)] //FIXME
+    pub(crate) fn split(&self, id: NodeId) -> Document {
+        let mut ndoc = Document::new();
+        ndoc.deep_clone(Document::DOCUMENT_NODE_ID, self, id);
+        ndoc
+    }
+
+    fn deep_clone(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
+        let id = self.append_child(id, odoc[oid].clone());
+        for child in odoc.children(oid) {
+            self.deep_clone(id, odoc, child);
+        }
+    }
 }
 
 impl std::ops::Index<NodeId> for Document {
@@ -341,7 +375,7 @@ impl std::ops::IndexMut<NodeId> for Document {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub(crate) enum NodeData {
     Document,
     Doctype {
@@ -359,7 +393,7 @@ pub(crate) enum NodeData {
 }
 
 /// A markup element with name and attributes.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ElementData {
     pub(crate) name: QualName,
     pub(crate) attrs: Vec<Attribute>,
@@ -470,7 +504,7 @@ fn test_remove_filter() {
 
 #[test]
 fn test_filter_chain() {
-    let mut doc = Document::parse_html(
+    let mut doc = Document::parse_html_fragment(
         "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
             .as_bytes()
     );
@@ -481,23 +515,58 @@ fn test_filter_chain() {
 
     doc.filter(&fltrs);
     assert_eq!(
-        "<html><head></head><body>\
-         <div>foo baz</div>\
-         </body></html>",
+        "<div>foo baz</div>",
         doc.to_string()
     );
 }
 
 #[test]
 fn test_xmp() {
-    let doc = Document::parse_html(
+    let doc = Document::parse_html_fragment(
         "<div>foo <xmp><i>bar</i></xmp> baz</div>"
             .as_bytes()
     );
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
     assert_eq!(
-        "<html><head></head><body>\
-         <div>foo <xmp><i>bar</i></xmp> baz</div>\
-         </body></html>",
+        "<div>foo <xmp><i>bar</i></xmp> baz</div>",
         doc.to_string()
     );
+    //FIXME: assert_eq!(4, doc.nodes.len() - 2);
+}
+
+#[test]
+fn test_text_fragment() {
+    let doc = Document::parse_html_fragment(
+        "plain &lt; text".as_bytes()
+    );
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!(
+        "<div>\
+         plain &lt; text\
+         </div>",
+        doc.to_string()
+    );
+    //FIXME: assert_eq!(2, doc.nodes.len() - 2);
+}
+
+#[test]
+fn test_shallow_fragment() {
+    let doc = Document::parse_html_fragment(
+        "<b>b</b> text <i>i</i>".as_bytes()
+    );
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!(
+        "<div>\
+         <b>b</b> text <i>i</i>\
+         </div>",
+        doc.to_string()
+    );
+    //FIXME: assert_eq!(4, doc.nodes.len() - 2);
+}
+
+#[test]
+fn test_empty_fragment() {
+    let doc = Document::parse_html_fragment("".as_bytes());
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!("<div></div>", doc.to_string());
 }

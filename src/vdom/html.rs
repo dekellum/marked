@@ -15,7 +15,7 @@ use html5ever::interface::tree_builder::{
     ElementFlags, NodeOrText, QuirksMode, TreeSink
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
-use html5ever::{self, parse_document, ExpandedName, QualName};
+use html5ever::{self, parse_document, parse_fragment, ExpandedName, QualName};
 
 use crate::vdom::{Attribute, Document, ElementData, Node, NodeData, NodeId};
 
@@ -28,6 +28,61 @@ impl Document {
         parse_document(sink, Default::default())
             .from_utf8()
             .one(utf8_bytes)
+    }
+
+    #[allow(unused)] //FIXME
+    pub(crate) fn parse_html_fragment(utf8_bytes: &[u8]) -> Self {
+        let sink = Sink {
+            document: Document::new(),
+            quirks_mode: QuirksMode::NoQuirks,
+        };
+
+        let mut doc = parse_fragment(
+            sink,
+            Default::default(),
+            QualName::new(None, ns!(html), local_name!("div")),
+            vec![])
+            .from_utf8()
+            .one(utf8_bytes);
+
+        // Note that the above context name, doesn't really get used. A
+        // matching element is pushed but never linked, so unless we replace
+        // the doc (deep clone, etc.) then it will contain this cruft.
+
+        let root_id = doc.root_element().expect("a root");
+        debug_assert!(match doc[root_id].as_element() {
+            Some(ElementData { name, ..}) => {
+                name.local == local_name!("html")
+            }
+            _ => false
+        });
+
+        let root_id = doc.root_element().expect("a root");
+
+        // If the root has a single element child, then make that element child
+        // the new root and return.
+        if doc.children(root_id).count() == 1 {
+            let child_id = doc[root_id].first_child.unwrap();
+            if doc[child_id].as_element().is_some() {
+                doc.fold(root_id);
+                debug_assert!(doc.root_element().is_some());
+                return doc;
+            }
+        }
+
+        // Otherwise change the "html" root to a div. This is what we asked
+        // for, but didn't get, from parse_fragment above.
+        match &mut doc[root_id].data {
+            NodeData::Element(ref mut edata) => {
+                *edata = ElementData {
+                    name: QualName::new(None, ns!(html), local_name!("div")),
+                    attrs: vec![]
+                };
+            }
+            _ => unreachable!(),
+        }
+        debug_assert!(doc.root_element().is_some());
+        doc
     }
 }
 
