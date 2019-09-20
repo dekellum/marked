@@ -33,7 +33,7 @@ impl TreeFilter for StrikeRemoveFilter {
                 return Action::Remove;
             }
         }
-        return Action::Continue;
+        Action::Continue
     }
 }
 
@@ -47,7 +47,7 @@ impl TreeFilter for StrikeFoldFilter {
                 return Action::Fold;
             }
         }
-        return Action::Continue;
+        Action::Continue
     }
 }
 
@@ -63,7 +63,7 @@ impl TreeFilter for TextNormalizer {
         if let NodeData::Text(ref mut t) = node.data {
             replace_ctrl_ws(t, false, false);
         }
-        return Action::Continue;
+        Action::Continue
     }
 }
 
