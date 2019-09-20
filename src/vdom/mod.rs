@@ -341,6 +341,22 @@ impl Document {
                 .find_map(|ancestor| self[ancestor].next_sibling)
         })
     }
+
+    /// Create a new document from the ordered sub-tree rooted in the node
+    /// referenced by id.
+    #[allow(unused)] //FIXME
+    pub(crate) fn split(&self, id: NodeId) -> Document {
+        let mut ndoc = Document::new();
+        ndoc.deep_clone(Document::DOCUMENT_NODE_ID, self, id);
+        ndoc
+    }
+
+    fn deep_clone(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
+        let id = self.append_child(id, odoc[oid].clone());
+        for child in odoc.children(oid) {
+            self.deep_clone(id, odoc, child);
+        }
+    }
 }
 
 impl std::ops::Index<NodeId> for Document {
