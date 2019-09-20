@@ -488,7 +488,7 @@ fn test_remove_filter() {
 
 #[test]
 fn test_filter_chain() {
-    let mut doc = Document::parse_html(
+    let mut doc = Document::parse_html_fragment(
         "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
             .as_bytes()
     );
@@ -499,9 +499,7 @@ fn test_filter_chain() {
 
     doc.filter(&fltrs);
     assert_eq!(
-        "<html><head></head><body>\
-         <div>foo baz</div>\
-         </body></html>",
+        "<div>foo baz</div>",
         doc.to_string()
     );
 }
