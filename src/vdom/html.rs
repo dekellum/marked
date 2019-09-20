@@ -45,9 +45,9 @@ impl Document {
             .from_utf8()
             .one(utf8_bytes);
 
-        // Note that the context name and attrs, don't really get used as the
-        // parent in the resulting document. They only get pushed, not
-        // appended to, which is kind of weird.
+        // Note that the above context name, doesn't really get used. A
+        // matching element is pushed but never linked, so unless we replace
+        // the doc (deep clone, etc.) then it will contain this cruft.
 
         let root_id = doc.root_element().expect("a root");
         debug_assert!(match doc[root_id].as_element() {
@@ -56,26 +56,32 @@ impl Document {
             }
             _ => false
         });
-        assert_eq!(1, doc.children(root_id).count());
-        let child_id = doc[root_id].first_child.unwrap();
 
-        // Cleanup the doc such that its root element is a the desired div.
-        if doc[child_id].as_element().is_some() {
-            doc.fold(root_id);
-        } else {
-            let mut new_doc = Document::new();
-            let div = Node::new(NodeData::Element(
-                ElementData {
+        let root_id = doc.root_element().expect("a root");
+
+        // If the root has a single element child, then make that element child
+        // the new root and return.
+        if doc.children(root_id).count() == 1 {
+            let child_id = doc[root_id].first_child.unwrap();
+            if doc[child_id].as_element().is_some() {
+                doc.fold(root_id);
+                debug_assert!(doc.root_element().is_some());
+                return doc;
+            }
+        }
+
+        // Otherwise change the "html" root to a div. This is what we asked
+        // for, but didn't get, from parse_fragment above.
+        match &mut doc[root_id].data {
+            NodeData::Element(ref mut edata) => {
+                *edata = ElementData {
                     name: QualName::new(None, ns!(html), local_name!("div")),
                     attrs: vec![]
-                }
-            ));
-            let id = new_doc.append_child(Document::DOCUMENT_NODE_ID, div);
-            new_doc.append_child(id, doc[child_id].clone());
-            doc = new_doc;
+                };
+            }
+            _ => unreachable!(),
         }
         debug_assert!(doc.root_element().is_some());
-
         doc
     }
 }

@@ -512,11 +512,12 @@ fn test_xmp() {
         "<div>foo <xmp><i>bar</i></xmp> baz</div>"
             .as_bytes()
     );
-    eprintln!("the doc nodes:\n{:#?}", &doc.nodes[1..]);
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
     assert_eq!(
         "<div>foo <xmp><i>bar</i></xmp> baz</div>",
         doc.to_string()
     );
+    //FIXME: assert_eq!(4, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -524,9 +525,34 @@ fn test_text_fragment() {
     let doc = Document::parse_html_fragment(
         "plain &lt; text".as_bytes()
     );
-    eprintln!("the doc nodes:\n{:#?}", &doc.nodes[1..]);
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
     assert_eq!(
-        "<div>plain &lt; text</div>",
+        "<div>\
+         plain &lt; text\
+         </div>",
         doc.to_string()
     );
+    //FIXME: assert_eq!(2, doc.nodes.len() - 2);
+}
+
+#[test]
+fn test_shallow_fragment() {
+    let doc = Document::parse_html_fragment(
+        "<b>b</b> text <i>i</i>".as_bytes()
+    );
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!(
+        "<div>\
+         <b>b</b> text <i>i</i>\
+         </div>",
+        doc.to_string()
+    );
+    //FIXME: assert_eq!(4, doc.nodes.len() - 2);
+}
+
+#[test]
+fn test_empty_fragment() {
+    let doc = Document::parse_html_fragment("".as_bytes());
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!("<div></div>", doc.to_string());
 }
