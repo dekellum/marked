@@ -14,8 +14,9 @@ use std::iter;
 use std::num::NonZeroU32;
 use std::ops::Deref;
 
-use html5ever::LocalName;
+use html5ever::{LocalName, LocalNameStaticSet};
 pub use html5ever::{Attribute, QualName};
+use string_cache::atom::Atom;
 pub use tendril::StrTendril;
 
 pub mod html;
@@ -171,6 +172,16 @@ impl<'a> Deref for NodeRef<'a> {
 impl PartialEq for NodeRef<'_> {
     fn eq(&self, other: &Self) -> bool {
         (std::ptr::eq(self.doc, other.doc) && self.id == other.id)
+    }
+}
+
+impl PartialEq<Atom<LocalNameStaticSet>> for NodeRef<'_> {
+    fn eq(&self, name: &Atom<LocalNameStaticSet>) -> bool {
+        if let Some(edata) = self.as_element() {
+            edata.name.local == *name
+        } else {
+            false
+        }
     }
 }
 
@@ -706,21 +717,9 @@ fn test_filter() {
     );
 
     let root = doc.root_element_ref().expect("root");
-    let body = root.find(|n| {
-        if let Some(edata) = n.as_element() {
-            edata.name.local == local_name!("body")
-        } else {
-            false
-        }
-    }).expect("body");
-
-    let f1: Vec<_> = body.filter(|n| {
-        if let Some(edata) = n.as_element() {
-            edata.name.local == local_name!("p")
-        } else {
-            false
-        }
-    })
+    let body = root.find(|&n| n == local_name!("body")).expect("body");
+    let f1: Vec<_> = body
+        .filter(|&n| n == local_name!("p"))
         .map(|n| doc.child_text_content(n.id()).to_string())
         .collect();
 
@@ -729,7 +728,7 @@ fn test_filter() {
 
 #[test]
 fn test_filter_r() {
-    let doc = Document::parse_html(
+    let doc = Document::parse_html_fragment(
         "<p>1</p>\
          <div>\
            fill\
@@ -745,13 +744,7 @@ fn test_filter_r() {
 
     let root = doc.root_element_ref().expect("root");
 
-    let f1: Vec<_> = root.filter_r(|n| {
-        if let Some(edata) = n.as_element() {
-            edata.name.local == local_name!("p")
-        } else {
-            false
-        }
-    })
+    let f1: Vec<_> = root.filter_r(|&n| n == local_name!("p"))
         .map(|n| doc.child_text_content(n.id()).to_string())
         .collect();
 
