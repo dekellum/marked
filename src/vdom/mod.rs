@@ -112,20 +112,10 @@ impl<'a> NodeRef<'a> {
     /// specified predicate. Nodes that fail the predicate will have
     /// their child nodes (r)ecursively scanned, in depth-first order,
     /// in search of the first match.
-    pub fn find_r<P>(&'a self, predicate: &mut P) -> Option<NodeRef<'a>>
+    pub fn find_r<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
-        let mut next = self.first_child;
-        while let Some(id) = next {
-            let node = NodeRef::new(self.doc, id);
-            if predicate(&node) {
-                return Some(node);
-            }
-            next = node.first_child.or(node.next_sibling);
-            // FIXME: Different logic then Selector. Does this need a
-            // stack as well?
-        }
-        None
+        Selector::new(self.doc, self.first_child, predicate).next()
     }
 
     /// Return an iterator over node's direct children.
