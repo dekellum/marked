@@ -66,7 +66,6 @@ pub struct NodeRef<'a>{
 }
 
 impl<'a> NodeRef<'a> {
-
     #[inline]
     fn new(doc: &'a Document, id: NodeId) -> Self {
         NodeRef { doc, id }
@@ -77,9 +76,11 @@ impl<'a> NodeRef<'a> {
         self.id
     }
 
-    /// Return an iterator over the direct child of this node that
-    /// match the specified predicate. This is a convenence short hand
-    /// for `children().find(predicate)`.
+    /// Return an iterator over the direct children of this node that
+    /// match the specified predicate.
+    ///
+    /// This is a convenence short hand for
+    /// `children().filter(predicate)`.
     pub fn filter<P>(&'a self, predicate: P)
         -> impl Iterator<Item = NodeRef<'a>> + 'a
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
@@ -88,9 +89,11 @@ impl<'a> NodeRef<'a> {
     }
 
     /// Return an iterator over all decendents of this node that match
-    /// the specified predicate.  Nodes that fail the predicate will
-    /// have their child nodes (r)ecursively scanned, in depth-first
-    /// order, in search of all possible matches.
+    /// the specified predicate.
+    ///
+    /// Nodes that fail the predicate will have their child nodes
+    /// (r)ecursively scanned, in depth-first order, in search of all
+    /// matches.
     pub fn filter_r<P>(&'a self, predicate: P) -> Selector<'a, P>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
@@ -109,9 +112,11 @@ impl<'a> NodeRef<'a> {
     }
 
     /// Find the first descendant of this node that matches the
-    /// specified predicate. Nodes that fail the predicate will have
-    /// their child nodes (r)ecursively scanned, in depth-first order,
-    /// in search of the first match.
+    /// specified predicate.
+    ///
+    /// Nodes that fail the predicate will have their child nodes
+    /// (r)ecursively scanned, in depth-first order, in search of the
+    /// first match.
     pub fn find_r<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
