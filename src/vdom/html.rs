@@ -61,6 +61,7 @@ impl Document {
 
         // If the root has a single element child, then make that element child
         // the new root and return.
+        // FIXME: Only do this, further, if its a block level element?
         if doc.children(root_id).count() == 1 {
             let child_id = doc[root_id].first_child.unwrap();
             if doc[child_id].as_element().is_some() {

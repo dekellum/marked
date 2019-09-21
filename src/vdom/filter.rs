@@ -125,6 +125,7 @@ impl Document {
     }
 
     /// Replace the given node with its children.
+    // FIXME: Move to top level vdom mod?
     pub(crate) fn fold(&mut self, id: NodeId) {
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {

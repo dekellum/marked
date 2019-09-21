@@ -227,7 +227,6 @@ impl<'a, P> Iterator for Selector<'a, P>
 }
 
 impl Document {
-
     /// The constant `NodeId` for the document root node of all `Document`s.
     pub const DOCUMENT_NODE_ID: NodeId = NodeId(
         unsafe { NonZeroU32::new_unchecked(1) }
