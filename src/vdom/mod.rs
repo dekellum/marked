@@ -77,6 +77,57 @@ impl<'a> NodeRef<'a> {
         self.id
     }
 
+    /// Return an iterator over the direct child of this node that
+    /// match the specified predicate. This is a convenence short hand
+    /// for `children().find(predicate)`.
+    pub fn filter<P>(&'a self, predicate: P)
+        -> impl Iterator<Item = NodeRef<'a>> + 'a
+        where P: FnMut(&NodeRef<'a>) -> bool + 'a
+    {
+        self.children().filter(predicate)
+    }
+
+    /// Return an iterator over all decendents of this node that match
+    /// the specified predicate.  Nodes that fail the predicate will
+    /// have their child nodes (r)ecursively scanned, in depth-first
+    /// order, in search of all possible matches.
+    pub fn filter_r<P>(&'a self, predicate: P) -> Selector<'a, P>
+        where P: FnMut(&NodeRef<'a>) -> bool + 'a
+    {
+        Selector::new(self.doc, self.first_child, predicate)
+    }
+
+    /// Find the first direct child of this node that matches the
+    /// specified predicate.
+    ///
+    /// This is a convenence short hand for
+    /// `children().find(predicate)`.
+    pub fn find<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
+        where P: FnMut(&NodeRef<'a>) -> bool
+    {
+        self.children().find(predicate)
+    }
+
+    /// Find the first descendant of this node that matches the
+    /// specified predicate. Nodes that fail the predicate will have
+    /// their child nodes (r)ecursively scanned, in depth-first order,
+    /// in search of the first match.
+    pub fn find_r<P>(&'a self, predicate: &mut P) -> Option<NodeRef<'a>>
+        where P: FnMut(&NodeRef<'a>) -> bool + 'a
+    {
+        let mut next = self.first_child;
+        while let Some(id) = next {
+            let node = NodeRef::new(self.doc, id);
+            if predicate(&node) {
+                return Some(node);
+            }
+            next = node.first_child.or(node.next_sibling);
+            // FIXME: Different logic then Selector. Does this need a
+            // stack as well?
+        }
+        None
+    }
+
     /// Return an iterator over node's direct children.
     ///
     /// Will yield nothing if the node can not or does not have children.
@@ -131,6 +182,52 @@ impl PartialEq for NodeRef<'_> {
 impl fmt::Debug for NodeRef<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "NodeRef({:p}, {:?})", self.doc, self.id)
+    }
+}
+
+pub struct Selector<'a, P> {
+    doc: &'a Document,
+    next: Vec<NodeId>,
+    predicate: P,
+}
+
+impl<'a, P> Selector<'a, P> {
+    fn new(doc: &'a Document, first: Option<NodeId>, predicate: P)
+        -> Selector<'a, P>
+    {
+        let next = if let Some(id) = first {
+            vec![id]
+        } else {
+            vec![]
+        };
+
+        Selector { doc, next, predicate }
+    }
+
+    fn push_some(&mut self, id: Option<NodeId>) {
+        if let Some(id) = id {
+            self.next.push(id);
+        }
+    }
+}
+
+impl<'a, P> Iterator for Selector<'a, P>
+    where P: FnMut(&NodeRef<'a>) -> bool + 'a
+{
+    type Item = NodeRef<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(id) = self.next.pop() {
+            let node = NodeRef::new(self.doc, id);
+            if (self.predicate)(&node) {
+                self.push_some(node.next_sibling);
+                return Some(node);
+            } else {
+                self.push_some(node.next_sibling);
+                self.push_some(node.first_child);
+            }
+        }
+        None
     }
 }
 
