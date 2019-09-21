@@ -436,16 +436,16 @@ impl Document {
     /// Create a new document from the ordered sub-tree rooted in the node
     /// referenced by id.
     #[allow(unused)] //FIXME
-    pub(crate) fn split(&self, id: NodeId) -> Document {
+    pub(crate) fn deep_clone(&self, id: NodeId) -> Document {
         let mut ndoc = Document::new();
-        ndoc.deep_clone(Document::DOCUMENT_NODE_ID, self, id);
+        ndoc.deep_clone_to(Document::DOCUMENT_NODE_ID, self, id);
         ndoc
     }
 
-    fn deep_clone(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
+    fn deep_clone_to(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
         let id = self.append_child(id, odoc[oid].clone());
         for child in odoc.children(oid) {
-            self.deep_clone(id, odoc, child);
+            self.deep_clone_to(id, odoc, child);
         }
     }
 }
@@ -617,12 +617,15 @@ fn test_xmp() {
         "<div>foo <xmp><i>bar</i></xmp> baz</div>"
             .as_bytes()
     );
-    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
     assert_eq!(
         "<div>foo <xmp><i>bar</i></xmp> baz</div>",
         doc.to_string()
     );
-    //FIXME: assert_eq!(4, doc.nodes.len() - 2);
+
+    // Currently node count is only ensured by cloning
+    let doc = doc.deep_clone(doc.root_element().unwrap());
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!(5, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -630,14 +633,17 @@ fn test_text_fragment() {
     let doc = Document::parse_html_fragment(
         "plain &lt; text".as_bytes()
     );
-    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
     assert_eq!(
         "<div>\
          plain &lt; text\
          </div>",
         doc.to_string()
     );
-    //FIXME: assert_eq!(2, doc.nodes.len() - 2);
+
+    // Currently node count is only ensured by cloning
+    let doc = doc.deep_clone(doc.root_element().unwrap());
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!(2, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -645,14 +651,17 @@ fn test_shallow_fragment() {
     let doc = Document::parse_html_fragment(
         "<b>b</b> text <i>i</i>".as_bytes()
     );
-    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
     assert_eq!(
         "<div>\
          <b>b</b> text <i>i</i>\
          </div>",
         doc.to_string()
     );
-    //FIXME: assert_eq!(4, doc.nodes.len() - 2);
+
+    // Currently node count is only ensured by cloning
+    let doc = doc.deep_clone(doc.root_element().unwrap());
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!(6, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -660,4 +669,22 @@ fn test_empty_fragment() {
     let doc = Document::parse_html_fragment("".as_bytes());
     eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
     assert_eq!("<div></div>", doc.to_string());
+}
+
+#[test]
+fn test_deep_clone() {
+    let doc = Document::parse_html(
+        "<div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
+         <div>sibling</div>"
+            .as_bytes()
+    );
+
+    let doc = doc.deep_clone(doc.root_element().expect("root"));
+    assert_eq!(
+        "<html><head></head><body>\
+           <div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
+           <div>sibling</div>\
+         </body></html>",
+        doc.to_string()
+    );
 }
