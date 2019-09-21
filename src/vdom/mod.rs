@@ -82,8 +82,8 @@ impl<'a> NodeRef<'a> {
     /// Will yield nothing if the node can not or does not have children.
     pub fn children(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
         iter::successors(
-            self.for_node(self.first_child),
-            move |nref| self.for_node(nref.next_sibling)
+            self.for_some_node(self.first_child),
+            move |nref| self.for_some_node(nref.next_sibling)
         )
     }
 
@@ -94,17 +94,17 @@ impl<'a> NodeRef<'a> {
     {
         iter::successors(
             Some(*self),
-            move |nref| self.for_node(nref.parent)
+            move |nref| self.for_some_node(nref.parent)
         )
     }
 
     /// Return any parent node or None.
     pub fn parent(&'a self) -> Option<NodeRef<'a>> {
-        self.for_node(self.parent)
+        self.for_some_node(self.parent)
     }
 
     #[inline]
-    fn for_node(&'a self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
+    fn for_some_node(&'a self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
         if let Some(id) = id {
             Some(NodeRef::new(self.doc, id))
         } else {
