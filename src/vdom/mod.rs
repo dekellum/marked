@@ -688,3 +688,72 @@ fn test_deep_clone() {
         doc.to_string()
     );
 }
+
+#[test]
+fn test_filter() {
+    let doc = Document::parse_html(
+        "<p>1</p>\
+         <div>\
+           fill\
+           <p>2</p>\
+           <p>3</p>\
+           <div>\
+             <p>4</p>\
+             <i>fill</i>\
+           </div>\
+         </div>"
+            .as_bytes()
+    );
+
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find(|n| {
+        if let Some(edata) = n.as_element() {
+            edata.name.local == local_name!("body")
+        } else {
+            false
+        }
+    }).expect("body");
+
+    let f1: Vec<_> = body.filter(|n| {
+        if let Some(edata) = n.as_element() {
+            edata.name.local == local_name!("p")
+        } else {
+            false
+        }
+    })
+        .map(|n| doc.child_text_content(n.id()).to_string())
+        .collect();
+
+    assert_eq!(f1, vec!["1"]);
+}
+
+#[test]
+fn test_filter_r() {
+    let doc = Document::parse_html(
+        "<p>1</p>\
+         <div>\
+           fill\
+           <p>2</p>\
+           <p>3</p>\
+           <div>\
+             <p>4</p>\
+             <i>fill</i>\
+           </div>\
+         </div>"
+            .as_bytes()
+    );
+
+    let root = doc.root_element_ref().expect("root");
+
+    let f1: Vec<_> = root.filter_r(|n| {
+        if let Some(edata) = n.as_element() {
+            edata.name.local == local_name!("p")
+        } else {
+            false
+        }
+    })
+        .map(|n| doc.child_text_content(n.id()).to_string())
+        .collect();
+
+    assert_eq!(f1, vec!["1", "2", "3", "4"]);
+}
