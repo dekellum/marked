@@ -3,15 +3,15 @@ use crate::vdom::{Document, Node, NodeData, NodeId};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Action {
-    /// Continue filtering for this element, without changes.
+    /// Continue filtering, without further changes to this `Node`.
     Continue,
 
-    /// Replace this element with its children. Equivalent to `Remove` if
-    /// returned for a non-Element node, or an element with no children.
+    /// Replace this `Node` with its children. Equivalent to `Remove` if
+    /// returned for a `Node` with no children.
     Fold,
 
-    /// Detach this element, and any children, from the tree.
-    Remove,
+    /// Detach this `Node`, and any children, from the tree.
+    Detach,
 
     // Replace this element with the given NodeData, for the same position in
     // the tree.
@@ -30,7 +30,7 @@ impl TreeFilter for StrikeRemoveFilter {
     fn filter(&self, node: &mut Node) -> Action {
         if let Some(edata) = node.as_element() {
             if edata.name.local == local_name!("strike") {
-                return Action::Remove;
+                return Action::Detach;
             }
         }
         Action::Continue
@@ -115,7 +115,7 @@ impl Document {
                     self.fold(child);
                     // next child set above, these children already walked
                 }
-                Action::Remove => {
+                Action::Detach => {
                     self.detach(child);
                 }
             }
