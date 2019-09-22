@@ -150,7 +150,7 @@ impl<'a> NodeRef<'a> {
         self.for_some_node(self.parent)
     }
 
-    /// Return all text (character data) of this node.
+    /// Return all decendent text content (character data) of this node.
     ///
     /// If this is a Text node, return that text.  If this is an
     /// Element node or the Document root node, return the
@@ -385,31 +385,28 @@ impl Document {
         self[sibling].previous_sibling = Some(new_sibling);
     }
 
-    /// Return all text (character data) of this node.
+    /// Return all decendent text content (character data) of this node.
     ///
     /// If this is a Text node, return that text.  If this is an
     /// Element node or the Document root node, return the
     /// concatentation of all text descendants, in tree order. Returns
     /// `None` for all other node types.
-    pub(crate) fn text(&self, node: NodeId)
-        -> Option<Cow<'_, StrTendril>>
-    {
-
-        let node = &self[node];
-        if let Some(text) = node.as_text() {
-            return Some(Cow::Borrowed(text));
-        }
-
-        let mut link = node.first_child;
+    pub(crate) fn text(&self, id: NodeId) -> Option<Cow<'_, StrTendril>> {
+        let mut next = Vec::new();
+        push_if(&mut next, self[id].first_child);
         let mut text = None;
-        while let Some(child) = link {
-            if let NodeData::Text(t) = &self[child].data {
+        while let Some(id) = next.pop() {
+            let node = &self[id];
+            if let NodeData::Text(t) = &node.data {
                 match &mut text {
                     None => text = Some(Cow::Borrowed(t)),
                     Some(text) => text.to_mut().push_tendril(&t),
                 }
+                push_if(&mut next, node.next_sibling);
+            } else {
+                push_if(&mut next, node.next_sibling);
+                push_if(&mut next, node.first_child);
             }
-            link = self[child].next_sibling;
         }
         text
     }
@@ -474,6 +471,12 @@ impl Document {
         for child in odoc.children(oid) {
             self.deep_clone_to(id, odoc, child);
         }
+    }
+}
+
+fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
+    if let Some(id) = id {
+        stack.push(id);
     }
 }
 
@@ -759,6 +762,8 @@ fn test_filter_r() {
     );
 
     let root = doc.root_element_ref().expect("root");
+
+    assert_eq!("1fill234fill", root.text().unwrap().to_string());
 
     let f1: Vec<_> = root
         .filter_r(|&n| n == local_name!("p"))
