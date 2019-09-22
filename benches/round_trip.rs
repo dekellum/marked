@@ -46,6 +46,19 @@ fn round_trip_rcdom(b: &mut Bencher) {
     });
 }
 
+#[bench]
+fn text_content(b: &mut Bencher) {
+    let parser_sink = parse_document(Sink::default(), ParseOpts::default());
+    let decoder = Decoder::new(enc::UTF_8, parser_sink);
+    let mut fin = sample_file("github-dekellum.html").expect("sample");
+    let doc = decoder.read_until(&mut fin).expect("parse");
+
+    b.iter(|| {
+        let out = doc.document_node_ref().text();
+        assert_eq!(out.unwrap().len32(), 31637);
+    });
+}
+
 fn sample_file(fname: &str) -> Result<File, io::Error> {
     let root = env!("CARGO_MANIFEST_DIR");
     let fpath = format!("{}/samples/{}", root, fname);

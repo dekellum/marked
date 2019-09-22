@@ -7,7 +7,6 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
-use std::borrow::Cow;
 use std::convert::TryInto;
 use std::fmt;
 use std::iter;
@@ -156,7 +155,7 @@ impl<'a> NodeRef<'a> {
     /// Element node or the Document root node, return the
     /// concatentation of all text descendants, in tree order. Returns
     /// `None` for all other node types.
-    pub fn text(&'a self) -> Option<Cow<'a, StrTendril>> {
+    pub fn text(&'a self) -> Option<StrTendril> {
         self.doc.text(self.id)
     }
 
@@ -391,7 +390,7 @@ impl Document {
     /// Element node or the Document root node, return the
     /// concatentation of all text descendants, in tree order. Returns
     /// `None` for all other node types.
-    pub(crate) fn text(&self, id: NodeId) -> Option<Cow<'_, StrTendril>> {
+    pub(crate) fn text(&self, id: NodeId) -> Option<StrTendril> {
         let mut next = Vec::new();
         push_if(&mut next, self[id].first_child);
         let mut text = None;
@@ -399,8 +398,8 @@ impl Document {
             let node = &self[id];
             if let NodeData::Text(t) = &node.data {
                 match &mut text {
-                    None => text = Some(Cow::Borrowed(t)),
-                    Some(text) => text.to_mut().push_tendril(&t),
+                    None => text = Some(t.clone()),
+                    Some(text) => text.push_tendril(&t),
                 }
                 push_if(&mut next, node.next_sibling);
             } else {
