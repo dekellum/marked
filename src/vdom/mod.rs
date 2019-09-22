@@ -598,7 +598,7 @@ fn test_fold_filter() {
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
     );
-    doc.filter(&filter::StrikeFoldFilter {});
+    doc.filter(filter::strike_fold_filter);
     assert_eq!(
         "<html><head></head><body>\
          <div>foo <i>bar</i>s baz</div>\
@@ -613,7 +613,7 @@ fn test_remove_filter() {
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
     );
-    doc.filter(&filter::StrikeRemoveFilter {});
+    doc.filter(filter::strike_remove_filter);
     assert_eq!(
         "<html><head></head><body>\
          <div>foo  baz</div>\
@@ -628,12 +628,13 @@ fn test_filter_chain() {
         "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
             .as_bytes()
     );
-    let fltrs = filter::FilterChain::new(vec![
-        Box::new(filter::StrikeRemoveFilter {}),
-        Box::new(filter::TextNormalizer)
-    ]);
-
-    doc.filter(&fltrs);
+    doc.filter(|n| {
+        let mut action = filter::strike_remove_filter(n);
+        if action == filter::Action::Continue {
+            action = filter::text_normalize(n);
+        }
+        action
+    });
     assert_eq!(
         "<div>foo baz</div>",
         doc.to_string()

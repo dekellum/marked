@@ -19,36 +19,26 @@ pub enum Action {
     // Replace(NodeData)
 }
 
-pub trait TreeFilter {
-    fn filter(&self, node: &mut Node) -> Action;
-}
-
 // FIXME: Testing remove by tag name
-pub(crate) struct StrikeRemoveFilter;
-
-impl TreeFilter for StrikeRemoveFilter {
-    fn filter(&self, node: &mut Node) -> Action {
-        if let Some(edata) = node.as_element() {
-            if edata.name.local == local_name!("strike") {
-                return Action::Detach;
-            }
+#[allow(unused)]
+pub(crate) fn strike_remove_filter(node: &mut Node) -> Action {
+    if let Some(edata) = node.as_element() {
+        if edata.name.local == local_name!("strike") {
+            return Action::Detach;
         }
-        Action::Continue
     }
+    Action::Continue
 }
 
 // FIXME: Testing fold by tag name
-pub(crate) struct StrikeFoldFilter;
-
-impl TreeFilter for StrikeFoldFilter {
-    fn filter(&self, node: &mut Node) -> Action {
-        if let Some(edata) = node.as_element() {
-            if edata.name.local == local_name!("strike") {
-                return Action::Fold;
-            }
+#[allow(unused)]
+pub(crate) fn strike_fold_filter(node: &mut Node) -> Action {
+    if let Some(edata) = node.as_element() {
+        if edata.name.local == local_name!("strike") {
+            return Action::Fold;
         }
-        Action::Continue
     }
+    Action::Continue
 }
 
 // FIXME: This is a limited and very simple application PoC which at least gets
@@ -56,55 +46,26 @@ impl TreeFilter for StrikeFoldFilter {
 // `<pre>` (or `<xmp>`!) blocks. We don't presently have inline vs. block
 // element classification to use when considering to trim start or end of a
 // text node.
-pub(crate) struct TextNormalizer;
-
-impl TreeFilter for TextNormalizer {
-    fn filter(&self, node: &mut Node) -> Action {
-        if let NodeData::Text(ref mut t) = node.data {
-            replace_ctrl_ws(t, false, false);
-        }
-        Action::Continue
+#[allow(unused)]
+pub(crate) fn text_normalize(node: &mut Node) -> Action {
+    if let NodeData::Text(ref mut t) = node.data {
+        replace_ctrl_ws(t, false, false);
     }
-}
-
-// FIXME: Dynamic dispatch can be costly for this (called for every
-// node). Consider some static helper or require manual setup?
-pub(crate) struct FilterChain {
-    filters: Vec<Box<dyn TreeFilter>>
-}
-
-impl FilterChain {
-    #[allow(unused)] //FIXME
-    pub(crate) fn new(filters: Vec<Box<dyn TreeFilter>>) -> Self {
-        FilterChain { filters }
-    }
-}
-
-impl TreeFilter for FilterChain {
-    fn filter(&self, node: &mut Node) -> Action {
-        let mut action = Action::Continue;
-        for f in self.filters.iter() {
-            action = f.filter(node);
-            if action != Action::Continue {
-                break;
-            }
-        }
-        action
-    }
+    Action::Continue
 }
 
 impl Document {
     /// Perform a depth-first (e.g. children before parent nodes) walk of the
     /// entire document, allowing the given `TreeFilter` to make changes
     /// to each `Node`.
-    pub fn filter<TF>(&mut self, f: &TF)
-        where TF: TreeFilter
+    pub fn filter<F>(&mut self, mut f: F)
+        where F: Fn(&mut Node) -> Action
     {
-        self.filter_node(f, Document::DOCUMENT_NODE_ID);
+        self.filter_node(&mut f, Document::DOCUMENT_NODE_ID);
     }
 
-    fn filter_node<TF>(&mut self, f: &TF, id: NodeId) -> Action
-        where TF: TreeFilter
+    fn filter_node<F>(&mut self, f: &mut F, id: NodeId) -> Action
+        where F: Fn(&mut Node) -> Action
     {
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
@@ -121,7 +82,7 @@ impl Document {
             }
         }
 
-        f.filter(&mut self[id])
+        f(&mut self[id])
     }
 
     /// Replace the given node with its children.
@@ -135,5 +96,4 @@ impl Document {
         }
         self.detach(id);
     }
-
 }
