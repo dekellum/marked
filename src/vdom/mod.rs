@@ -150,6 +150,16 @@ impl<'a> NodeRef<'a> {
         self.for_some_node(self.parent)
     }
 
+    /// Return all text (character data) of this node.
+    ///
+    /// If this is a Text node, return that text.  If this is an
+    /// Element node or the Document root node, return the
+    /// concatentation of all text descendants, in tree order. Returns
+    /// `None` for all other node types.
+    pub fn text(&'a self) -> Option<Cow<'a, StrTendril>> {
+        self.doc.text(self.id)
+    }
+
     #[inline]
     fn for_some_node(&'a self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
         if let Some(id) = id {
@@ -375,15 +385,22 @@ impl Document {
         self[sibling].previous_sibling = Some(new_sibling);
     }
 
-    /// Return concatenation of all text under the given node, in tree
-    /// order. May return the empty string.
+    /// Return all text (character data) of this node.
     ///
-    /// <https://dom.spec.whatwg.org/#concept-child-text-content>
-    #[allow(unused)] //FIXME
-    pub(crate) fn child_text_content(&self, node: NodeId) -> Cow<'_, StrTendril> {
-        // FIXME: What if the initial node is a text node?
-        // FIXME: Use children iterator?
-        let mut link = self[node].first_child;
+    /// If this is a Text node, return that text.  If this is an
+    /// Element node or the Document root node, return the
+    /// concatentation of all text descendants, in tree order. Returns
+    /// `None` for all other node types.
+    pub(crate) fn text(&self, node: NodeId)
+        -> Option<Cow<'_, StrTendril>>
+    {
+
+        let node = &self[node];
+        if let Some(text) = node.as_text() {
+            return Some(Cow::Borrowed(text));
+        }
+
+        let mut link = node.first_child;
         let mut text = None;
         while let Some(child) = link {
             if let NodeData::Text(t) = &self[child].data {
@@ -394,8 +411,7 @@ impl Document {
             }
             link = self[child].next_sibling;
         }
-        // FIXME: Use an option for empty case instead?
-        text.unwrap_or_else(|| Cow::Owned(StrTendril::new()))
+        text
     }
 
     /// Return an iterator over this node's direct children.
@@ -720,7 +736,7 @@ fn test_filter() {
     let body = root.find(|&n| n == local_name!("body")).expect("body");
     let f1: Vec<_> = body
         .filter(|&n| n == local_name!("p"))
-        .map(|n| doc.child_text_content(n.id()).to_string())
+        .map(|n| n.text().unwrap().to_string())
         .collect();
 
     assert_eq!(f1, vec!["1"]);
@@ -744,8 +760,9 @@ fn test_filter_r() {
 
     let root = doc.root_element_ref().expect("root");
 
-    let f1: Vec<_> = root.filter_r(|&n| n == local_name!("p"))
-        .map(|n| doc.child_text_content(n.id()).to_string())
+    let f1: Vec<_> = root
+        .filter_r(|&n| n == local_name!("p"))
+        .map(|n| n.text().unwrap().to_string())
         .collect();
 
     assert_eq!(f1, vec!["1", "2", "3", "4"]);
