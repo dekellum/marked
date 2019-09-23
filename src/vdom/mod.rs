@@ -16,6 +16,7 @@ use std::ops::Deref;
 use html5ever::LocalName;
 pub use html5ever::{Attribute, QualName};
 pub use tendril::StrTendril;
+pub use html5ever::{ns, local_name as lname};
 
 pub mod html;
 pub mod xml;
@@ -728,9 +729,9 @@ fn test_filter() {
     );
 
     let root = doc.root_element_ref().expect("root");
-    let body = root.find(|&n| n == local_name!("body")).expect("body");
+    let body = root.find(|&n| n == lname!("body")).expect("body");
     let f1: Vec<_> = body
-        .filter(|&n| n == local_name!("p"))
+        .filter(|&n| n == lname!("p"))
         .map(|n| n.text().unwrap().to_string())
         .collect();
 
@@ -758,7 +759,7 @@ fn test_filter_r() {
     assert_eq!("1fill234fill", root.text().unwrap().to_string());
 
     let f1: Vec<_> = root
-        .filter_r(|&n| n == local_name!("p"))
+        .filter_r(|&n| n == lname!("p"))
         .map(|n| n.text().unwrap().to_string())
         .collect();
 
