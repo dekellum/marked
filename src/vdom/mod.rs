@@ -515,11 +515,11 @@ pub struct ElementData {
 
 impl ElementData {
     /// Get attribute value by local name.
-    pub fn attr_local(&self, name: &LocalName) -> Option<&str> {
+    pub fn attr(&self, lname: &LocalName) -> Option<&StrTendril> {
         self.attrs
             .iter()
-            .find(|attr| &attr.name.local == name)
-            .map(|attr| &*attr.value)
+            .find(|attr| &attr.name.local == lname)
+            .map(|attr| &attr.value)
     }
 }
 
@@ -535,6 +535,14 @@ impl Node {
         match self.data {
             NodeData::Text(ref t) => Some(t),
             _ => None,
+        }
+    }
+
+    pub fn attr(&self, lname: &LocalName) -> Option<&StrTendril> {
+        if let Some(edata) = self.as_element() {
+            edata.attr(lname)
+        } else {
+            None
         }
     }
 
