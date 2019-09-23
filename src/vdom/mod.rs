@@ -218,12 +218,6 @@ impl<'a, P> Selector<'a, P> {
 
         Selector { doc, next, predicate }
     }
-
-    fn push_some(&mut self, id: Option<NodeId>) {
-        if let Some(id) = id {
-            self.next.push(id);
-        }
-    }
 }
 
 impl<'a, P> Iterator for Selector<'a, P>
@@ -235,11 +229,11 @@ impl<'a, P> Iterator for Selector<'a, P>
         while let Some(id) = self.next.pop() {
             let node = NodeRef::new(self.doc, id);
             if (self.predicate)(&node) {
-                self.push_some(node.next_sibling);
+                push_if(&mut self.next, node.next_sibling);
                 return Some(node);
             } else {
-                self.push_some(node.next_sibling);
-                self.push_some(node.first_child);
+                push_if(&mut self.next, node.next_sibling);
+                push_if(&mut self.next, node.first_child);
             }
         }
         None
