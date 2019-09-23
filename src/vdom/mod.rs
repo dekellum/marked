@@ -773,3 +773,41 @@ fn test_filter_r() {
 
     assert_eq!(f1, vec!["1", "2", "3", "4"]);
 }
+
+#[test]
+fn test_meta_content_type() {
+    let doc = Document::parse_html(
+        "<html xmlns=\"http://www.w3.org/1999/xhtml\">\
+          <head>\
+           <meta charset='UTF-8'/>\
+           <META http-equiv=\" CONTENT-TYPE\" http-equiv=\"other\" \
+                 content=\"text/html; charset=utf-8\"/>\
+           <title>Iūdex</title>\
+          </head>\
+          <body>\
+           <p>Iūdex test.</p>\
+          </body>\
+         </html>".as_bytes()
+    );
+    let root = doc.root_element_ref().expect("root");
+    let head = root.find(|&n| n == lname!("head")).expect("head");
+    let metas: Vec<_> = head.filter(|&n| n == lname!("meta")).collect();
+    let mut found = false;
+    for m in metas {
+        if let Some(a) = m.attr(&lname!("charset")) {
+            eprintln!("meta charset: {}", a);
+        } else if let Some(a) = m.attr(&lname!("http-equiv")) {
+            // FIXME: Parser doesn't normalize whitespace in
+            // attributes. Need to trim.
+            if a.as_ref().trim().eq_ignore_ascii_case("Content-Type") {
+                if let Some(a) = m.attr(&lname!("content")) {
+                    let ctype = a.as_ref().trim();
+                    eprintln!("meta content-type: {}", ctype);
+                    assert_eq!("text/html; charset=utf-8", ctype);
+                    found = true;
+                }
+            }
+        }
+    }
+    assert!(found);
+}
