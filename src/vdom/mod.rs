@@ -13,9 +13,8 @@ use std::iter;
 use std::num::NonZeroU32;
 use std::ops::Deref;
 
-use html5ever::{LocalName, LocalNameStaticSet};
+use html5ever::LocalName;
 pub use html5ever::{Attribute, QualName};
-use string_cache::atom::Atom;
 pub use tendril::StrTendril;
 
 pub mod html;
@@ -184,8 +183,8 @@ impl PartialEq for NodeRef<'_> {
     }
 }
 
-impl PartialEq<Atom<LocalNameStaticSet>> for NodeRef<'_> {
-    fn eq(&self, name: &Atom<LocalNameStaticSet>) -> bool {
+impl PartialEq<LocalName> for NodeRef<'_> {
+    fn eq(&self, name: &LocalName) -> bool {
         if let Some(edata) = self.as_element() {
             edata.name.local == *name
         } else {
