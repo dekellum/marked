@@ -676,6 +676,24 @@ fn test_xmp() {
 }
 
 #[test]
+fn test_plaintext() {
+    let doc = Document::parse_html_fragment(
+        "<div><plaintext><i>bar baz</div>"
+            .as_bytes()
+    );
+    // Serializer isn't aware that <plaintext> doesn't need end tags, etc.
+    assert_eq!(
+        "<div><plaintext><i>bar baz</div></plaintext></div>",
+        doc.to_string()
+    );
+
+    // Currently node count is only ensured by cloning
+    let doc = doc.deep_clone(doc.root_element().unwrap());
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!(3, doc.nodes.len() - 2);
+}
+
+#[test]
 fn test_text_fragment() {
     let doc = Document::parse_html_fragment(
         "plain &lt; text".as_bytes()
@@ -691,6 +709,24 @@ fn test_text_fragment() {
     let doc = doc.deep_clone(doc.root_element().unwrap());
     eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
     assert_eq!(2, doc.nodes.len() - 2);
+}
+
+#[test]
+fn test_empty_tag() {
+    let doc = Document::parse_html_fragment(
+        "plain<wbr>text".as_bytes()
+    );
+    assert_eq!(
+        "<div>\
+         plain<wbr>text\
+         </div>",
+        doc.to_string()
+    );
+
+    // Currently node count is only ensured by cloning
+    let doc = doc.deep_clone(doc.root_element().unwrap());
+    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
+    assert_eq!(4, doc.nodes.len() - 2);
 }
 
 #[test]
