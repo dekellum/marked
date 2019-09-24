@@ -13,13 +13,13 @@ use std::iter;
 use std::num::NonZeroU32;
 use std::ops::Deref;
 
-use html5ever::LocalName;
+pub use html5ever::LocalName;
 pub use html5ever::{Attribute, QualName};
 pub use tendril::StrTendril;
 pub use html5ever::{ns, local_name as lname};
 
 pub mod html;
-pub mod xml;
+mod xml;
 mod serializer;
 mod filter;
 
@@ -181,16 +181,6 @@ impl<'a> Deref for NodeRef<'a> {
 impl PartialEq for NodeRef<'_> {
     fn eq(&self, other: &Self) -> bool {
         (std::ptr::eq(self.doc, other.doc) && self.id == other.id)
-    }
-}
-
-impl PartialEq<LocalName> for NodeRef<'_> {
-    fn eq(&self, name: &LocalName) -> bool {
-        if let Some(edata) = self.as_element() {
-            edata.name.local == *name
-        } else {
-            false
-        }
     }
 }
 
@@ -515,11 +505,20 @@ pub struct ElementData {
 
 impl ElementData {
     /// Get attribute value by local name.
-    pub fn attr(&self, lname: &LocalName) -> Option<&StrTendril> {
+    pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+        where LN: Into<LocalName>
+    {
+        let lname = lname.into();
         self.attrs
             .iter()
-            .find(|attr| &attr.name.local == lname)
+            .find(|attr| attr.name.local == lname)
             .map(|attr| &attr.value)
+    }
+
+    pub fn is_elem<LN>(&self, lname: LN) -> bool
+        where LN: Into<LocalName>
+    {
+        self.name.local == lname.into()
     }
 }
 
@@ -538,11 +537,23 @@ impl Node {
         }
     }
 
-    pub fn attr(&self, lname: &LocalName) -> Option<&StrTendril> {
+    pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+        where LN: Into<LocalName>
+    {
         if let Some(edata) = self.as_element() {
             edata.attr(lname)
         } else {
             None
+        }
+    }
+
+    pub fn is_elem<LN>(&self, lname: LN) -> bool
+        where LN: Into<LocalName>
+    {
+        if let Some(edata) = self.as_element() {
+            edata.is_elem(lname)
+        } else {
+            false
         }
     }
 
@@ -737,9 +748,9 @@ fn test_filter() {
     );
 
     let root = doc.root_element_ref().expect("root");
-    let body = root.find(|&n| n == lname!("body")).expect("body");
+    let body = root.find(|n| n.is_elem(lname!("body"))).expect("body");
     let f1: Vec<_> = body
-        .filter(|&n| n == lname!("p"))
+        .filter(|n| n.is_elem(lname!("p")))
         .map(|n| n.text().unwrap().to_string())
         .collect();
 
@@ -748,6 +759,8 @@ fn test_filter() {
 
 #[test]
 fn test_filter_r() {
+    const P: LocalName = lname!("p");
+
     let doc = Document::parse_html_fragment(
         "<p>1</p>\
          <div>\
@@ -767,7 +780,7 @@ fn test_filter_r() {
     assert_eq!("1fill234fill", root.text().unwrap().to_string());
 
     let f1: Vec<_> = root
-        .filter_r(|&n| n == lname!("p"))
+        .filter_r(|n| n.is_elem(P))
         .map(|n| n.text().unwrap().to_string())
         .collect();
 
@@ -776,31 +789,41 @@ fn test_filter_r() {
 
 #[test]
 fn test_meta_content_type() {
+    // element constants
+    const HEAD:         LocalName = lname!("head");
+    const META:         LocalName = lname!("meta");
+
+    // attribute constants
+    const CHARSET:      LocalName = lname!("charset");
+    const HTTP_EQUIV:   LocalName = lname!("http-equiv");
+    const CONTENT:      LocalName = lname!("content");
+
     let doc = Document::parse_html(
-        "<html xmlns=\"http://www.w3.org/1999/xhtml\">\
-          <head>\
-           <meta charset='UTF-8'/>\
-           <META http-equiv=\" CONTENT-TYPE\" http-equiv=\"other\" \
-                 content=\"text/html; charset=utf-8\"/>\
-           <title>Iūdex</title>\
-          </head>\
-          <body>\
-           <p>Iūdex test.</p>\
-          </body>\
-         </html>".as_bytes()
+        r####"
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta charset='UTF-8'/>
+  <META http-equiv=" CONTENT-TYPE" content="text/html; charset=utf-8"/>
+  <title>Iūdex</title>
+ </head>
+ <body>
+  <p>Iūdex test.</p>
+ </body>
+</html>"####
+            .as_bytes()
     );
     let root = doc.root_element_ref().expect("root");
-    let head = root.find(|&n| n == lname!("head")).expect("head");
-    let metas: Vec<_> = head.filter(|&n| n == lname!("meta")).collect();
+    let head = root.find(|n| n.is_elem(HEAD)).expect("head");
+    let metas: Vec<_> = head.filter(|n| n.is_elem(META)).collect();
     let mut found = false;
     for m in metas {
-        if let Some(a) = m.attr(&lname!("charset")) {
+        if let Some(a) = m.attr(CHARSET) {
             eprintln!("meta charset: {}", a);
-        } else if let Some(a) = m.attr(&lname!("http-equiv")) {
+        } else if let Some(a) = m.attr(HTTP_EQUIV) {
             // FIXME: Parser doesn't normalize whitespace in
             // attributes. Need to trim.
             if a.as_ref().trim().eq_ignore_ascii_case("Content-Type") {
-                if let Some(a) = m.attr(&lname!("content")) {
+                if let Some(a) = m.attr(CONTENT) {
                     let ctype = a.as_ref().trim();
                     eprintln!("meta content-type: {}", ctype);
                     assert_eq!("text/html; charset=utf-8", ctype);
