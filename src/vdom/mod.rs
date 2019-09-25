@@ -504,8 +504,8 @@ pub struct ElementData {
 }
 
 impl ElementData {
-    /// Get attribute value by local name.
-    pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+    /// Return attribute value by local attribute name, if present.
+    fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
         where LN: Into<LocalName>
     {
         let lname = lname.into();
@@ -515,7 +515,8 @@ impl ElementData {
             .map(|attr| &attr.value)
     }
 
-    pub fn is_elem<LN>(&self, lname: LN) -> bool
+    /// Return true if this element has the given local name.
+    fn is_elem<LN>(&self, lname: LN) -> bool
         where LN: Into<LocalName>
     {
         self.name.local == lname.into()
@@ -523,20 +524,23 @@ impl ElementData {
 }
 
 impl Node {
-    pub fn as_element(&self) -> Option<&ElementData> {
+    fn as_element(&self) -> Option<&ElementData> {
         match self.data {
             NodeData::Element(ref data) => Some(data),
             _ => None,
         }
     }
 
-    pub fn as_text(&self) -> Option<&StrTendril> {
+    #[allow(unused)] //FIXME
+    fn as_text(&self) -> Option<&StrTendril> {
         match self.data {
             NodeData::Text(ref t) => Some(t),
             _ => None,
         }
     }
 
+    /// Return attribute value by given local attribute name, if this is an
+    /// element with that attribute present.
     pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
         where LN: Into<LocalName>
     {
@@ -547,6 +551,7 @@ impl Node {
         }
     }
 
+    /// Return true if this Node is an element with the given local name.
     pub fn is_elem<LN>(&self, lname: LN) -> bool
         where LN: Into<LocalName>
     {
