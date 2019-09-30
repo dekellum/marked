@@ -4,7 +4,7 @@
 
 use std::collections::{HashMap};
 
-use html5ever::LocalName;
+use crate::vdom::LocalName;
 use lazy_static::lazy_static;
 
 pub struct TagMeta {
@@ -76,23 +76,24 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
 }
 
 pub mod t {
-    use html5ever::{LocalName, local_name};
+    use crate::vdom::{LocalName, lname};
+
     /// The <a> anchor tag
-    pub const A: LocalName = local_name!("a");
+    pub const A: LocalName = lname!("a");
 }
 
 pub mod a {
-    use html5ever::{LocalName, local_name};
+    use crate::vdom::{LocalName, lname};
 
-    pub const CLASS:          LocalName = local_name!("class");
-    pub const HREF:           LocalName = local_name!("href");
-    pub const ID:             LocalName = local_name!("id");
-    pub const REL:            LocalName = local_name!("rel");
-    pub const STYLE:          LocalName = local_name!("style");
-    pub const TARGET:         LocalName = local_name!("target");
-    pub const TITLE:          LocalName = local_name!("title");
+    pub const CLASS:          LocalName = lname!("class");
+    pub const HREF:           LocalName = lname!("href");
+    pub const ID:             LocalName = lname!("id");
+    pub const REL:            LocalName = lname!("rel");
+    pub const STYLE:          LocalName = lname!("style");
+    pub const TARGET:         LocalName = lname!("target");
+    pub const TITLE:          LocalName = lname!("title");
 
-    pub const ITEMREF:        LocalName = local_name!("itemref");
+    pub const ITEMREF:        LocalName = lname!("itemref");
 
     lazy_static::lazy_static! {
         pub static ref EXPORTPARTS: LocalName = "exportparts".into();
