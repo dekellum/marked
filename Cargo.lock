@@ -152,6 +152,7 @@ version = "0.1.0"
 dependencies = [
  "encoding_rs 0.8.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "html5ever 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "string_cache 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "tendril 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "xml-rs 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",

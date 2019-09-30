@@ -22,6 +22,8 @@ use crate::vdom::{
     Attribute, Document, ElementData, Node, NodeData, NodeId
 };
 
+mod meta;
+
 impl Document {
     pub fn parse_html(utf8_bytes: &[u8]) -> Self {
         let sink = Sink {
