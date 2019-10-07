@@ -37,12 +37,12 @@ pub struct Document {
 /// A typed node (e.g. text, element, etc.) within a `Document`.
 #[derive(Debug)]
 pub struct Node {
-    pub(crate) parent: Option<NodeId>,
-    pub(crate) next_sibling: Option<NodeId>,
-    pub(crate) previous_sibling: Option<NodeId>,
-    pub(crate) first_child: Option<NodeId>,
-    pub(crate) last_child: Option<NodeId>,
-    pub(crate) data: NodeData,
+    parent: Option<NodeId>,
+    next_sibling: Option<NodeId>,
+    previous_sibling: Option<NodeId>,
+    first_child: Option<NodeId>,
+    last_child: Option<NodeId>,
+    data: NodeData,
 }
 
 impl Clone for Node {
@@ -60,8 +60,8 @@ pub struct NodeId(NonZeroU32);
 /// A `Node` within `Document` lifetime reference.
 #[derive(Copy, Clone)]
 pub struct NodeRef<'a>{
-    pub(crate) doc: &'a Document,
-    pub(crate) id: NodeId
+    doc: &'a Document,
+    id: NodeId
 }
 
 impl<'a> NodeRef<'a> {
@@ -505,8 +505,8 @@ pub(crate) enum NodeData {
 /// A markup element with name and attributes.
 #[derive(Clone, Debug)]
 pub struct ElementData {
-    pub(crate) name: QualName,
-    pub(crate) attrs: Vec<Attribute>,
+    name: QualName,
+    attrs: Vec<Attribute>,
 }
 
 impl ElementData {
