@@ -19,7 +19,7 @@ pub use tendril::StrTendril;
 pub mod html;
 mod xml;
 mod serializer;
-pub(crate) mod filter;
+pub mod filter;
 
 pub use xml::XmlError;
 
