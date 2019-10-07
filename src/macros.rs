@@ -4,8 +4,8 @@
 #[macro_export]
 macro_rules! chain_filters {
     ($first:expr $(, $subs:expr)* $(,)?) => (
-        |node| {
-            let mut action = $first(node);
+        |node: &mut $crate::vdom::Node| {
+            let mut action: $crate::vdom::filter::Action = $first(node);
         $(
             if action == $crate::vdom::filter::Action::Continue {
                 action = $subs(node);
