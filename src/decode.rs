@@ -200,7 +200,7 @@ fn decode_to_sink<Sink, A>(
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use tendril::SliceExt;
 

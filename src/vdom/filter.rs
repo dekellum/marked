@@ -1,6 +1,5 @@
 use crate::chars::replace_ctrl_ws;
 use crate::vdom::{Document, Node, NodeData, NodeId};
-use crate::vdom::html::t;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Action {
@@ -22,32 +21,6 @@ pub enum Action {
 
 pub trait TreeFilter {
     fn filter(&self, node: &mut Node) -> Action;
-}
-
-// FIXME: Testing remove by tag name
-pub(crate) struct StrikeRemoveFilter;
-
-impl TreeFilter for StrikeRemoveFilter {
-    fn filter(&self, node: &mut Node) -> Action {
-        if node.is_elem(t::STRIKE) {
-            Action::Detach
-        } else {
-            Action::Continue
-        }
-    }
-}
-
-// FIXME: Testing fold by tag name
-pub(crate) struct StrikeFoldFilter;
-
-impl TreeFilter for StrikeFoldFilter {
-    fn filter(&self, node: &mut Node) -> Action {
-        if node.is_elem(t::STRIKE) {
-            Action::Fold
-        } else {
-            Action::Continue
-        }
-    }
 }
 
 // FIXME: This is a limited and very simple application PoC which at least gets
