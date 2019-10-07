@@ -29,6 +29,7 @@ pub use xml::XmlError;
 /// parent/child and sibling ordering. Attributes are stored as separately
 /// allocated vectors for each element. For memory efficiency, a single
 /// document is limited to 4 billion (2^32) total nodes.
+#[derive(Default)]
 pub struct Document {
     nodes: Vec<Node>,
 }
