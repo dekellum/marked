@@ -5,6 +5,8 @@ use crate::vdom::{
     html::{a, t},
 };
 
+use crate::chain_filters;
+
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn size_of() {
@@ -42,19 +44,11 @@ fn one_element() {
 }
 
 fn strike_fold_filter(node: &mut Node) -> Action {
-    if node.is_elem(t::STRIKE) {
-        Action::Fold
-    } else {
-        Action::Continue
-    }
+    if node.is_elem(t::STRIKE) { Action::Fold } else { Action::Continue }
 }
 
 fn strike_remove_filter(node: &mut Node) -> Action {
-    if node.is_elem(t::STRIKE) {
-        Action::Detach
-    } else {
-        Action::Continue
-    }
+    if node.is_elem(t::STRIKE) { Action::Detach } else { Action::Continue }
 }
 
 #[test]
@@ -94,13 +88,17 @@ fn test_filter_chain() {
             .as_bytes()
     );
 
-    doc.filter(|n| {
-        let mut action = strike_remove_filter(n);
-        if action == Action::Continue {
-            action = filter::text_normalize(n);
-        }
-        action
-    });
+    // just to confirm that closures also work in chain
+    let other_filter = |n: &mut Node| {
+        if n.is_elem(t::META) { Action::Detach } else { Action::Continue }
+    };
+
+    doc.filter(chain_filters!(
+        other_filter,
+        strike_remove_filter,
+        filter::text_normalize
+    ));
+
     assert_eq!(
         "<div>foo baz</div>",
         doc.to_string()
