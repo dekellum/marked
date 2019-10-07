@@ -13,15 +13,13 @@ use std::iter;
 use std::num::NonZeroU32;
 use std::ops::Deref;
 
-use html5ever::{LocalName, LocalNameStaticSet};
-pub use html5ever::{Attribute, QualName};
-use string_cache::atom::Atom;
+pub use html5ever::{Attribute, LocalName, Namespace, QualName};
 pub use tendril::StrTendril;
 
 pub mod html;
-pub mod xml;
+mod xml;
 mod serializer;
-mod filter;
+pub mod filter;
 
 pub use xml::XmlError;
 
@@ -31,6 +29,7 @@ pub use xml::XmlError;
 /// parent/child and sibling ordering. Attributes are stored as separately
 /// allocated vectors for each element. For memory efficiency, a single
 /// document is limited to 4 billion (2^32) total nodes.
+#[derive(Default)]
 pub struct Document {
     nodes: Vec<Node>,
 }
@@ -38,12 +37,12 @@ pub struct Document {
 /// A typed node (e.g. text, element, etc.) within a `Document`.
 #[derive(Debug)]
 pub struct Node {
-    pub(crate) parent: Option<NodeId>,
-    pub(crate) next_sibling: Option<NodeId>,
-    pub(crate) previous_sibling: Option<NodeId>,
-    pub(crate) first_child: Option<NodeId>,
-    pub(crate) last_child: Option<NodeId>,
-    pub(crate) data: NodeData,
+    parent: Option<NodeId>,
+    next_sibling: Option<NodeId>,
+    previous_sibling: Option<NodeId>,
+    first_child: Option<NodeId>,
+    last_child: Option<NodeId>,
+    data: NodeData,
 }
 
 impl Clone for Node {
@@ -61,13 +60,13 @@ pub struct NodeId(NonZeroU32);
 /// A `Node` within `Document` lifetime reference.
 #[derive(Copy, Clone)]
 pub struct NodeRef<'a>{
-    pub(crate) doc: &'a Document,
-    pub(crate) id: NodeId
+    doc: &'a Document,
+    id: NodeId
 }
 
 impl<'a> NodeRef<'a> {
     #[inline]
-    fn new(doc: &'a Document, id: NodeId) -> Self {
+    pub fn new(doc: &'a Document, id: NodeId) -> Self {
         NodeRef { doc, id }
     }
 
@@ -184,16 +183,6 @@ impl PartialEq for NodeRef<'_> {
     }
 }
 
-impl PartialEq<Atom<LocalNameStaticSet>> for NodeRef<'_> {
-    fn eq(&self, name: &Atom<LocalNameStaticSet>) -> bool {
-        if let Some(edata) = self.as_element() {
-            edata.name.local == *name
-        } else {
-            false
-        }
-    }
-}
-
 impl fmt::Debug for NodeRef<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "NodeRef({:p}, {:?})", self.doc, self.id)
@@ -218,12 +207,6 @@ impl<'a, P> Selector<'a, P> {
 
         Selector { doc, next, predicate }
     }
-
-    fn push_some(&mut self, id: Option<NodeId>) {
-        if let Some(id) = id {
-            self.next.push(id);
-        }
-    }
 }
 
 impl<'a, P> Iterator for Selector<'a, P>
@@ -235,11 +218,11 @@ impl<'a, P> Iterator for Selector<'a, P>
         while let Some(id) = self.next.pop() {
             let node = NodeRef::new(self.doc, id);
             if (self.predicate)(&node) {
-                self.push_some(node.next_sibling);
+                push_if(&mut self.next, node.next_sibling);
                 return Some(node);
             } else {
-                self.push_some(node.next_sibling);
-                self.push_some(node.first_child);
+                push_if(&mut self.next, node.next_sibling);
+                push_if(&mut self.next, node.first_child);
             }
         }
         None
@@ -252,7 +235,8 @@ impl Document {
         unsafe { NonZeroU32::new_unchecked(1) }
     );
 
-    fn new() -> Self {
+    /// Construct new, effectively empty Document.
+    pub fn new() -> Self {
         Document { nodes: vec![
             Node::new(NodeData::Document), // dummy padding, index 0
             Node::new(NodeData::Document)  // the real root, index 1
@@ -473,6 +457,12 @@ impl Document {
     }
 }
 
+impl fmt::Debug for Document {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(&self.nodes[1..]).finish()
+    }
+}
+
 fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
     if let Some(id) = id {
         stack.push(id);
@@ -515,36 +505,70 @@ pub(crate) enum NodeData {
 /// A markup element with name and attributes.
 #[derive(Clone, Debug)]
 pub struct ElementData {
-    pub(crate) name: QualName,
-    pub(crate) attrs: Vec<Attribute>,
+    name: QualName,
+    attrs: Vec<Attribute>,
 }
 
 impl ElementData {
-    /// Get attribute value by local name.
-    pub fn attr_local(&self, name: &LocalName) -> Option<&str> {
+    /// Return attribute value by local attribute name, if present.
+    fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+        where LN: Into<LocalName>
+    {
+        let lname = lname.into();
         self.attrs
             .iter()
-            .find(|attr| &attr.name.local == name)
-            .map(|attr| &*attr.value)
+            .find(|attr| attr.name.local == lname)
+            .map(|attr| &attr.value)
+    }
+
+    /// Return true if this element has the given local name.
+    fn is_elem<LN>(&self, lname: LN) -> bool
+        where LN: Into<LocalName>
+    {
+        self.name.local == lname.into()
     }
 }
 
 impl Node {
-    pub fn as_element(&self) -> Option<&ElementData> {
+    fn as_element(&self) -> Option<&ElementData> {
         match self.data {
             NodeData::Element(ref data) => Some(data),
             _ => None,
         }
     }
 
-    pub fn as_text(&self) -> Option<&StrTendril> {
+    #[allow(unused)] //FIXME
+    fn as_text(&self) -> Option<&StrTendril> {
         match self.data {
             NodeData::Text(ref t) => Some(t),
             _ => None,
         }
     }
 
-    fn new(data: NodeData) -> Self {
+    /// Return attribute value by given local attribute name, if this is an
+    /// element with that attribute present.
+    pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+        where LN: Into<LocalName>
+    {
+        if let Some(edata) = self.as_element() {
+            edata.attr(lname)
+        } else {
+            None
+        }
+    }
+
+    /// Return true if this Node is an element with the given local name.
+    pub fn is_elem<LN>(&self, lname: LN) -> bool
+        where LN: Into<LocalName>
+    {
+        if let Some(edata) = self.as_element() {
+            edata.is_elem(lname)
+        } else {
+            false
+        }
+    }
+
+    pub(crate) fn new(data: NodeData) -> Self {
         Node {
             parent: None,
             previous_sibling: None,
@@ -556,219 +580,5 @@ impl Node {
     }
 }
 
-#[test]
-#[cfg(target_pointer_width = "64")]
-fn size_of() {
-    use std::mem::size_of;
-    assert_eq!(size_of::<Node>(), 88);
-    assert_eq!(size_of::<NodeData>(), 64);
-    assert_eq!(size_of::<ElementData>(), 56);
-    assert_eq!(size_of::<Attribute>(), 48);
-    assert_eq!(size_of::<Vec<Attribute>>(), 24);
-    assert_eq!(size_of::<QualName>(), 32);
-    assert_eq!(size_of::<StrTendril>(), 16);
-}
-
-#[test]
-fn empty_document() {
-    let doc = Document::new();
-    assert_eq!(None, doc.root_element_ref(), "no root Element");
-    assert_eq!(1, doc.nodes().count(), "one Document node");
-}
-
-#[test]
-fn one_element() {
-    let mut doc = Document::new();
-    let element = Node::new(NodeData::Element(
-        ElementData {
-            name: QualName::new(None, ns!(), "one".into()),
-            attrs: vec![]
-        }
-    ));
-    let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
-
-    assert!(doc.root_element_ref().is_some(), "pushed root Element");
-    assert_eq!(id, doc.root_element_ref().unwrap().id);
-    assert_eq!(2, doc.nodes().count(), "root + 1 element");
-}
-
-#[test]
-fn test_fold_filter() {
-    let mut doc = Document::parse_html(
-        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
-            .as_bytes()
-    );
-    doc.filter(filter::strike_fold_filter);
-    assert_eq!(
-        "<html><head></head><body>\
-         <div>foo <i>bar</i>s baz</div>\
-         </body></html>",
-        doc.to_string()
-    );
-}
-
-#[test]
-fn test_remove_filter() {
-    let mut doc = Document::parse_html(
-        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
-            .as_bytes()
-    );
-    doc.filter(filter::strike_remove_filter);
-    assert_eq!(
-        "<html><head></head><body>\
-         <div>foo  baz</div>\
-         </body></html>",
-        doc.to_string()
-    );
-}
-
-#[test]
-fn test_filter_chain() {
-    let mut doc = Document::parse_html_fragment(
-        "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
-            .as_bytes()
-    );
-    doc.filter(|n| {
-        let mut action = filter::strike_remove_filter(n);
-        if action == filter::Action::Continue {
-            action = filter::text_normalize(n);
-        }
-        action
-    });
-    assert_eq!(
-        "<div>foo baz</div>",
-        doc.to_string()
-    );
-}
-
-#[test]
-fn test_xmp() {
-    let doc = Document::parse_html_fragment(
-        "<div>foo <xmp><i>bar</i></xmp> baz</div>"
-            .as_bytes()
-    );
-    assert_eq!(
-        "<div>foo <xmp><i>bar</i></xmp> baz</div>",
-        doc.to_string()
-    );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
-    assert_eq!(5, doc.nodes.len() - 2);
-}
-
-#[test]
-fn test_text_fragment() {
-    let doc = Document::parse_html_fragment(
-        "plain &lt; text".as_bytes()
-    );
-    assert_eq!(
-        "<div>\
-         plain &lt; text\
-         </div>",
-        doc.to_string()
-    );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
-    assert_eq!(2, doc.nodes.len() - 2);
-}
-
-#[test]
-fn test_shallow_fragment() {
-    let doc = Document::parse_html_fragment(
-        "<b>b</b> text <i>i</i>".as_bytes()
-    );
-    assert_eq!(
-        "<div>\
-         <b>b</b> text <i>i</i>\
-         </div>",
-        doc.to_string()
-    );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
-    assert_eq!(6, doc.nodes.len() - 2);
-}
-
-#[test]
-fn test_empty_fragment() {
-    let doc = Document::parse_html_fragment("".as_bytes());
-    eprintln!("the doc nodes:\n{:?}", &doc.nodes[2..]);
-    assert_eq!("<div></div>", doc.to_string());
-}
-
-#[test]
-fn test_deep_clone() {
-    let doc = Document::parse_html(
-        "<div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
-         <div>sibling</div>"
-            .as_bytes()
-    );
-
-    let doc = doc.deep_clone(doc.root_element().expect("root"));
-    assert_eq!(
-        "<html><head></head><body>\
-           <div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
-           <div>sibling</div>\
-         </body></html>",
-        doc.to_string()
-    );
-}
-
-#[test]
-fn test_filter() {
-    let doc = Document::parse_html(
-        "<p>1</p>\
-         <div>\
-           fill\
-           <p>2</p>\
-           <p>3</p>\
-           <div>\
-             <p>4</p>\
-             <i>fill</i>\
-           </div>\
-         </div>"
-            .as_bytes()
-    );
-
-    let root = doc.root_element_ref().expect("root");
-    let body = root.find(|&n| n == local_name!("body")).expect("body");
-    let f1: Vec<_> = body
-        .filter(|&n| n == local_name!("p"))
-        .map(|n| n.text().unwrap().to_string())
-        .collect();
-
-    assert_eq!(f1, vec!["1"]);
-}
-
-#[test]
-fn test_filter_r() {
-    let doc = Document::parse_html_fragment(
-        "<p>1</p>\
-         <div>\
-           fill\
-           <p>2</p>\
-           <p>3</p>\
-           <div>\
-             <p>4</p>\
-             <i>fill</i>\
-           </div>\
-         </div>"
-            .as_bytes()
-    );
-
-    let root = doc.root_element_ref().expect("root");
-
-    assert_eq!("1fill234fill", root.text().unwrap().to_string());
-
-    let f1: Vec<_> = root
-        .filter_r(|&n| n == local_name!("p"))
-        .map(|n| n.text().unwrap().to_string())
-        .collect();
-
-    assert_eq!(f1, vec!["1", "2", "3", "4"]);
-}
+#[cfg(test)]
+mod tests;

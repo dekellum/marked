@@ -19,28 +19,6 @@ pub enum Action {
     // Replace(NodeData)
 }
 
-// FIXME: Testing remove by tag name
-#[allow(unused)]
-pub(crate) fn strike_remove_filter(node: &mut Node) -> Action {
-    if let Some(edata) = node.as_element() {
-        if edata.name.local == local_name!("strike") {
-            return Action::Detach;
-        }
-    }
-    Action::Continue
-}
-
-// FIXME: Testing fold by tag name
-#[allow(unused)]
-pub(crate) fn strike_fold_filter(node: &mut Node) -> Action {
-    if let Some(edata) = node.as_element() {
-        if edata.name.local == local_name!("strike") {
-            return Action::Fold;
-        }
-    }
-    Action::Continue
-}
-
 // FIXME: This is a limited and very simple application PoC which at least gets
 // rid of known problem chars. It will go too far with replacing newlines in
 // `<pre>` (or `<xmp>`!) blocks. We don't presently have inline vs. block

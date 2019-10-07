@@ -1,0 +1,154 @@
+# HTML Tags
+#
+# Sources
+#  http://www.w3.org/TR/xhtml11/
+#  http://www.w3.org/TR/html4/
+#  https://developer.mozilla.org/en-US/docs/Web/HTML/Element
+#  https://html.spec.whatwg.org/
+
+# Codes:
+# E :: Empty Tag
+# S :: In Strict HTML 4.01/XHTML 1.0
+# T :: In Transitional HTML 4.01/XHTML 1.0
+# F :: In frameset annex
+# 5 :: HTML5 new elements
+# D :: Deprecated
+# I :: Inline elements (Note <br/> is not labeled inline.)
+# M :: Metadata elements (content not visible text), i.e. head
+# B :: Banned/blacklisted elements from which text should not be extracted.
+
+a            ,  S T F 5   I    , anchor
+abbr         ,  S T F 5   I    , abbreviation
+acronym      ,  S T F   D I    , acronym
+address      ,  S T F 5        , contact information for the author or owner
+applet       ,    T F   D      , embedded applet
+area         ,E S T F 5        , area inside an image-map
+article      ,        5        , Structure: an independent content element
+aside        ,        5        , Structure: tengentially related content
+audio        ,        5   I    , Sound content
+b            ,  S T F 5   I    , bold text
+base         ,E S T F 5     M  , default address or target for all links on a page
+basefont     ,E   T F   D I M  , default font; color; or size for the text in a page
+bdi          ,        5   I    , Text isolated from surrounding for BIDI formatting
+bdo          ,  S T F 5   I    , the text direction
+big          ,  S T F   D I    , big text
+blink        ,          D I    , blinking text
+blockquote   ,  S T F 5        , long quotation
+body         ,  S T F 5        , the document's body
+br           ,E S T F 5        , single line break
+button       ,  S T F 5   I   B, push button
+canvas       ,        5   I    , canvas for drawing graphics and animations
+caption      ,  S T F 5        , table caption
+center       ,    T F   D      , centered text
+cite         ,  S T F 5   I    , citation
+code         ,  S T F 5   I    , computer code text
+col          ,E S T F 5        , attribute values for one or more columns in a table
+colgroup     ,  S T F 5        , group of columns in a table for formatting
+content      ,          D     B, Shadow DOM content placeholder element
+data         ,        5   I    , adds machine-oriented data representation
+datalist     ,        5   I   B, container for option elements
+dd           ,  S T F 5        , description of a term in a definition list
+del          ,  S T F 5   I    , deleted text
+details      ,        5        , optional additional details (also: summary)
+dfn          ,  S T F 5   I    , definition term
+dialog       ,        5        , dialog box or other interactive component
+dir          ,    T F   D      , directory list
+div          ,  S T F 5        , section in a document
+dl           ,  S T F 5        , definition list
+dt           ,  S T F 5        , term (an item) in a definition list
+em           ,  S T F 5   I    , emphasized text
+embed        ,E       5   I    , embed content by external app or plug-in
+fieldset     ,  S T F 5       B, border around elements in a form
+figcaption   ,        5        , Structure: a figure caption
+figure       ,        5        , Structure: self contained content that can be moved
+font         ,    T F   D I    , font; color; or size for text
+footer       ,        5        , Structure: a footer of a section
+form         ,  S T F 5        , form for user input
+frame        ,E     F   D     B, window (a frame) in a frameset
+frameset     ,      F   D     B, set of frames
+h1           ,  S T F 5        , heading level 1
+h2           ,  S T F 5        , heading level 2
+h3           ,  S T F 5        , heading level 3
+h4           ,  S T F 5        , heading level 4
+h5           ,  S T F 5        , heading level 5
+h6           ,  S T F 5        , heading level 6
+head         ,  S T F 5     M  , information about the document
+header       ,        5        , Structure: a header of a section
+hgroup       ,        5        , Structure: a group of headings
+hr           ,E S T F 5        , horizontal line
+html         ,  S T F 5        , document
+i            ,  S T F 5   I    , italic text
+iframe       ,    T F 5   I    , inline frame
+img          ,E S T F 5   I    , image
+input        ,E S T F 5   I   B, input control
+ins          ,  S T F 5   I    , inserted text
+isindex      ,    T F   D      , searchable index related to a document
+kbd          ,  S T F 5   I    , keyboard text
+label        ,  S T F 5   I   B, label for input or other element
+legend       ,  S T F 5       B, caption for a fieldset element
+li           ,  S T F 5        , list item
+listing      ,          D
+link         ,E S T F 5     M  , relationship with an external resource
+main         ,        5        , identify central topic/functional content
+map          ,  S T F 5   I    , image-map
+mark         ,        5   I    , Text marked/highlighted for reference purposes
+menu         ,    T F 5 D      , menu list
+menuitem     ,E       5 D      , a command in a menu
+meta         ,E S T F 5     M  , metadata
+meter        ,        5   I    , a linear guage for a scaler value
+nav          ,        5        , Structure: container for navigational links
+nobr         ,          D I    , contained text; white-space: nowrap
+noframes     ,    T F   D     B, alternate content where frames not supported
+noscript     ,  S T F 5   I   B, alternate content script not supported
+object       ,  S T F 5   I   B, embedded object
+ol           ,  S T F 5        , ordered list
+optgroup     ,  S T F 5       B, group of related options in a select list
+option       ,  S T F 5       B, option in a select list
+output       ,        5   I    , content is (scripted) outcome of a user action.
+p            ,  S T F 5        , paragraph
+param        ,E S T F 5        , parameter for an object
+picture      ,        5   I    , container for multiple img/source DPI
+plaintext    ,          D      , like xmp, no close tag
+pre          ,  S T F 5        , preformatted text
+progress     ,        5   I    , a progress bar
+q            ,  S T F 5   I    , short quotation
+rb           ,        5        , ruby base text
+rbc          ,        5        , ruby base container (complex)
+rp           ,        5        , ruby simple text container
+rt           ,        5        , ruby annotation text
+rtc          ,        5        , ruby text container (complex)
+ruby         ,        5   I    , ruby pronunciation aid
+s            ,    T F 5 D I    , strikethrough text
+samp         ,  S T F 5   I    , sample computer code
+script       ,  S T F 5   I   B, client-side script
+section      ,        5        , Structure: generic document/application section
+select       ,  S T F 5   I   B, select list (drop-down list)
+slot         ,        5   I   B, (Shadow) DOM placeholder element
+small        ,  S T F 5   I    , small text
+source       ,E       5        , source for picture, audio, video elements
+span         ,  S T F 5   I    , section in a document
+strike       ,    T F   D I    , strikethrough text
+strong       ,  S T F 5   I    , strong text
+style        ,  S T F 5       B, style information for a document
+sub          ,  S T F 5   I    , subscripted text
+summary      ,        5        , summary of details element
+sup          ,  S T F 5   I    , superscripted text
+svg          ,        5        , inline scalable vector graphics
+table        ,  S T F 5        , table
+tbody        ,  S T F 5        , Groups the body content in a table
+td           ,  S T F 5        , cell in a table
+template     ,        5       B, html sub-tree notrenderered except by script
+textarea     ,  S T F 5   I   B, multi-line text input control
+tfoot        ,  S T F 5        , Groups the footer content in a table
+th           ,  S T F 5        , header cell in a table
+thead        ,  S T F 5        , Groups the header content in a table
+time         ,        5   I    , A date or time
+title        ,  S T F 5     M  , the title of a document
+tr           ,  S T F 5        , row in a table
+tt           ,  S T F   D I    , teletype text
+u            ,    T F 5 D I    , underlined text
+ul           ,  S T F 5        , unordered list
+var          ,  S T F 5   I    , variable part of a text
+video        ,        5   I    , video container
+wbr          ,E       5   I    , A line break opportunity
+xmp          ,          D      , preformatted text

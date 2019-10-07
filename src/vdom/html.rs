@@ -15,9 +15,15 @@ use html5ever::interface::tree_builder::{
     ElementFlags, NodeOrText, QuirksMode, TreeSink
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
-use html5ever::{self, parse_document, parse_fragment, ExpandedName, QualName};
+use html5ever::{parse_document, parse_fragment, ExpandedName, QualName};
 
-use crate::vdom::{Attribute, Document, ElementData, Node, NodeData, NodeId};
+use crate::vdom::{
+    Attribute, Document, ElementData, Node, NodeData, NodeId
+};
+
+mod meta;
+
+pub use self::meta::{a, ns, t};
 
 impl Document {
     pub fn parse_html(utf8_bytes: &[u8]) -> Self {
@@ -40,7 +46,7 @@ impl Document {
         let mut doc = parse_fragment(
             sink,
             Default::default(),
-            QualName::new(None, ns!(html), local_name!("div")),
+            QualName::new(None, ns::HTML, t::DIV),
             vec![])
             .from_utf8()
             .one(utf8_bytes);
@@ -52,7 +58,7 @@ impl Document {
         let root_id = doc.root_element().expect("a root");
         debug_assert!(match doc[root_id].as_element() {
             Some(ElementData { name, ..}) => {
-                name.local == local_name!("html")
+                name.local == t::HTML
             }
             _ => false
         });
@@ -76,7 +82,7 @@ impl Document {
         match &mut doc[root_id].data {
             NodeData::Element(ref mut edata) => {
                 *edata = ElementData {
-                    name: QualName::new(None, ns!(html), local_name!("div")),
+                    name: QualName::new(None, ns::HTML, t::DIV),
                     attrs: vec![]
                 };
             }

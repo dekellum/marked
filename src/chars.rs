@@ -45,7 +45,7 @@ pub(crate) fn replace_ctrl_ws(
 fn is_ctrl_ws(c: char) -> bool {
     // FIXME: Should probably break this up into several different
     // classifications. For now, treat all matches as a single class.
-     match c {
+    match c {
         '\u{0000}'..='\u{0008}' | // C0 control chars (XML disallowed)
         '\u{0009}'              | // HT
         '\u{000A}'              | // LF
@@ -82,6 +82,10 @@ fn is_ctrl_ws(c: char) -> bool {
             => true,
         _ => false
     }
+
+    // FIXME: see markup5ever/data/mod.rs: C1_REPLACEMENTS replaced with
+    // alt higher unicode characters. This should occur _before_ above
+    // transform, at least for HTML?
 }
 
 #[cfg(test)]
