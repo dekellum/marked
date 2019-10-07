@@ -1,5 +1,6 @@
 use crate::chars::replace_ctrl_ws;
-use crate::vdom::{lname, Document, Node, NodeData, NodeId};
+use crate::vdom::{Document, Node, NodeData, NodeId};
+use crate::vdom::html::t;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Action {
@@ -28,12 +29,11 @@ pub(crate) struct StrikeRemoveFilter;
 
 impl TreeFilter for StrikeRemoveFilter {
     fn filter(&self, node: &mut Node) -> Action {
-        if let Some(edata) = node.as_element() {
-            if edata.name.local == lname!("strike") {
-                return Action::Detach;
-            }
+        if node.is_elem(t::STRIKE) {
+            Action::Detach
+        } else {
+            Action::Continue
         }
-        Action::Continue
     }
 }
 
@@ -42,12 +42,11 @@ pub(crate) struct StrikeFoldFilter;
 
 impl TreeFilter for StrikeFoldFilter {
     fn filter(&self, node: &mut Node) -> Action {
-        if let Some(edata) = node.as_element() {
-            if edata.name.local == lname!("strike") {
-                return Action::Fold;
-            }
+        if node.is_elem(t::STRIKE) {
+            Action::Fold
+        } else {
+            Action::Continue
         }
-        Action::Continue
     }
 }
 

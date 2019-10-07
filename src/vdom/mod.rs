@@ -13,10 +13,8 @@ use std::iter;
 use std::num::NonZeroU32;
 use std::ops::Deref;
 
-pub use html5ever::LocalName;
-pub use html5ever::{Attribute, QualName};
+pub use html5ever::{Attribute, LocalName, Namespace, QualName};
 pub use tendril::StrTendril;
-pub use html5ever::{ns, local_name as lname};
 
 pub mod html;
 mod xml;
@@ -774,6 +772,8 @@ fn test_deep_clone() {
 
 #[test]
 fn test_filter() {
+    use html::t;
+
     let doc = Document::parse_html(
         "<p>1</p>\
          <div>\
@@ -789,9 +789,9 @@ fn test_filter() {
     );
 
     let root = doc.root_element_ref().expect("root");
-    let body = root.find(|n| n.is_elem(lname!("body"))).expect("body");
+    let body = root.find(|n| n.is_elem(t::BODY)).expect("body");
     let f1: Vec<_> = body
-        .filter(|n| n.is_elem(lname!("p")))
+        .filter(|n| n.is_elem(t::P))
         .map(|n| n.text().unwrap().to_string())
         .collect();
 
@@ -800,7 +800,7 @@ fn test_filter() {
 
 #[test]
 fn test_filter_r() {
-    const P: LocalName = lname!("p");
+    use html::t;
 
     let doc = Document::parse_html_fragment(
         "<p>1</p>\
@@ -821,7 +821,7 @@ fn test_filter_r() {
     assert_eq!("1fill234fill", root.text().unwrap().to_string());
 
     let f1: Vec<_> = root
-        .filter_r(|n| n.is_elem(P))
+        .filter_r(|n| n.is_elem(t::P))
         .map(|n| n.text().unwrap().to_string())
         .collect();
 
@@ -830,14 +830,7 @@ fn test_filter_r() {
 
 #[test]
 fn test_meta_content_type() {
-    // element constants
-    const HEAD:         LocalName = lname!("head");
-    const META:         LocalName = lname!("meta");
-
-    // attribute constants
-    const CHARSET:      LocalName = lname!("charset");
-    const HTTP_EQUIV:   LocalName = lname!("http-equiv");
-    const CONTENT:      LocalName = lname!("content");
+    use crate::vdom::html::{a, t};
 
     let doc = Document::parse_html(
         r####"
@@ -854,17 +847,16 @@ fn test_meta_content_type() {
             .as_bytes()
     );
     let root = doc.root_element_ref().expect("root");
-    let head = root.find(|n| n.is_elem(HEAD)).expect("head");
-    let metas: Vec<_> = head.filter(|n| n.is_elem(META)).collect();
+    let head = root.find(|n| n.is_elem(t::HEAD)).expect("head");
     let mut found = false;
-    for m in metas {
-        if let Some(a) = m.attr(CHARSET) {
+    for m in head.filter(|n| n.is_elem(t::META)) {
+        if let Some(a) = m.attr(a::CHARSET) {
             eprintln!("meta charset: {}", a);
-        } else if let Some(a) = m.attr(HTTP_EQUIV) {
+        } else if let Some(a) = m.attr(a::HTTP_EQUIV) {
             // FIXME: Parser doesn't normalize whitespace in
             // attributes. Need to trim.
             if a.as_ref().trim().eq_ignore_ascii_case("Content-Type") {
-                if let Some(a) = m.attr(CONTENT) {
+                if let Some(a) = m.attr(a::CONTENT) {
                     let ctype = a.as_ref().trim();
                     eprintln!("meta content-type: {}", ctype);
                     assert_eq!("text/html; charset=utf-8", ctype);
