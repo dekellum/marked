@@ -96,6 +96,7 @@ fn test_filter_chain() {
     doc.filter(chain_filters!(
         other_filter,
         strike_remove_filter,
+        |_n: &mut Node| { Action::Continue }, // in place noop
         filter::text_normalize
     ));
 

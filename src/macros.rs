@@ -3,7 +3,7 @@
 /// `Continue`.
 #[macro_export]
 macro_rules! chain_filters {
-    ($first:path $(, $subs:path)* $(,)?) => (
+    ($first:expr $(, $subs:expr)* $(,)?) => (
         |node| {
             let mut action = $first(node);
         $(
