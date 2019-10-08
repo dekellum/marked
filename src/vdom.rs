@@ -31,7 +31,6 @@ pub use node_ref::{NodeRef, Selector};
 /// parent/child and sibling ordering. Attributes are stored as separately
 /// allocated vectors for each element. For memory efficiency, a single
 /// document is limited to 4 billion (2^32) total nodes.
-#[derive(Default)]
 pub struct Document {
     nodes: Vec<Node>,
 }
@@ -301,6 +300,12 @@ impl Document {
         for child in odoc.children(oid) {
             self.deep_clone_to(id, odoc, child);
         }
+    }
+}
+
+impl Default for Document {
+    fn default() -> Document {
+        Document::new()
     }
 }
 
