@@ -95,20 +95,6 @@ impl Document {
         ]}
     }
 
-    /// Return the (single, always present) document node as a `NodeRef`.
-    pub fn document_node_ref(&self) -> NodeRef<'_> {
-        NodeRef::new(self, Document::DOCUMENT_NODE_ID)
-    }
-
-    /// Return the root element `NodeRef` for this `Document`, or `None` if
-    /// there is no such qualified element.
-    ///
-    /// A node with `NodeData::Element` is a root element, if it is a direct
-    /// child of the document node, with no other element nor text sibling.
-    pub fn root_element_ref(&self) -> Option<NodeRef<'_>> {
-        self.root_element().map(|r| NodeRef::new(self, r))
-    }
-
     /// Return the root element `NodeId` for this Document, or None if there is
     /// no such qualified element.
     ///
