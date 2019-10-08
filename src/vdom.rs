@@ -77,8 +77,8 @@ enum NodeData {
 /// A markup element with name and attributes.
 #[derive(Clone, Debug)]
 pub struct ElementData {
-    name: QualName,
-    attrs: Vec<Attribute>,
+    pub name: QualName,
+    pub attrs: Vec<Attribute>,
 }
 
 impl Document {
@@ -138,7 +138,7 @@ impl Document {
     fn push_node(&mut self, node: Node) -> NodeId {
         let next_index = self.nodes.len()
             .try_into()
-            .expect("dom::Document (u32) Node index overflow");
+            .expect("vdom::Document (u32) node index overflow");
         debug_assert!(next_index > 1);
         self.nodes.push(node);
         NodeId(unsafe { NonZeroU32::new_unchecked(next_index) })
@@ -167,6 +167,15 @@ impl Document {
         }
     }
 
+    /// Append node as new last child of parent, and return its new ID.
+    pub fn append_child(&mut self, parent: NodeId, node: Node)
+        -> NodeId
+    {
+        let id = self.push_node(node);
+        self.append(parent, id);
+        id
+    }
+
     fn append(&mut self, parent: NodeId, new_child: NodeId) {
         self.detach(new_child);
         self[new_child].parent = Some(parent);
@@ -181,12 +190,12 @@ impl Document {
         self[parent].last_child = Some(new_child);
     }
 
-    #[allow(unused)] //FIXME
-    pub(crate) fn append_child(&mut self, parent: NodeId, node: Node)
+    /// Insert node before the given sibling and return its new ID.
+    pub fn insert_before_sibling(&mut self, sibling: NodeId, node: Node)
         -> NodeId
     {
         let id = self.push_node(node);
-        self.append(parent, id);
+        self.insert_before(sibling, id);
         id
     }
 
@@ -208,12 +217,13 @@ impl Document {
         self[sibling].previous_sibling = Some(new_sibling);
     }
 
-    /// Return all decendent text content (character data) of this node.
+    /// Return all decendent text content (character data) of the given node
+    /// ID.
     ///
-    /// If this is a text node, return that text.  If this is an element node
+    /// If node is a text node, return that text.  If this is an element node
     /// or the document node, return the concatentation of all text
     /// descendants, in tree order. Return `None` for all other node types.
-    pub(crate) fn text(&self, id: NodeId) -> Option<StrTendril> {
+    pub fn text(&self, id: NodeId) -> Option<StrTendril> {
         let mut next = Vec::new();
         push_if(&mut next, self[id].first_child);
         let mut text = None;
@@ -236,7 +246,7 @@ impl Document {
     /// Return an iterator over this node's direct children.
     ///
     /// Will be empty if the node can not or does not have children.
-    pub(crate) fn children<'a>(&'a self, node: NodeId)
+    pub fn children<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(
@@ -247,8 +257,7 @@ impl Document {
 
     /// Return an iterator over the specified node and all its following,
     /// direct siblings, within the same parent.
-    #[allow(unused)] //FIXME
-    pub(crate) fn node_and_following_siblings<'a>(&'a self, node: NodeId)
+    pub fn node_and_following_siblings<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(Some(node), move |&node| self[node].next_sibling)
@@ -256,13 +265,13 @@ impl Document {
 
     /// Return an iterator over the specified node and all its ancestors,
     /// terminating at the document node.
-    pub(crate) fn node_and_ancestors<'a>(&'a self, node: NodeId)
+    pub fn node_and_ancestors<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(Some(node), move |&node| self[node].parent)
     }
 
-    /// Return an iterator over all nodes, starting with the Document node, and
+    /// Return an iterator over all nodes, starting with the document node, and
     /// including all descendants in tree order.
     pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
         iter::successors(
@@ -324,7 +333,7 @@ impl std::ops::IndexMut<NodeId> for Document {
 
 impl ElementData {
     /// Return attribute value by local attribute name, if present.
-    fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+    pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
         where LN: Into<LocalName>
     {
         let lname = lname.into();
@@ -335,7 +344,7 @@ impl ElementData {
     }
 
     /// Return true if this element has the given local name.
-    fn is_elem<LN>(&self, lname: LN) -> bool
+    pub fn is_elem<LN>(&self, lname: LN) -> bool
         where LN: Into<LocalName>
     {
         self.name.local == lname.into()
@@ -343,17 +352,49 @@ impl ElementData {
 }
 
 impl Node {
-    fn as_element(&self) -> Option<&ElementData> {
+
+    /// Construct a new element node by name and attributes.
+    pub fn new_element(name: QualName, attrs: Vec<Attribute>) -> Node {
+        Node::new(NodeData::Element(
+            ElementData { name, attrs }
+        ))
+    }
+
+    /// Construct a new text node.
+    pub fn new_text<T>(text: T) -> Node
+        where T: Into<StrTendril>
+    {
+        Node::new(NodeData::Text(text.into()))
+    }
+
+    /// Return `ElementData` is this is an element.
+    pub fn as_element(&self) -> Option<&ElementData> {
         match self.data {
             NodeData::Element(ref data) => Some(data),
             _ => None,
         }
     }
 
-    #[allow(unused)] //FIXME
-    fn as_text(&self) -> Option<&StrTendril> {
+    /// Return mutable `ElementData` reference if this is an element.
+    pub fn as_element_mut(&mut self) -> Option<&mut ElementData> {
+        match self.data {
+            NodeData::Element(ref mut data) => Some(data),
+            _ => None,
+        }
+    }
+
+    /// Return text (char data) if this is a text node.
+    pub fn as_text(&self) -> Option<&StrTendril> {
         match self.data {
             NodeData::Text(ref t) => Some(t),
+            _ => None,
+        }
+    }
+
+    /// Return mutable text (char data) reference if this is a text node.
+    pub fn as_text_mut(&mut self) -> Option<&mut StrTendril> {
+        match self.data {
+            NodeData::Text(ref mut t) => Some(t),
             _ => None,
         }
     }

@@ -30,17 +30,33 @@ fn empty_document() {
 #[test]
 fn one_element() {
     let mut doc = Document::new();
-    let element = Node::new(NodeData::Element(
-        ElementData {
-            name: QualName::new(None, ns!(), "one".into()),
-            attrs: vec![]
-        }
-    ));
+    let element = Node::new_element(
+        QualName::new(None, ns!(), "one".into()),
+        vec![]
+    );
     let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
 
     assert!(doc.root_element_ref().is_some(), "pushed root Element");
     assert_eq!(id, doc.root_element_ref().unwrap().id());
     assert_eq!(2, doc.nodes().count(), "root + 1 element");
+}
+
+#[test]
+fn mixed_text_no_root() {
+    let mut doc = Document::new();
+    let element = Node::new_element(
+        QualName::new(None, ns!(), "one".into()),
+        vec![]
+    );
+    let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
+    doc.append_child(id, Node::new_text("bar"));
+    doc.insert_before_sibling(id, Node::new_text("foo"));
+
+    assert!(doc.root_element_ref().is_none());
+    assert_eq!(
+        doc.text(Document::DOCUMENT_NODE_ID).unwrap().as_ref(),
+        "foobar"
+    );
 }
 
 fn strike_fold_filter(node: &mut Node) -> Action {
