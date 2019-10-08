@@ -120,7 +120,7 @@ fn test_xmp() {
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
     eprintln!("the doc nodes:\n{:?}", doc);
-    assert_eq!(5, doc.nodes().count() - 1);
+    assert_eq!(5, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -138,7 +138,7 @@ fn test_plaintext() {
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
     eprintln!("the doc nodes:\n{:?}", doc);
-    assert_eq!(3, doc.nodes().count() - 1);
+    assert_eq!(3, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -156,7 +156,7 @@ fn test_text_fragment() {
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
     eprintln!("the doc nodes:\n{:?}", doc);
-    assert_eq!(2, doc.nodes().count() - 1);
+    assert_eq!(2, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -174,7 +174,7 @@ fn test_empty_tag() {
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
     eprintln!("the doc nodes:\n{:?}", doc);
-    assert_eq!(4, doc.nodes().count() - 1);
+    assert_eq!(4, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -192,7 +192,7 @@ fn test_shallow_fragment() {
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
     eprintln!("the doc nodes:\n{:?}", doc);
-    assert_eq!(6, doc.nodes().count() - 1);
+    assert_eq!(6, doc.nodes.len() - 2);
 }
 
 #[test]
