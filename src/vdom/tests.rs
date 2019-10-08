@@ -1,9 +1,11 @@
 use crate::vdom::{
     Attribute, Document, ElementData, Node, NodeData, QualName, StrTendril,
     filter,
-    filter::{Action, FilterChain, TreeFilter},
+    filter::Action,
     html::{a, t},
 };
+
+use crate::chain_filters;
 
 #[test]
 #[cfg(target_pointer_width = "64")]
@@ -41,28 +43,12 @@ fn one_element() {
     assert_eq!(2, doc.nodes().count(), "root + 1 element");
 }
 
-struct StrikeRemoveFilter;
-
-impl TreeFilter for StrikeRemoveFilter {
-    fn filter(&self, node: &mut Node) -> Action {
-        if node.is_elem(t::STRIKE) {
-            Action::Detach
-        } else {
-            Action::Continue
-        }
-    }
+fn strike_fold_filter(node: &mut Node) -> Action {
+    if node.is_elem(t::STRIKE) { Action::Fold } else { Action::Continue }
 }
 
-struct StrikeFoldFilter;
-
-impl TreeFilter for StrikeFoldFilter {
-    fn filter(&self, node: &mut Node) -> Action {
-        if node.is_elem(t::STRIKE) {
-            Action::Fold
-        } else {
-            Action::Continue
-        }
-    }
+fn strike_remove_filter(node: &mut Node) -> Action {
+    if node.is_elem(t::STRIKE) { Action::Detach } else { Action::Continue }
 }
 
 #[test]
@@ -71,7 +57,7 @@ fn test_fold_filter() {
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
     );
-    doc.filter(&StrikeFoldFilter {});
+    doc.filter(strike_fold_filter);
     assert_eq!(
         "<html><head></head><body>\
          <div>foo <i>bar</i>s baz</div>\
@@ -86,7 +72,7 @@ fn test_remove_filter() {
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
     );
-    doc.filter(&StrikeRemoveFilter {});
+    doc.filter(strike_remove_filter);
     assert_eq!(
         "<html><head></head><body>\
          <div>foo  baz</div>\
@@ -101,12 +87,19 @@ fn test_filter_chain() {
         "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
             .as_bytes()
     );
-    let fltrs = FilterChain::new(vec![
-        Box::new(StrikeRemoveFilter {}),
-        Box::new(filter::TextNormalizer)
-    ]);
 
-    doc.filter(&fltrs);
+    // just to confirm that closures also work in chain
+    let other_filter = |n: &mut Node| {
+        if n.is_elem(t::META) { Action::Detach } else { Action::Continue }
+    };
+
+    doc.filter(chain_filters!(
+        other_filter,
+        strike_remove_filter,
+        |_n: &mut Node| { Action::Continue }, // in place noop
+        filter::text_normalize
+    ));
+
     assert_eq!(
         "<div>foo baz</div>",
         doc.to_string()

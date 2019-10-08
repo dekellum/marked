@@ -5,3 +5,4 @@
 pub mod vdom;
 pub mod decode;
 mod chars;
+#[macro_use] mod macros;
