@@ -157,6 +157,16 @@ fn test_text_fragment() {
     let doc = doc.deep_clone(doc.root_element().unwrap());
     eprintln!("the doc nodes:\n{:?}", doc);
     assert_eq!(2, doc.nodes.len() - 2);
+
+    let text_doc = doc.root_element_ref()
+        .unwrap()
+        .find(|n| n.as_text().is_some())
+        .unwrap()
+        .deep_clone();
+
+    eprintln!("text doc nodes:\n{:?}", text_doc);
+
+    assert!(text_doc.root_element().is_none());
 }
 
 #[test]

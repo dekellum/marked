@@ -80,7 +80,7 @@ impl<'a> NodeRef<'a> {
     }
 
     /// Return an iterator yielding self and all ancestors, terminating at the
-    /// root document node.
+    /// document node.
     pub fn node_and_ancestors(&'a self)
         -> impl Iterator<Item = NodeRef<'a>> + 'a
     {
@@ -103,6 +103,12 @@ impl<'a> NodeRef<'a> {
     /// `None` for all other node types.
     pub fn text(&'a self) -> Option<StrTendril> {
         self.doc.text(self.id)
+    }
+
+    /// Create a new independent `Document` from the ordered sub-tree
+    /// referenced by self.
+    pub fn deep_clone(&'a self) -> Document {
+        self.doc.deep_clone(self.id)
     }
 
     #[inline]

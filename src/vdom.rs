@@ -31,6 +31,11 @@ pub use node_ref::{NodeRef, Selector};
 /// parent/child and sibling ordering. Attributes are stored as separately
 /// allocated vectors for each element. For memory efficiency, a single
 /// document is limited to 4 billion (2^32) total nodes.
+///
+/// All `Document` instances, even logically "empty" ones as freshly
+/// constructed, contain a synthetic document node at the fixed
+/// `DOCUMENT_NODE_ID` that serves as a container for N top level nodes,
+/// including the `root_element` if present.
 pub struct Document {
     nodes: Vec<Node>,
 }
@@ -53,7 +58,7 @@ pub struct Node {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) enum NodeData {
+enum NodeData {
     Document,
     Doctype {
         name: StrTendril,
@@ -77,12 +82,12 @@ pub struct ElementData {
 }
 
 impl Document {
-    /// The constant `NodeId` for the document root node of all `Document`s.
+    /// The constant `NodeId` for the document node of all `Document`s.
     pub const DOCUMENT_NODE_ID: NodeId = NodeId(
         unsafe { NonZeroU32::new_unchecked(1) }
     );
 
-    /// Construct new, effectively empty Document.
+    /// Construct a new `Document` with the single empty document node.
     pub fn new() -> Self {
         Document { nodes: vec![
             Node::new(NodeData::Document), // dummy padding, index 0
@@ -90,32 +95,26 @@ impl Document {
         ]}
     }
 
-    /// Return the document root node reference.
+    /// Return the (single, always present) document node as a `NodeRef`.
     pub fn document_node_ref(&self) -> NodeRef<'_> {
         NodeRef::new(self, Document::DOCUMENT_NODE_ID)
     }
 
-    /// Return the root element node for this Document, or None if there is no
-    /// element.
+    /// Return the root element `NodeRef` for this `Document`, or `None` if
+    /// there is no such qualified element.
     ///
-    /// ## Panics
-    ///
-    /// Panics on various malformed structures, including multiple "root"
-    /// elements or a text node as direct child of the Documnent.
-    #[allow(unused)] //FIXME
-    pub(crate) fn root_element_ref(&self) -> Option<NodeRef<'_>> {
+    /// A node with `NodeData::Element` is a root element, if it is a direct
+    /// child of the document node, with no other element nor text sibling.
+    pub fn root_element_ref(&self) -> Option<NodeRef<'_>> {
         self.root_element().map(|r| NodeRef::new(self, r))
     }
 
-    /// Return the root element NodeId for this Document, or None if there is
-    /// no element.
+    /// Return the root element `NodeId` for this Document, or None if there is
+    /// no such qualified element.
     ///
-    /// ## Panics
-    ///
-    /// Panics on various malformed structures, including multiple "root"
-    /// elements or a text node as direct child of the Documnent.
-    #[allow(unused)] //FIXME
-    pub(crate) fn root_element(&self) -> Option<NodeId> {
+    /// A node with `NodeData::Element` is a root element, if it is a direct
+    /// child of the document node, with no other element or text sibling.
+    pub fn root_element(&self) -> Option<NodeId> {
         let document_node = &self[Document::DOCUMENT_NODE_ID];
         debug_assert!(match document_node.data {
             NodeData::Document => true,
@@ -130,12 +129,20 @@ impl Document {
                 NodeData::Doctype { .. }
                 | NodeData::Comment(_)
                 | NodeData::ProcessingInstruction { .. } => {}
-                NodeData::Document | NodeData::Text(_) => {
-                    panic!("Unexpected node type under document node");
+                NodeData::Document => {
+                    panic!("Document child of Document");
+                }
+                NodeData::Text(_) => {
+                    root = None;
+                    break;
                 }
                 NodeData::Element(_) => {
-                    assert!(root.is_none(), "Found two root elements");
-                    root = Some(child);
+                    if root.is_none() {
+                        root = Some(child);
+                    } else {
+                        root = None; // Only one accepted
+                        break;
+                    }
                 }
             }
         }
@@ -217,10 +224,9 @@ impl Document {
 
     /// Return all decendent text content (character data) of this node.
     ///
-    /// If this is a Text node, return that text.  If this is an
-    /// Element node or the Document root node, return the
-    /// concatentation of all text descendants, in tree order. Returns
-    /// `None` for all other node types.
+    /// If this is a text node, return that text.  If this is an element node
+    /// or the document node, return the concatentation of all text
+    /// descendants, in tree order. Return `None` for all other node types.
     pub(crate) fn text(&self, id: NodeId) -> Option<StrTendril> {
         let mut next = Vec::new();
         push_if(&mut next, self[id].first_child);
@@ -263,7 +269,7 @@ impl Document {
     }
 
     /// Return an iterator over the specified node and all its ancestors,
-    /// terminating at the root document node.
+    /// terminating at the document node.
     pub(crate) fn node_and_ancestors<'a>(&'a self, node: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
@@ -286,10 +292,9 @@ impl Document {
         })
     }
 
-    /// Create a new document from the ordered sub-tree rooted in the node
-    /// referenced by id.
-    #[allow(unused)] //FIXME
-    pub(crate) fn deep_clone(&self, id: NodeId) -> Document {
+    /// Create a new `Document` from the ordered sub-tree rooted in the node
+    /// referenced by ID.
+    pub fn deep_clone(&self, id: NodeId) -> Document {
         let mut ndoc = Document::new();
         ndoc.deep_clone_to(Document::DOCUMENT_NODE_ID, self, id);
         ndoc
@@ -390,7 +395,7 @@ impl Node {
         }
     }
 
-    pub(crate) fn new(data: NodeData) -> Self {
+    fn new(data: NodeData) -> Self {
         Node {
             parent: None,
             previous_sibling: None,
