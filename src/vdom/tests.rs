@@ -39,7 +39,7 @@ fn one_element() {
     let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
 
     assert!(doc.root_element_ref().is_some(), "pushed root Element");
-    assert_eq!(id, doc.root_element_ref().unwrap().id);
+    assert_eq!(id, doc.root_element_ref().unwrap().id());
     assert_eq!(2, doc.nodes().count(), "root + 1 element");
 }
 
