@@ -273,8 +273,7 @@ impl Document {
 
     /// Return an iterator over all nodes, starting with the Document node, and
     /// including all descendants in tree order.
-    #[allow(unused)] //FIXME
-    pub(crate) fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
+    pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
         iter::successors(
             Some(Document::DOCUMENT_NODE_ID),
             move |&node| self.next_in_tree_order(node)
