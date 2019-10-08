@@ -23,7 +23,6 @@ mod serializer;
 mod xml;
 
 pub use xml::XmlError;
-
 pub use node_ref::{NodeRef, Selector};
 
 /// A DOM-like container for a tree of markup elements and text.
@@ -37,6 +36,12 @@ pub struct Document {
     nodes: Vec<Node>,
 }
 
+/// A `Node` identifier, as u32 index into a `Document`s `Node` vector.
+///
+/// Should only be used with the `Document` it was obtained from.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct NodeId(NonZeroU32);
+
 /// A typed node (e.g. text, element, etc.) within a `Document`.
 #[derive(Debug)]
 pub struct Node {
@@ -48,17 +53,29 @@ pub struct Node {
     data: NodeData,
 }
 
-impl Clone for Node {
-    fn clone(&self) -> Self {
-        Node::new(self.data.clone())
-    }
+#[derive(Clone, Debug)]
+pub(crate) enum NodeData {
+    Document,
+    Doctype {
+        name: StrTendril,
+        _public_id: StrTendril,
+        _system_id: StrTendril,
+    },
+    Text(StrTendril),
+    Comment(StrTendril),
+    Element(ElementData),
+    ProcessingInstruction {
+        target: StrTendril,
+        data: StrTendril,
+    },
 }
 
-/// A `Node` identifier, as u32 index into a `Document`s `Node` vector.
-///
-/// Should only be used with the `Document` it was obtained from.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct NodeId(NonZeroU32);
+/// A markup element with name and attributes.
+#[derive(Clone, Debug)]
+pub struct ElementData {
+    name: QualName,
+    attrs: Vec<Attribute>,
+}
 
 impl Document {
     /// The constant `NodeId` for the document root node of all `Document`s.
@@ -294,12 +311,6 @@ impl fmt::Debug for Document {
     }
 }
 
-fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
-    if let Some(id) = id {
-        stack.push(id);
-    }
-}
-
 impl std::ops::Index<NodeId> for Document {
     type Output = Node;
 
@@ -314,30 +325,6 @@ impl std::ops::IndexMut<NodeId> for Document {
     fn index_mut(&mut self, id: NodeId) -> &mut Node {
         &mut self.nodes[id.0.get() as usize]
     }
-}
-
-#[derive(Clone, Debug)]
-pub(crate) enum NodeData {
-    Document,
-    Doctype {
-        name: StrTendril,
-        _public_id: StrTendril,
-        _system_id: StrTendril,
-    },
-    Text(StrTendril),
-    Comment(StrTendril),
-    Element(ElementData),
-    ProcessingInstruction {
-        target: StrTendril,
-        data: StrTendril,
-    },
-}
-
-/// A markup element with name and attributes.
-#[derive(Clone, Debug)]
-pub struct ElementData {
-    name: QualName,
-    attrs: Vec<Attribute>,
 }
 
 impl ElementData {
@@ -408,6 +395,18 @@ impl Node {
             last_child: None,
             data,
         }
+    }
+}
+
+impl Clone for Node {
+    fn clone(&self) -> Self {
+        Node::new(self.data.clone())
+    }
+}
+
+fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
+    if let Some(id) = id {
+        stack.push(id);
     }
 }
 
