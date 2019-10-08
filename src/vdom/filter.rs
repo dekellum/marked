@@ -33,22 +33,25 @@ pub(crate) fn text_normalize(node: &mut Node) -> Action {
 }
 
 impl Document {
-    /// Perform a depth-first (e.g. children before parent nodes) walk of the
-    /// entire document, allowing the given `TreeFilter` to make changes
-    /// to each `Node`.
+    /// Perform a depth-first (e.g. children before before parent nodes) walk
+    /// of the entire document, from the document root node, allowing the
+    /// provided function to make changes to each `Node`.
     pub fn filter<F>(&mut self, mut f: F)
         where F: Fn(&mut Node) -> Action
     {
-        self.filter_node(&mut f, Document::DOCUMENT_NODE_ID);
+        self.filter_at(Document::DOCUMENT_NODE_ID, &mut f);
     }
 
-    fn filter_node<F>(&mut self, f: &mut F, id: NodeId) -> Action
+    /// Perform a depth-first (e.g. children before parent nodes) walk from the
+    /// specified node ID, allowing the provided function to make changes to
+    /// each `Node`.
+    pub fn filter_at<F>(&mut self, id: NodeId, f: &mut F) -> Action
         where F: Fn(&mut Node) -> Action
     {
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
             next_child = self[child].next_sibling;
-            match self.filter_node(f, child) {
+            match self.filter_at(child, f) {
                 Action::Continue => {},
                 Action::Fold => {
                     self.fold(child);
