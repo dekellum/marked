@@ -22,6 +22,7 @@ pub mod t {
     pub const DIV:            LocalName = lname!("div");
     pub const HEAD:           LocalName = lname!("head");
     pub const HTML:           LocalName = lname!("html");
+    pub const I:              LocalName = lname!("i");
     pub const META:           LocalName = lname!("meta");
     pub const P:              LocalName = lname!("p");
     pub const STRIKE:         LocalName = lname!("strike");

@@ -218,6 +218,22 @@ fn test_deep_clone() {
          </body></html>",
         doc.to_string()
     );
+
+    let mut nodes = doc.nodes();
+    assert_eq!(Document::DOCUMENT_NODE_ID, nodes.next().unwrap());
+    assert!(doc[nodes.next().unwrap()].is_elem(t::HTML));
+    assert!(doc[nodes.next().unwrap()].is_elem(t::HEAD));
+    assert!(doc[nodes.next().unwrap()].is_elem(t::BODY));
+    assert!(doc[nodes.next().unwrap()].is_elem(t::DIV));
+    assert_eq!("foo ", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert!(doc[nodes.next().unwrap()].is_elem(t::A));
+    assert!(doc[nodes.next().unwrap()].is_elem(t::I));
+    assert_eq!("bar", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert_eq!("s", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert_eq!(" baz", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert!(doc[nodes.next().unwrap()].is_elem(t::DIV));
+    assert_eq!("sibling", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert!(nodes.next().is_none());
 }
 
 #[test]
