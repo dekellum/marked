@@ -56,14 +56,7 @@ impl Document {
         // the doc (deep clone, etc.) then it will contain this cruft.
 
         let root_id = doc.root_element().expect("a root");
-        debug_assert!(match doc[root_id].as_element() {
-            Some(ElementData { name, ..}) => {
-                name.local == t::HTML
-            }
-            _ => false
-        });
-
-        let root_id = doc.root_element().expect("a root");
+        debug_assert!(doc[root_id].is_elem(t::HTML));
 
         // If the root has a single element child, then make that element child
         // the new root and return.
@@ -79,15 +72,11 @@ impl Document {
 
         // Otherwise change the "html" root to a div. This is what we asked
         // for, but didn't get, from parse_fragment above.
-        match &mut doc[root_id].data {
-            NodeData::Element(ref mut edata) => {
-                *edata = ElementData {
-                    name: QualName::new(None, ns::HTML, t::DIV),
-                    attrs: vec![]
-                };
-            }
-            _ => unreachable!(),
-        }
+        let root = doc[root_id].as_element_mut().unwrap();
+        *root = ElementData {
+            name: QualName::new(None, ns::HTML, t::DIV),
+            attrs: vec![]
+        };
         debug_assert!(doc.root_element().is_some());
         doc
     }
