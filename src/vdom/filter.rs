@@ -33,9 +33,9 @@ pub(crate) fn text_normalize(node: &mut Node) -> Action {
 }
 
 impl Document {
-    /// Perform a depth-first (e.g. children before before parent nodes) walk
-    /// of the entire document, from the document root node, allowing the
-    /// provided function to make changes to each `Node`.
+    /// Perform a depth-first (e.g. children before parent nodes) walk of the
+    /// entire document, from the document root node, allowing the provided
+    /// function to make changes to each `Node`.
     pub fn filter<F>(&mut self, mut f: F)
         where F: Fn(&mut Node) -> Action
     {
@@ -64,17 +64,5 @@ impl Document {
         }
 
         f(&mut self[id])
-    }
-
-    /// Replace the given node with its children.
-    // FIXME: Move to top level vdom mod?
-    pub(crate) fn fold(&mut self, id: NodeId) {
-        let mut next_child = self[id].first_child;
-        while let Some(child) = next_child {
-            debug_assert_eq!(self[child].parent, Some(id));
-            next_child = self[child].next_sibling;
-            self.insert_before(id, child);
-        }
-        self.detach(id);
     }
 }

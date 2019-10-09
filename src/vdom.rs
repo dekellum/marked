@@ -301,6 +301,17 @@ impl Document {
             self.deep_clone_to(id, odoc, child);
         }
     }
+
+    /// Replace the given node with its children.
+    fn fold(&mut self, id: NodeId) {
+        let mut next_child = self[id].first_child;
+        while let Some(child) = next_child {
+            debug_assert_eq!(self[child].parent, Some(id));
+            next_child = self[child].next_sibling;
+            self.insert_before(id, child);
+        }
+        self.detach(id);
+    }
 }
 
 impl Default for Document {
