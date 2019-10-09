@@ -20,7 +20,7 @@ use html5ever::tendril::{StrTendril, TendrilSink};
 use html5ever::{parse_document, parse_fragment, ExpandedName, QualName};
 
 use crate::vdom::{
-    Attribute, Document, ElementData, Node, NodeData, NodeId
+    Attribute, Document, Element, Node, NodeData, NodeId
 };
 
 mod meta;
@@ -78,7 +78,7 @@ impl Document {
         // Otherwise change the "html" root to a div. This is what we asked
         // for, but didn't get, from parse_fragment above.
         let root = doc[root_id].as_element_mut().unwrap();
-        *root = ElementData {
+        *root = Element {
             name: QualName::new(None, ns::HTML, t::DIV),
             attrs: vec![]
         };
@@ -178,7 +178,7 @@ impl TreeSink for Sink {
         _flags: ElementFlags)
         -> NodeId
     {
-        self.new_node(NodeData::Element(ElementData { name, attrs }))
+        self.new_node(NodeData::Elem(Element { name, attrs }))
     }
 
     fn create_comment(&mut self, text: StrTendril) -> NodeId {
@@ -245,7 +245,7 @@ impl TreeSink for Sink {
     {
         // FIXME: Never called in our normal/test usage thus far?
         let node = &mut self.document[target];
-        let element = if let NodeData::Element(e) = &mut node.data {
+        let element = if let NodeData::Elem(e) = &mut node.data {
             e
         } else {
             panic!("not an element");

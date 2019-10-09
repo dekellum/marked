@@ -1,5 +1,5 @@
 use crate::vdom::{
-    Attribute, Document, ElementData, Node, NodeData, QualName, StrTendril,
+    Attribute, Document, Element, Node, NodeData, QualName, StrTendril,
     filter,
     filter::Action,
     html::{a, t},
@@ -13,7 +13,7 @@ fn size_of() {
     use std::mem::size_of;
     assert_eq!(size_of::<Node>(), 88);
     assert_eq!(size_of::<NodeData>(), 64);
-    assert_eq!(size_of::<ElementData>(), 56);
+    assert_eq!(size_of::<Element>(), 56);
     assert_eq!(size_of::<Attribute>(), 48);
     assert_eq!(size_of::<Vec<Attribute>>(), 24);
     assert_eq!(size_of::<QualName>(), 32);

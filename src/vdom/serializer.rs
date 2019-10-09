@@ -34,7 +34,7 @@ impl<'a> Serialize for NodeRef<'a> {
         where S: Serializer
     {
         match (traversal_scope, &self.data) {
-            (ref scope, &NodeData::Element(ref edata)) => {
+            (ref scope, &NodeData::Elem(ref edata)) => {
                 if *scope == IncludeNode {
                     serializer.start_elem(
                         edata.name.clone(),

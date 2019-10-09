@@ -16,7 +16,7 @@ use xml_rs::reader::XmlEvent;
 use xml_rs::attribute::OwnedAttribute;
 
 use crate::vdom::{
-    Attribute, Document, ElementData, Node, NodeData, QualName, StrTendril
+    Attribute, Document, Element, Node, NodeData, QualName, StrTendril
 };
 
 /// XML parsing convenience functions.
@@ -30,7 +30,7 @@ impl Document {
                 XmlEvent::StartElement {
                     name, attributes, ..
                 } => {
-                    let id = document.push_node(Node::new(NodeData::Element(ElementData {
+                    let id = document.push_node(Node::new(NodeData::Elem(Element {
                         name: convert_name(name),
                         attrs: attributes
                             .into_iter()

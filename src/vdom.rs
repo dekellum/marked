@@ -76,7 +76,7 @@ enum NodeData {
     },
     Text(StrTendril),
     Comment(StrTendril),
-    Element(ElementData),
+    Elem(Element),
     ProcessingInstruction {
         target: StrTendril,
         data: StrTendril,
@@ -85,7 +85,7 @@ enum NodeData {
 
 /// A markup element with name and attributes.
 #[derive(Clone, Debug)]
-pub struct ElementData {
+pub struct Element {
     pub name: QualName,
     pub attrs: Vec<Attribute>,
 }
@@ -132,7 +132,7 @@ impl Document {
                     root = None;
                     break;
                 }
-                NodeData::Element(_) => {
+                NodeData::Elem(_) => {
                     if root.is_none() {
                         root = Some(child);
                     } else {
@@ -352,7 +352,7 @@ impl std::ops::IndexMut<NodeId> for Document {
     }
 }
 
-impl ElementData {
+impl Element {
     /// Return attribute value by local attribute name, if present.
     pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
         where LN: Into<LocalName>
@@ -376,9 +376,7 @@ impl Node {
 
     /// Construct a new element node by name and attributes.
     pub fn new_element(name: QualName, attrs: Vec<Attribute>) -> Node {
-        Node::new(NodeData::Element(
-            ElementData { name, attrs }
-        ))
+        Node::new(NodeData::Elem(Element { name, attrs }))
     }
 
     /// Construct a new text node.
@@ -388,18 +386,18 @@ impl Node {
         Node::new(NodeData::Text(text.into()))
     }
 
-    /// Return `ElementData` is this is an element.
-    pub fn as_element(&self) -> Option<&ElementData> {
+    /// Return `Element` is this is an element.
+    pub fn as_element(&self) -> Option<&Element> {
         match self.data {
-            NodeData::Element(ref data) => Some(data),
+            NodeData::Elem(ref data) => Some(data),
             _ => None,
         }
     }
 
-    /// Return mutable `ElementData` reference if this is an element.
-    pub fn as_element_mut(&mut self) -> Option<&mut ElementData> {
+    /// Return mutable `Element` reference if this is an element.
+    pub fn as_element_mut(&mut self) -> Option<&mut Element> {
         match self.data {
-            NodeData::Element(ref mut data) => Some(data),
+            NodeData::Elem(ref mut data) => Some(data),
             _ => None,
         }
     }
