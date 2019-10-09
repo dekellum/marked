@@ -77,7 +77,7 @@ impl<'a> Serialize for NodeRef<'a> {
     }
 }
 
-impl<'a> ToString for Document {
+impl ToString for Document {
     fn to_string(&self) -> String {
         let mut u8_vec = Vec::new();
         self.serialize(&mut u8_vec).unwrap();
