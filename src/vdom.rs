@@ -373,7 +373,6 @@ impl Element {
 }
 
 impl Node {
-
     /// Construct a new element node by name and attributes.
     pub fn new_element(name: QualName, attrs: Vec<Attribute>) -> Node {
         Node::new(NodeData::Elem(Element { name, attrs }))

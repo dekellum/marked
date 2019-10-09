@@ -144,5 +144,4 @@ mod tests {
         replace_ctrl_ws(&mut st, false, false);
         assert_eq!(exp, st.as_ref());
     }
-
 }
