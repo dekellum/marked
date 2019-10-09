@@ -20,12 +20,16 @@ pub use html5ever::{Attribute, LocalName, Namespace, QualName};
 #[doc(no_inline)]
 pub use tendril::StrTendril;
 
-pub mod filter;
-pub mod html;
+// custom ordering of these effects rustdoc for Document, etc.
 
 mod node_ref;
 mod serializer;
+pub mod filter;
+pub mod html;
 mod xml;
+
+#[cfg(test)]
+mod tests;
 
 pub use xml::XmlError;
 pub use node_ref::{NodeRef, Selector};
@@ -462,6 +466,3 @@ fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
         stack.push(id);
     }
 }
-
-#[cfg(test)]
-mod tests;
