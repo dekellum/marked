@@ -93,6 +93,8 @@ impl Document {
     }
 }
 
+/// A `TreeSink` implementation for parsing html to a [`crate::vdom::Document`]
+/// tree.
 pub struct Sink {
     document: Document,
     quirks_mode: QuirksMode,

@@ -176,7 +176,7 @@ fn test_text_fragment() {
 
     let text_doc = doc.root_element_ref()
         .unwrap()
-        .find(|n| n.as_text().is_some())
+        .find_child(|n| n.as_text().is_some())
         .unwrap()
         .deep_clone();
 
@@ -263,7 +263,7 @@ fn test_deep_clone() {
 }
 
 #[test]
-fn test_filter() {
+fn test_select_children() {
     let doc = Document::parse_html(
         "<p>1</p>\
          <div>\
@@ -279,9 +279,9 @@ fn test_filter() {
     );
 
     let root = doc.root_element_ref().expect("root");
-    let body = root.find(|n| n.is_elem(t::BODY)).expect("body");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     let f1: Vec<_> = body
-        .filter(|n| n.is_elem(t::P))
+        .select_children(|n| n.is_elem(t::P))
         .map(|n| n.text().unwrap().to_string())
         .collect();
 
@@ -289,7 +289,7 @@ fn test_filter() {
 }
 
 #[test]
-fn test_filter_r() {
+fn test_select() {
     let doc = Document::parse_html_fragment(
         "<p>1</p>\
          <div>\
@@ -309,7 +309,7 @@ fn test_filter_r() {
     assert_eq!("1fill234fill", root.text().unwrap().to_string());
 
     let f1: Vec<_> = root
-        .filter_r(|n| n.is_elem(t::P))
+        .select(|n| n.is_elem(t::P))
         .map(|n| n.text().unwrap().to_string())
         .collect();
 
@@ -333,9 +333,9 @@ fn test_meta_content_type() {
             .as_bytes()
     );
     let root = doc.root_element_ref().expect("root");
-    let head = root.find(|n| n.is_elem(t::HEAD)).expect("head");
+    let head = root.find_child(|n| n.is_elem(t::HEAD)).expect("head");
     let mut found = false;
-    for m in head.filter(|n| n.is_elem(t::META)) {
+    for m in head.select_children(|n| n.is_elem(t::META)) {
         if let Some(a) = m.attr(a::CHARSET) {
             eprintln!("meta charset: {}", a);
         } else if let Some(a) = m.attr(a::HTTP_EQUIV) {

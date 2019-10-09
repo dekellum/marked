@@ -5,6 +5,8 @@ use std::ops::Deref;
 use crate::vdom::{Document, Node, NodeId, StrTendril, push_if};
 
 /// A `Node` within `Document` lifetime reference.
+///
+/// This provides convenient but necessarily read-only access.
 #[derive(Copy, Clone)]
 pub struct NodeRef<'a>{
     doc: &'a Document,
@@ -25,9 +27,10 @@ impl<'a> NodeRef<'a> {
     /// Return an iterator over the direct children of this node that
     /// match the specified predicate.
     ///
-    /// This is a convenence short hand for
-    /// `children().filter(predicate)`.
-    pub fn filter<P>(&'a self, predicate: P)
+    /// This is a convenence short hand for `children().filter(predicate)`. The
+    /// "filter" name is avoided in deference to the (mutating)
+    /// `Document::filter` method.
+    pub fn select_children<P>(&'a self, predicate: P)
         -> impl Iterator<Item = NodeRef<'a>> + 'a
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
@@ -37,10 +40,9 @@ impl<'a> NodeRef<'a> {
     /// Return an iterator over all decendents of this node that match
     /// the specified predicate.
     ///
-    /// Nodes that fail the predicate will have their child nodes
-    /// (r)ecursively scanned, in depth-first order, in search of all
-    /// matches.
-    pub fn filter_r<P>(&'a self, predicate: P) -> Selector<'a, P>
+    /// When element nodes fail the predicate, their children are scanned,
+    /// depth-first, in search of all matches.
+    pub fn select<P>(&'a self, predicate: P) -> Selector<'a, P>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
         Selector::new(self.doc, self.first_child, predicate)
@@ -49,21 +51,19 @@ impl<'a> NodeRef<'a> {
     /// Find the first direct child of this node that matches the
     /// specified predicate.
     ///
-    /// This is a convenence short hand for
-    /// `children().find(predicate)`.
-    pub fn find<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
+    /// This is a convenence short hand for `children().find(predicate)`.
+    pub fn find_child<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
         where P: FnMut(&NodeRef<'a>) -> bool
     {
         self.children().find(predicate)
     }
 
-    /// Find the first descendant of this node that matches the
-    /// specified predicate.
+    /// Find the first descendant of this node that matches the specified
+    /// predicate.
     ///
-    /// Nodes that fail the predicate will have their child nodes
-    /// (r)ecursively scanned, in depth-first order, in search of the
-    /// first match.
-    pub fn find_r<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
+    /// When element nodes fail the predicate, their children are scanned,
+    /// depth-first, in search of the first match.
+    pub fn find<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
         Selector::new(self.doc, self.first_child, predicate).next()
@@ -142,6 +142,7 @@ impl fmt::Debug for NodeRef<'_> {
     }
 }
 
+/// A selecting iterator returned by [`NodeRef::select`].
 pub struct Selector<'a, P> {
     doc: &'a Document,
     next: Vec<NodeId>,
