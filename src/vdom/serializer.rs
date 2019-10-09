@@ -77,17 +77,19 @@ impl<'a> Serialize for NodeRef<'a> {
     }
 }
 
+/// Implemented via [`Document::serialize`].
 impl ToString for Document {
     fn to_string(&self) -> String {
         let mut u8_vec = Vec::new();
         self.serialize(&mut u8_vec).unwrap();
-        String::from_utf8(u8_vec).unwrap()
+        unsafe { String::from_utf8_unchecked(u8_vec) }
     }
 }
 
+/// Extend with a serialize method.
 impl Document {
-    /// Serialize this node and its descendants in HTML syntax to the given
-    /// stream.
+    /// Serialize the contents of the document node and descendants in HTML
+    /// syntax to the given stream.
     pub fn serialize<W>(&self, writer: &mut W) -> io::Result<()>
         where W: Write
     {
