@@ -103,3 +103,30 @@ impl Document {
         )
     }
 }
+
+/// Extend with a serialize method.
+impl<'a> NodeRef<'a> {
+    /// Serialize the referenced node and its descendants in HTML syntax to the
+    /// given stream.
+    pub fn serialize<W>(&'a self, writer: &mut W) -> io::Result<()>
+        where W: Write
+    {
+        serialize(
+            writer,
+            self,
+            SerializeOpts {
+                traversal_scope: IncludeNode,
+                ..Default::default()
+            },
+        )
+    }
+}
+
+/// Implemented via [`NodeRef::serialize`].
+impl<'a> ToString for NodeRef<'a> {
+    fn to_string(&self) -> String {
+        let mut u8_vec = Vec::new();
+        self.serialize(&mut u8_vec).unwrap();
+        unsafe { String::from_utf8_unchecked(u8_vec) }
+    }
+}
