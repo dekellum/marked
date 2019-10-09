@@ -124,7 +124,7 @@ impl Sink {
             NodeOrText::AppendNode(node) => node,
         };
 
-        append(&mut self.document, new_node)
+        append(&mut self.document, new_node);
     }
 }
 
