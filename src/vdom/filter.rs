@@ -1,6 +1,9 @@
+//! Mutating visitor support for `vdom::Document`.
+
 use crate::chars::replace_ctrl_ws;
 use crate::vdom::{Document, Node, NodeData, NodeId};
 
+/// An instruction returned by the `Fn` closure used by `Document::filter`.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Action {
     /// Continue filtering, without further changes to this `Node`.
@@ -32,6 +35,7 @@ pub(crate) fn text_normalize(node: &mut Node) -> Action {
     Action::Continue
 }
 
+/// Mutating filter methods.
 impl Document {
     /// Perform a depth-first (e.g. children before parent nodes) walk of the
     /// entire document, from the document root node, allowing the provided

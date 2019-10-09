@@ -86,7 +86,7 @@ impl ToString for Document {
     }
 }
 
-/// Extend with a serialize method.
+/// Serialize convenience method.
 impl Document {
     /// Serialize the contents of the document node and descendants in HTML
     /// syntax to the given stream.
@@ -104,7 +104,7 @@ impl Document {
     }
 }
 
-/// Extend with a serialize method.
+/// Serialize convenience method.
 impl<'a> NodeRef<'a> {
     /// Serialize the referenced node and its descendants in HTML syntax to the
     /// given stream.

@@ -7,12 +7,17 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
+//! An efficient and simple DOM-like container and associated tools.
+
 use std::convert::TryInto;
 use std::fmt;
 use std::iter;
 use std::num::NonZeroU32;
 
+#[doc(no_inline)]
 pub use html5ever::{Attribute, LocalName, Namespace, QualName};
+
+#[doc(no_inline)]
 pub use tendril::StrTendril;
 
 pub mod filter;
@@ -81,6 +86,7 @@ pub struct ElementData {
     pub attrs: Vec<Attribute>,
 }
 
+/// Core implementation.
 impl Document {
     /// The constant `NodeId` for the document node of all `Document`s.
     pub const DOCUMENT_NODE_ID: NodeId = NodeId(

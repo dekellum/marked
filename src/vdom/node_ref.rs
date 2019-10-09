@@ -130,6 +130,8 @@ impl<'a> Deref for NodeRef<'a> {
     }
 }
 
+/// Equivalence is defined here for `NodeRef`s if and only if they reference
+/// the _same_ `Document` (by identity) and with equal `NodeId`s.
 impl PartialEq for NodeRef<'_> {
     fn eq(&self, other: &Self) -> bool {
         (std::ptr::eq(self.doc, other.doc) && self.id == other.id)
@@ -183,6 +185,7 @@ impl<'a, P> Iterator for Selector<'a, P>
     }
 }
 
+/// `NodeRef` convenence accessor methods.
 impl Document {
     /// Return the (single, always present) document node as a `NodeRef`.
     pub fn document_node_ref(&self) -> NodeRef<'_> {

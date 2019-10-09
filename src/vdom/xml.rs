@@ -7,6 +7,8 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
+//! Support for XML parsing.
+
 use std::fmt;
 use std::error::Error as StdError;
 
@@ -17,6 +19,7 @@ use crate::vdom::{
     Attribute, Document, ElementData, Node, NodeData, QualName, StrTendril
 };
 
+/// XML parsing convenience functions.
 impl Document {
     pub fn parse_xml(utf8_bytes: &[u8]) -> Result<Self, XmlError> {
         let mut document = Document::new();
@@ -80,6 +83,7 @@ fn convert_name(name: xml_rs::name::OwnedName) -> QualName {
     }
 }
 
+/// An XML parsing error.
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct XmlError(xml_rs::reader::Error);
 

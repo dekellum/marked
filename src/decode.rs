@@ -8,6 +8,8 @@
 // Copyright © 2015 Keegan McAllister
 // Licensed under the Apache license v2.0, or the MIT license
 
+//! Support for streaming charset decoding.
+
 use std::borrow::Cow;
 use std::io;
 

@@ -7,6 +7,8 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
+//! Support for html5ever parsing to `vdom::Document`.
+
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::default::Default;
@@ -25,7 +27,10 @@ mod meta;
 
 pub use self::meta::{a, ns, t};
 
+/// HTML parsing convenience functions.
 impl Document {
+    /// Parse HTML from UTF-8 bytes in RAM.  For stream based parsing, or
+    /// parsing from alternative encodings use [`crate::decode`].
     pub fn parse_html(utf8_bytes: &[u8]) -> Self {
         let sink = Sink {
             document: Document::new(),
