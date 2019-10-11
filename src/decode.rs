@@ -11,6 +11,7 @@
 //! Support for streaming charset decoding.
 
 use std::borrow::Cow;
+use std::collections::HashMap;
 use std::io;
 
 use encoding_rs::{self as enc, DecoderResult};
@@ -18,6 +19,80 @@ use encoding_rs::{self as enc, DecoderResult};
 use tendril::{Tendril, TendrilSink, Atomicity, NonAtomic};
 use tendril::fmt as form;
 use tendril::stream::Utf8LossyDecoder;
+
+pub struct EncodingHint {
+    encodings: HashMap<&'static enc::Encoding, f32>,
+    top: Option<&'static enc::Encoding>,
+    confidence: f32,
+}
+
+impl EncodingHint {
+    pub fn new() -> EncodingHint {
+        EncodingHint {
+            encodings: HashMap::new(),
+            top: None,
+            confidence: 0.0
+        }
+    }
+
+    /// Add a hint for an encoding, by label ASCII-intepreted bytes, and some
+    /// positive confidence value.  If no encoding (or applicable replacement)
+    /// is found for the specified label, returns false.  Return true if an
+    /// encoding is found _and_ this hint changes the top confidence encoding.
+    pub fn add_label_hint<L>(&mut self, enc: L, confidence: f32)
+        -> bool
+        where L: AsRef<[u8]>
+    {
+        if let Some(enc) = enc::Encoding::for_label(enc.as_ref()) {
+            self.add_hint(enc, confidence)
+        } else {
+            false
+        }
+    }
+
+    /// Add a hint for the specified encoding and some positive confidence
+    /// value. Return true if this hint changes the top most confident
+    /// encoding.
+    pub fn add_hint(&mut self, enc: &'static enc::Encoding, confidence: f32)
+        -> bool
+    {
+        let new_conf = *(
+            self.encodings.entry(enc)
+                .and_modify(|c| *c += confidence)
+                .or_insert(confidence)
+        );
+
+        if new_conf > self.confidence {
+            self.confidence = new_conf;
+            if self.top == Some(enc) {
+                false
+            } else {
+                self.top = Some(enc);
+                true
+            }
+        } else {
+            false
+        }
+    }
+
+    /// Return the top (most confident) encoding, if at least one encoding has
+    /// been hinted.
+    pub fn top(&self) -> Option<&'static enc::Encoding> {
+        self.top
+    }
+
+    /// Return the summed confidence value for the top (most confident)
+    /// encoding. Returns 0.0 if no hint has been provided.
+    pub fn confidence(&self) -> f32 {
+        self.confidence
+    }
+}
+
+impl Default for EncodingHint {
+    fn default() -> EncodingHint {
+        EncodingHint::new()
+    }
+}
 
 /// A `TendrilSink` adaptor that takes bytes, decodes them as the given
 /// character encoding, lossily replace ill-formed byte sequences with U+FFFD
@@ -326,5 +401,18 @@ mod tests {
             let decoder = Decoder::new(enc::EUC_KR, Accumulate::new());
             check_decode(decoder, input, expected, errs);
         }
+    }
+
+    #[test]
+    fn encoding_hint() {
+        let mut encs = EncodingHint::new();
+        assert!( encs.add_label_hint("LATIN1",     0.3));
+        assert!(!encs.add_label_hint("iso-8859-1", 0.4));
+        assert!(!encs.add_label_hint("utf-8",      0.5));
+        assert_eq!(
+            "windows-1252", encs.top().unwrap().name(),
+            "desired replacement for first two hints"
+        );
+        assert_eq!(0.3 + 0.4, encs.confidence());
     }
 }
