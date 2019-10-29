@@ -11,12 +11,12 @@ use crate::chain_filters;
 #[cfg(target_pointer_width = "64")]
 fn size_of() {
     use std::mem::size_of;
-    assert_eq!(size_of::<Node>(), 88);
-    assert_eq!(size_of::<NodeData>(), 64);
-    assert_eq!(size_of::<Element>(), 56);
-    assert_eq!(size_of::<Attribute>(), 48);
+    assert_eq!(size_of::<Node>(), 80);
+    assert_eq!(size_of::<NodeData>(), 56);
+    assert_eq!(size_of::<Element>(), 48);
+    assert_eq!(size_of::<Attribute>(), 40);
     assert_eq!(size_of::<Vec<Attribute>>(), 24);
-    assert_eq!(size_of::<QualName>(), 32);
+    assert_eq!(size_of::<QualName>(), 24);
     assert_eq!(size_of::<StrTendril>(), 16);
 }
 
