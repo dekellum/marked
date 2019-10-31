@@ -8,7 +8,7 @@ edition = "2018"
 doctest = false
 
 [dependencies]
-html5ever       = { version=">=0.24.0, <2.0" }
+html5ever       = { version=">=0.25.1, <2.0" }
 tendril         = { version=">=0.4.1,  <2.0", features=["encoding_rs"] }
 encoding_rs     = { version=">=0.8.13, <2.0" }
 xml-rs          = { version=">=0.8, <2.0", package = "xml-rs" }
