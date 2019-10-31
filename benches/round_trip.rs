@@ -12,7 +12,7 @@ use test::Bencher;
 use encoding_rs as enc;
 use html5ever::driver::ParseOpts;
 use html5ever::parse_document;
-use html5ever::rcdom::RcDom;
+use markup5ever_rcdom::{SerializableHandle, RcDom};
 use html5ever::serialize as rc_serialize;
 
 use prescan;
@@ -40,7 +40,8 @@ fn round_trip_rcdom(b: &mut Bencher) {
         let mut fin = sample_file("github-dekellum.html").expect("sample");
         let doc = decoder.read_until(&mut fin).expect("parse");
         let mut out = Vec::with_capacity(273108);
-        rc_serialize(&mut out, &doc.document, Default::default())
+        let ser_handle: SerializableHandle = doc.document.clone().into();
+        rc_serialize(&mut out, &ser_handle, Default::default())
             .expect("serialization");
         assert_eq!(out.len(), 272273);
     });
