@@ -32,10 +32,7 @@ impl Document {
     /// Parse HTML from UTF-8 bytes in RAM.  For stream based parsing, or
     /// parsing from alternative encodings use [`crate::decode`].
     pub fn parse_html(utf8_bytes: &[u8]) -> Self {
-        let sink = Sink {
-            document: Document::new(),
-            quirks_mode: QuirksMode::NoQuirks,
-        };
+        let sink = Sink::default();
         parse_document(sink, Default::default())
             .from_utf8()
             .one(utf8_bytes)
@@ -43,10 +40,7 @@ impl Document {
 
     #[allow(unused)] //FIXME
     pub(crate) fn parse_html_fragment(utf8_bytes: &[u8]) -> Self {
-        let sink = Sink {
-            document: Document::new(),
-            quirks_mode: QuirksMode::NoQuirks,
-        };
+        let sink = Sink::default();
 
         let mut doc = parse_fragment(
             sink,
