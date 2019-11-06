@@ -323,7 +323,7 @@ fn test_meta_content_type() {
 <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
   <meta charset='UTF-8'/>
-  <META http-equiv=" CONTENT-TYPE" content="text/html; charset=utf-8"/>
+  <META http-equiv=" CONTENT-TYPE" content='text/html; charset=" utf-8"'/>
   <title>Iūdex</title>
  </head>
  <body>
@@ -343,10 +343,14 @@ fn test_meta_content_type() {
             // attributes. Need to trim.
             if a.as_ref().trim().eq_ignore_ascii_case("Content-Type") {
                 if let Some(a) = m.attr(a::CONTENT) {
-                    let ctype = a.as_ref().trim();
-                    eprintln!("meta content-type: {}", ctype);
-                    assert_eq!("text/html; charset=utf-8", ctype);
-                    found = true;
+                    if let Ok(m) = a.as_ref().trim().parse::<mime::Mime>() {
+                        if let Some(cs) = m.get_param(mime::CHARSET) {
+                            let cs = cs.as_ref().trim();
+                            eprintln!("meta content-type charset: {}", cs);
+                            assert_eq!("utf-8", cs);
+                            found = true;
+                        }
+                    }
                 }
             }
         }
