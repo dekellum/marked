@@ -10,14 +10,22 @@
 //! Support for html5ever parsing to `vdom::Document`.
 
 use std::borrow::Cow;
+use std::cell::RefCell;
 use std::collections::HashSet;
 use std::default::Default;
+use std::rc::Rc;
 
 use html5ever::interface::tree_builder::{
     ElementFlags, NodeOrText, QuirksMode, TreeSink
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
 use html5ever::{parse_document, parse_fragment, ExpandedName, QualName};
+
+use encoding_rs as enc;
+use mime;
+
+use crate::decode;
+use crate::decode::EncodingHint;
 
 use crate::vdom::{
     Attribute, Document, Element, Node, NodeData, NodeId
@@ -86,9 +94,25 @@ impl Document {
 pub struct Sink {
     document: Document,
     quirks_mode: QuirksMode,
+    enc_hint: Option<Rc<RefCell<EncodingHint>>>,
+    enc_check: bool
 }
 
 impl Sink {
+    /// Construct new sink with optional, shared `EncodingHint`.
+    ///
+    /// If the `EncodingHint` is provided, charsets from meta elements of the
+    /// head element will be hinted as soon as possible in the parse.
+    pub fn new(enc_hint: Option<Rc<RefCell<EncodingHint>>>) -> Sink {
+        let enc_check = enc_hint.is_some();
+        Sink {
+            document: Document::new(),
+            quirks_mode: QuirksMode::NoQuirks,
+            enc_hint,
+            enc_check,
+        }
+    }
+
     fn new_node(&mut self, data: NodeData) -> NodeId {
         self.document.push_node(Node::new(data))
     }
@@ -115,19 +139,64 @@ impl Sink {
                 }
                 self.new_node(NodeData::Text(text))
             }
-            NodeOrText::AppendNode(node) => node,
+            NodeOrText::AppendNode(node) => {
+                if self.enc_check && self.document[node].is_elem(t::BODY) {
+                    eprintln!("body appended, check meta charsets now");
+                    self.enc_check = false;
+                    self.check_meta_charsets();
+                }
+
+                node
+            }
         };
 
         append(&mut self.document, new_node);
+    }
+
+    fn check_meta_charsets(&mut self) {
+        let mut metas = 0;
+        let mut charsets = Vec::new();
+        let root = self.document.root_element_ref().expect("root");
+        if let Some(head) = root.find_child(|n| n.is_elem(t::HEAD)) {
+            for m in head.select_children(|n| n.is_elem(t::META)) {
+                if let Some(cs) = m.attr(a::CHARSET) {
+                    metas += 1;
+                    let cs = cs.trim().as_bytes();
+                    if let Some(enc) = enc::Encoding::for_label(cs) {
+                        charsets.push(enc);
+                    }
+                } else if let Some(a) = m.attr(a::HTTP_EQUIV) {
+                    if a.as_ref().trim().eq_ignore_ascii_case("Content-Type") {
+                        if let Some(a) = m.attr(a::CONTENT) {
+                            if let Ok(m) = a.as_ref().trim().parse::<mime::Mime>() {
+                                if let Some(cs) = m.get_param(mime::CHARSET) {
+                                    metas += 1;
+                                    let cs = cs.as_str().trim().as_bytes();
+                                    if let Some(enc) = enc::Encoding::for_label(cs) {
+                                        charsets.push(enc)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if !charsets.is_empty() {
+            eprintln!("found charsets: {:?} ({})", charsets, metas);
+            let conf = decode::HTML_META_CONF / (metas as f32);
+
+            let mut hints = self.enc_hint.as_ref().unwrap().borrow_mut();
+            for cs in charsets {
+                hints.add_hint(cs, conf);
+            }
+        }
     }
 }
 
 impl Default for Sink {
     fn default() -> Self {
-        Sink {
-            document: Document::new(),
-            quirks_mode: QuirksMode::NoQuirks,
-        }
+        Sink::new(None)
     }
 }
 
