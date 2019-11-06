@@ -13,19 +13,24 @@ use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::default::Default;
+use std::io;
 use std::rc::Rc;
 
+use encoding_rs as enc;
+
+use html5ever::{
+    parse_document, parse_fragment,
+    ExpandedName, QualName, Parser, ParseOpts
+};
 use html5ever::interface::tree_builder::{
     ElementFlags, NodeOrText, QuirksMode, TreeSink
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
-use html5ever::{parse_document, parse_fragment, ExpandedName, QualName};
-
-use encoding_rs as enc;
 use mime;
 
-use crate::decode;
-use crate::decode::EncodingHint;
+use tendril::{fmt as form, Tendril};
+
+use crate::decode::{Decoder, HTML_META_CONF, EncodingHint};
 
 use crate::vdom::{
     Attribute, Document, Element, Node, NodeData, NodeId
@@ -35,10 +40,7 @@ mod meta;
 
 pub use self::meta::{a, ns, t};
 
-/// Parse HTML from UTF-8 bytes in RAM.
-///
-/// For stream based parsing, or parsing from alternative encodings use
-/// [`crate::decode`].
+/// Parse HTML document from UTF-8 bytes in RAM.
 pub fn parse_utf8(bytes: &[u8]) -> Document {
     let sink = Sink::default();
     parse_document(sink, Default::default())
@@ -46,9 +48,10 @@ pub fn parse_utf8(bytes: &[u8]) -> Document {
         .one(bytes)
 }
 
-/// Parse an HTML fragement from UTF-8 bytes in RAM. A single root element is
-/// guaranteed. If the provided fragment does not include one, a root <div>
-/// element is included as parent.
+/// Parse an HTML fragement from UTF-8 bytes in RAM.
+///
+/// A single root element is guaranteed. If the provided fragment does not
+/// include one, a root <div> element is included as parent.
 pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
     let sink = Sink::default();
 
@@ -88,6 +91,90 @@ pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
     };
     debug_assert!(doc.root_element().is_some());
     doc
+}
+
+const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
+
+/// Parse HTML document, reading from the given stream of bytes until end,
+/// processing incrementally.
+/// Return the resulting `Document` or any `io::Error`
+pub fn parse_buffered<R>(eh: Rc<RefCell<EncodingHint>>, r: &mut R)
+    -> Result<Document, io::Error>
+    where R: io::Read
+{
+    let enc = eh.borrow().top().expect("EnodingHint default encoding required");
+
+    let parser_sink: Parser<Sink> = parse_document(
+        Sink::new(Some(eh.clone())),
+        ParseOpts::default()
+    );
+
+    // Decoders are "Sink adaptors". Like the Parser, they also impl trait
+    // TendrilSink.
+    let mut decoder = Decoder::new(enc, parser_sink);
+
+    let mut tendril = Tendril::<form::Bytes>::new();
+    unsafe {
+        tendril.push_uninitialized(PARSE_BUFFER_SIZE);
+    }
+
+    loop {
+        match r.read(&mut tendril) {
+            Ok(0) => return Ok(decoder.finish()),
+            Ok(n) => {
+                // FIXME: Specifically continue filling buffer for _short_
+                // reads, to enable full buffer length an encoding hint?
+                tendril.pop_back(PARSE_BUFFER_SIZE - n as u32);
+                decoder.process(tendril.clone());
+                break;
+            }
+            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+            Err(e) => return Err(e)
+        }
+    } // repeat on interrupt
+
+    if let Some(enc) = eh.borrow().changed() {
+        eprintln!("EncodingHint change detected, switching to {}", enc.name());
+        // Only here once, no need to clear change.
+
+        // Replace decoder and re-process, consuming the original tendril
+        // buffer.
+        let parser_sink = parse_document(
+            Sink::new(None),
+            ParseOpts::default()
+        );
+        decoder = Decoder::new(enc, parser_sink);
+        decoder.process(tendril);
+    }
+
+    parse_remainder(r, decoder)
+}
+
+// Read remaining bytes from reader, process and finish decoder.
+fn parse_remainder<R>(
+    r: &mut R,
+    mut decoder: Decoder<Parser<Sink>>)
+    -> Result<Document, io::Error>
+    where R: io::Read
+{
+    loop {
+        let mut tendril = Tendril::<form::Bytes>::new();
+        unsafe {
+            tendril.push_uninitialized(PARSE_BUFFER_SIZE);
+        }
+        loop {
+            match r.read(&mut tendril) {
+                Ok(0) => return Ok(decoder.finish()),
+                Ok(n) => {
+                    tendril.pop_back(PARSE_BUFFER_SIZE - n as u32);
+                    decoder.process(tendril);
+                    break;
+                }
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) => return Err(e)
+            }
+        } // repeat on interrupt
+    }
 }
 
 /// A `TreeSink` implementation for parsing html to a [`crate::vdom::Document`]
@@ -130,8 +217,6 @@ impl Sink {
             NodeOrText::AppendText(text) => {
                 // Append to an existing Text node if we have one.
                 if let Some(id) = previous(&mut self.document) {
-                    // FIXME: Frequently done in test, possibly a minor perf
-                    // gain over independent text nodes?
                     let node = &mut self.document[id];
                     if let NodeData::Text(t) = &mut node.data {
                         t.push_tendril(&text);
@@ -142,11 +227,10 @@ impl Sink {
             }
             NodeOrText::AppendNode(node) => {
                 if self.enc_check && self.document[node].is_elem(t::BODY) {
-                    eprintln!("body appended, check meta charsets now");
+                    eprintln!("body appended, checking meta charsets now");
                     self.enc_check = false;
                     self.check_meta_charsets();
                 }
-
                 node
             }
         };
@@ -184,8 +268,10 @@ impl Sink {
             }
         }
         if !charsets.is_empty() {
-            eprintln!("found charsets: {:?} ({})", charsets, metas);
-            let conf = decode::HTML_META_CONF / (metas as f32);
+            eprintln!("found charsets: {:?} ({})",
+                      charsets.iter().map(|e| e.name()).collect::<Vec<_>>(),
+                      metas);
+            let conf = HTML_META_CONF / (metas as f32);
 
             let mut hints = self.enc_hint.as_ref().unwrap().borrow_mut();
             for cs in charsets {

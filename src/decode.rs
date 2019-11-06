@@ -11,8 +11,9 @@
 //! Support for streaming charset decoding.
 
 use std::borrow::Cow;
+use std::cell::RefCell;
 use std::collections::HashMap;
-use std::io;
+use std::rc::Rc;
 
 use encoding_rs as enc;
 use enc::DecoderResult;
@@ -40,6 +41,7 @@ pub const HTTP_CTYPE_CONF: f32    = 0.09;
 pub const HTML_META_CONF: f32     = 0.20;
 
 impl EncodingHint {
+    /// Construct new, empty EncodingHint.
     pub fn new() -> EncodingHint {
         EncodingHint {
             encodings: HashMap::new(),
@@ -47,6 +49,17 @@ impl EncodingHint {
             confidence: 0.0,
             changed: false,
         }
+    }
+
+    /// Construct a new Encoding hint with the specified encoding at
+    /// `DEFAULT_CONF`, wrapped for sharing.
+    pub fn shared_default(enc: &'static enc::Encoding)
+        -> Rc<RefCell<EncodingHint>>
+    {
+        let mut eh = EncodingHint::new();
+        eh.add_hint(enc, DEFAULT_CONF);
+        eh.clear_changed();
+        Rc::new(RefCell::new(eh))
     }
 
     /// Add a hint for an encoding, by label ASCII-intepreted bytes, and some
@@ -135,7 +148,6 @@ pub struct Decoder<Sink, A=NonAtomic>
     where Sink: TendrilSink<form::UTF8, A>, A: Atomicity
 {
     mode: Mode<Sink, A>,
-    truncated: bool,
 }
 
 enum Mode<Sink, A>
@@ -148,69 +160,15 @@ enum Mode<Sink, A>
 impl<Sink, A> Decoder<Sink, A>
     where Sink: TendrilSink<form::UTF8, A>, A: Atomicity
 {
-    /// Create a new incremental decoder using the encoding_rs crate.
-    pub fn new(encoding: &'static enc::Encoding, sink: Sink)
-        -> Self
-    {
-        if encoding == enc::UTF_8 {
-            Self::utf8(sink)
+    pub fn new(encoding: &'static enc::Encoding, sink: Sink) -> Self {
+
+        let mode = if encoding == enc::UTF_8 {
+            Mode::Utf8(Utf8LossyDecoder::new(sink))
         } else {
-            Self {
-                mode: Mode::Other(encoding.new_decoder(), sink),
-                truncated: false
-            }
-        }
-    }
+            Mode::Other(encoding.new_decoder(), sink)
+        };
 
-    /// Create a new incremental decoder for the UTF-8 encoding.
-    ///
-    /// This is useful for content that is known at run-time to be UTF-8
-    /// (whereas `Utf8LossyDecoder` requires knowning at compile-time.)
-    pub fn utf8(sink: Sink) -> Decoder<Sink, A> {
-        Decoder {
-            mode: Mode::Utf8(Utf8LossyDecoder::new(sink)),
-            truncated: false
-        }
-    }
-
-    /// Early truncate this decoder, which will now act as though no more
-    /// bytes are available.
-    pub fn truncate(&mut self) {
-        self.truncated = true;
-    }
-
-    /// Read from the given stream of bytes until exhaustion or early
-    /// truncate, processing incrementally. Return `Err` at the first IO
-    /// error.
-    ///
-    /// FIXME: Adapted from TendrilSink::read_from
-    pub fn read_until<R>(mut self, r: &mut R)
-        -> Result<Sink::Output, io::Error>
-        where Self: Sized, R: io::Read
-    {
-        const BUFFER_SIZE: u32 = 4 * 1024;
-        loop {
-            if self.truncated {
-                // FIXME: Better error return for this case. Interupted? Flare?
-                return Err(io::Error::from_raw_os_error(666));
-            }
-            let mut tendril = Tendril::<form::Bytes, A>::new();
-            unsafe {
-                tendril.push_uninitialized(BUFFER_SIZE);
-            }
-            loop {
-                match r.read(&mut tendril) {
-                    Ok(0) => return Ok(self.finish()),
-                    Ok(n) => {
-                        tendril.pop_back(BUFFER_SIZE - n as u32);
-                        self.process(tendril);
-                        break;
-                    }
-                    Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
-                    Err(e) => return Err(e)
-                }
-            }
-        }
+        Decoder { mode }
     }
 
     /// Give a reference to the inner sink.
@@ -238,9 +196,6 @@ impl<Sink, A> TendrilSink<form::Bytes, A> for Decoder<Sink, A>
     type Output = Sink::Output;
 
     fn process(&mut self, t: Tendril<form::Bytes, A>) {
-        if self.truncated {
-            return;
-        }
         match self.mode {
             Mode::Utf8(ref mut utf8) => utf8.process(t),
             Mode::Other(ref mut decoder, ref mut sink) => {
