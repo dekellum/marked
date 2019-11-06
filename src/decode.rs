@@ -14,7 +14,8 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io;
 
-use encoding_rs::{self as enc, DecoderResult};
+use encoding_rs as enc;
+use enc::DecoderResult;
 
 use tendril::{Tendril, TendrilSink, Atomicity, NonAtomic};
 use tendril::fmt as form;
@@ -24,14 +25,27 @@ pub struct EncodingHint {
     encodings: HashMap<&'static enc::Encoding, f32>,
     top: Option<&'static enc::Encoding>,
     confidence: f32,
+    changed: bool,
 }
+
+/// Recommended confidence for any default charset
+pub const DEFAULT_CONF: f32       = 0.01;
+
+/// Recommended confidence for a hint from an HTTP content-type header with
+/// charset.
+pub const HTTP_CTYPE_CONF: f32    = 0.09;
+
+/// Recommended confidence for the sum of all hints from within an HTML head,
+/// in meta elements.
+pub const HTML_META_CONF: f32     = 0.20;
 
 impl EncodingHint {
     pub fn new() -> EncodingHint {
         EncodingHint {
             encodings: HashMap::new(),
             top: None,
-            confidence: 0.0
+            confidence: 0.0,
+            changed: false,
         }
     }
 
@@ -56,6 +70,8 @@ impl EncodingHint {
     pub fn add_hint(&mut self, enc: &'static enc::Encoding, confidence: f32)
         -> bool
     {
+        assert!(confidence > 0.0);
+
         let new_conf = *(
             self.encodings.entry(enc)
                 .and_modify(|c| *c += confidence)
@@ -68,6 +84,7 @@ impl EncodingHint {
                 false
             } else {
                 self.top = Some(enc);
+                self.changed = true;
                 true
             }
         } else {
@@ -85,6 +102,21 @@ impl EncodingHint {
     /// encoding. Returns 0.0 if no hint has been provided.
     pub fn confidence(&self) -> f32 {
         self.confidence
+    }
+
+    /// Return the latest top encoding if the top has changed since
+    /// construction or the last call to `clear_changed`.
+    pub fn changed(&self) -> Option<&'static enc::Encoding> {
+        if self.changed {
+            self.top
+        } else {
+            None
+        }
+    }
+
+    /// Clear changed state.
+    pub fn clear_changed(&mut self) {
+        self.changed = false
     }
 }
 
