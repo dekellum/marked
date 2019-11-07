@@ -2,6 +2,7 @@ use crate::vdom::{
     Attribute, Document, Element, Node, NodeData, QualName, StrTendril,
     filter,
     filter::Action,
+    html,
     html::{a, t},
 };
 
@@ -69,7 +70,7 @@ fn strike_remove_filter(node: &mut Node) -> Action {
 
 #[test]
 fn test_fold_filter() {
-    let mut doc = Document::parse_html(
+    let mut doc = html::parse_utf8(
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
     );
@@ -84,7 +85,7 @@ fn test_fold_filter() {
 
 #[test]
 fn test_remove_filter() {
-    let mut doc = Document::parse_html(
+    let mut doc = html::parse_utf8(
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
     );
@@ -99,7 +100,7 @@ fn test_remove_filter() {
 
 #[test]
 fn test_filter_chain() {
-    let mut doc = Document::parse_html_fragment(
+    let mut doc = html::parse_utf8_fragment(
         "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
             .as_bytes()
     );
@@ -124,7 +125,7 @@ fn test_filter_chain() {
 
 #[test]
 fn test_xmp() {
-    let doc = Document::parse_html_fragment(
+    let doc = html::parse_utf8_fragment(
         "<div>foo <xmp><i>bar</i></xmp> baz</div>"
             .as_bytes()
     );
@@ -141,7 +142,7 @@ fn test_xmp() {
 
 #[test]
 fn test_plaintext() {
-    let doc = Document::parse_html_fragment(
+    let doc = html::parse_utf8_fragment(
         "<div><plaintext><i>bar baz</div>"
             .as_bytes()
     );
@@ -159,7 +160,7 @@ fn test_plaintext() {
 
 #[test]
 fn test_text_fragment() {
-    let doc = Document::parse_html_fragment(
+    let doc = html::parse_utf8_fragment(
         "plain &lt; text".as_bytes()
     );
     assert_eq!(
@@ -187,7 +188,7 @@ fn test_text_fragment() {
 
 #[test]
 fn test_empty_tag() {
-    let doc = Document::parse_html_fragment(
+    let doc = html::parse_utf8_fragment(
         "plain<wbr>text".as_bytes()
     );
     assert_eq!(
@@ -205,7 +206,7 @@ fn test_empty_tag() {
 
 #[test]
 fn test_shallow_fragment() {
-    let doc = Document::parse_html_fragment(
+    let doc = html::parse_utf8_fragment(
         "<b>b</b> text <i>i</i>".as_bytes()
     );
     assert_eq!(
@@ -223,14 +224,14 @@ fn test_shallow_fragment() {
 
 #[test]
 fn test_empty_fragment() {
-    let doc = Document::parse_html_fragment("".as_bytes());
+    let doc = html::parse_utf8_fragment("".as_bytes());
     eprintln!("the doc nodes:\n{:?}", doc);
     assert_eq!("<div></div>", doc.to_string());
 }
 
 #[test]
 fn test_deep_clone() {
-    let doc = Document::parse_html(
+    let doc = html::parse_utf8(
         "<div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
          <div>sibling</div>"
             .as_bytes()
@@ -264,7 +265,7 @@ fn test_deep_clone() {
 
 #[test]
 fn test_select_children() {
-    let doc = Document::parse_html(
+    let doc = html::parse_utf8(
         "<p>1</p>\
          <div>\
            fill\
@@ -290,7 +291,7 @@ fn test_select_children() {
 
 #[test]
 fn test_select() {
-    let doc = Document::parse_html_fragment(
+    let doc = html::parse_utf8_fragment(
         "<p>1</p>\
          <div>\
            fill\
@@ -318,7 +319,7 @@ fn test_select() {
 
 #[test]
 fn test_meta_content_type() {
-    let doc = Document::parse_html(
+    let doc = html::parse_utf8(
         r####"
 <html xmlns="http://www.w3.org/1999/xhtml">
  <head>

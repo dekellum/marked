@@ -35,58 +35,59 @@ mod meta;
 
 pub use self::meta::{a, ns, t};
 
-/// HTML parsing convenience functions.
-impl Document {
-    /// Parse HTML from UTF-8 bytes in RAM.  For stream based parsing, or
-    /// parsing from alternative encodings use [`crate::decode`].
-    pub fn parse_html(utf8_bytes: &[u8]) -> Self {
-        let sink = Sink::default();
-        parse_document(sink, Default::default())
-            .from_utf8()
-            .one(utf8_bytes)
-    }
+/// Parse HTML from UTF-8 bytes in RAM.
+///
+/// For stream based parsing, or parsing from alternative encodings use
+/// [`crate::decode`].
+pub fn parse_utf8(bytes: &[u8]) -> Document {
+    let sink = Sink::default();
+    parse_document(sink, Default::default())
+        .from_utf8()
+        .one(bytes)
+}
 
-    #[allow(unused)] //FIXME
-    pub(crate) fn parse_html_fragment(utf8_bytes: &[u8]) -> Self {
-        let sink = Sink::default();
+/// Parse an HTML fragement from UTF-8 bytes in RAM. A single root element is
+/// guaranteed. If the provided fragment does not include one, a root <div>
+/// element is included as parent.
+pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
+    let sink = Sink::default();
 
-        let mut doc = parse_fragment(
-            sink,
-            Default::default(),
-            QualName::new(None, ns::HTML, t::DIV),
-            vec![])
-            .from_utf8()
-            .one(utf8_bytes);
+    let mut doc = parse_fragment(
+        sink,
+        Default::default(),
+        QualName::new(None, ns::HTML, t::DIV),
+        vec![])
+        .from_utf8()
+        .one(bytes);
 
-        // Note that the above context name, doesn't really get used. A
-        // matching element is pushed but never linked, so unless we replace
-        // the doc (deep clone, etc.) then it will contain this cruft.
+    // Note that the above context name, doesn't really get used. A matching
+    // element is pushed but never linked, so unless we replace the doc (deep
+    // clone, etc.) then it will contain this cruft.
 
-        let root_id = doc.root_element().expect("a root");
-        debug_assert!(doc[root_id].is_elem(t::HTML));
+    let root_id = doc.root_element().expect("a root");
+    debug_assert!(doc[root_id].is_elem(t::HTML));
 
-        // If the root has a single element child, then make that element child
-        // the new root and return.
-        // FIXME: Only do this, further, if its a block level element?
-        if doc.children(root_id).count() == 1 {
-            let child_id = doc[root_id].first_child.unwrap();
-            if doc[child_id].as_element().is_some() {
-                doc.fold(root_id);
-                debug_assert!(doc.root_element().is_some());
-                return doc;
-            }
+    // If the root has a single element child, then make that element child the
+    // new root and return.
+    // FIXME: Only do this, further, if its a block level element?
+    if doc.children(root_id).count() == 1 {
+        let child_id = doc[root_id].first_child.unwrap();
+        if doc[child_id].as_element().is_some() {
+            doc.fold(root_id);
+            debug_assert!(doc.root_element().is_some());
+            return doc;
         }
-
-        // Otherwise change the "html" root to a div. This is what we asked
-        // for, but didn't get, from parse_fragment above.
-        let root = doc[root_id].as_element_mut().unwrap();
-        *root = Element {
-            name: QualName::new(None, ns::HTML, t::DIV),
-            attrs: vec![]
-        };
-        debug_assert!(doc.root_element().is_some());
-        doc
     }
+
+    // Otherwise change the "html" root to a div. This is what we asked for,
+    // but didn't get, from parse_fragment above.
+    let root = doc[root_id].as_element_mut().unwrap();
+    *root = Element {
+        name: QualName::new(None, ns::HTML, t::DIV),
+        attrs: vec![]
+    };
+    debug_assert!(doc.root_element().is_some());
+    doc
 }
 
 /// A `TreeSink` implementation for parsing html to a [`crate::vdom::Document`]
