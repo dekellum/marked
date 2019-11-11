@@ -40,6 +40,11 @@ pub const HTTP_CTYPE_CONF: f32    = 0.09;
 /// in meta elements.
 pub const HTML_META_CONF: f32     = 0.20;
 
+/// An `EncodingHint` that can be shared between `Decoder` and `Sink`, by
+/// reference on the same thread, and internally mutated. The type is neither
+/// `Send` nor `Sync`.
+pub type SharedEncodingHint = Rc<RefCell<EncodingHint>>;
+
 impl EncodingHint {
     /// Construct new, empty EncodingHint.
     pub fn new() -> EncodingHint {
@@ -52,10 +57,8 @@ impl EncodingHint {
     }
 
     /// Construct a new Encoding hint with the specified encoding at
-    /// `DEFAULT_CONF`, wrapped for sharing.
-    pub fn shared_default(enc: &'static enc::Encoding)
-        -> Rc<RefCell<EncodingHint>>
-    {
+    /// `DEFAULT_CONF` confidence, wrapped for sharing.
+    pub fn shared_default(enc: &'static enc::Encoding) -> SharedEncodingHint {
         let mut eh = EncodingHint::new();
         eh.add_hint(enc, DEFAULT_CONF);
         eh.clear_changed();
@@ -401,5 +404,33 @@ mod tests {
             "desired replacement for first two hints"
         );
         assert_eq!(0.3 + 0.4, encs.confidence());
+    }
+
+    fn is_send<T: Send>() -> bool { true }
+    fn is_sync<T: Sync>() -> bool { true }
+
+    #[test]
+    fn test_send_sync() {
+        assert!(is_send::<EncodingHint>());
+        assert!(is_sync::<EncodingHint>());
+    }
+
+    // Adapted from static_asserts 1.1.0 `assert_not_impl_any` macro
+    // MIT/Apache licensed
+
+    trait AmbiguousIfImpl<A> {
+        fn some_f() -> bool { true }
+    }
+    impl<T: ?Sized> AmbiguousIfImpl<()> for T {}
+
+    #[allow(unused)] struct NotSync;
+    impl<T: ?Sized + Sync> AmbiguousIfImpl<NotSync> for T {}
+
+    #[allow(unused)] struct NotSend;
+    impl<T: ?Sized + Send> AmbiguousIfImpl<NotSend> for T {}
+
+    #[test]
+    fn test_not_send_nor_sync() {
+        assert!(<SharedEncodingHint as AmbiguousIfImpl<_>>::some_f());
     }
 }

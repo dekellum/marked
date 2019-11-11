@@ -10,11 +10,9 @@
 //! Support for html5ever parsing to `vdom::Document`.
 
 use std::borrow::Cow;
-use std::cell::RefCell;
 use std::collections::HashSet;
 use std::default::Default;
 use std::io;
-use std::rc::Rc;
 
 use encoding_rs as enc;
 
@@ -30,7 +28,7 @@ use mime;
 
 use tendril::{fmt as form, Tendril};
 
-use crate::decode::{Decoder, HTML_META_CONF, EncodingHint};
+use crate::decode::{Decoder, HTML_META_CONF, SharedEncodingHint};
 
 use crate::vdom::{
     Attribute, Document, Element, Node, NodeData, NodeId
@@ -98,7 +96,7 @@ const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
 /// Parse HTML document, reading from the given stream of bytes until end,
 /// processing incrementally.
 /// Return the resulting `Document` or any `io::Error`
-pub fn parse_buffered<R>(eh: Rc<RefCell<EncodingHint>>, r: &mut R)
+pub fn parse_buffered<R>(eh: SharedEncodingHint, r: &mut R)
     -> Result<Document, io::Error>
     where R: io::Read
 {
@@ -182,7 +180,7 @@ fn parse_remainder<R>(
 pub struct Sink {
     document: Document,
     quirks_mode: QuirksMode,
-    enc_hint: Option<Rc<RefCell<EncodingHint>>>,
+    enc_hint: Option<SharedEncodingHint>,
     enc_check: bool
 }
 
@@ -191,7 +189,7 @@ impl Sink {
     ///
     /// If the `EncodingHint` is provided, charsets from meta elements of the
     /// head element will be hinted as soon as possible in the parse.
-    pub fn new(enc_hint: Option<Rc<RefCell<EncodingHint>>>) -> Sink {
+    pub fn new(enc_hint: Option<SharedEncodingHint>) -> Sink {
         let enc_check = enc_hint.is_some();
         Sink {
             document: Document::new(),
