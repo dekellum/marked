@@ -28,7 +28,9 @@ use mime;
 
 use tendril::{fmt as form, Tendril};
 
-use crate::decode::{Decoder, HTML_META_CONF, SharedEncodingHint};
+use crate::decode::{
+    Decoder, HTML_META_CONF, PARSE_BUFFER_SIZE, SharedEncodingHint
+};
 
 use crate::vdom::{
     Attribute, Document, Element, Node, NodeData, NodeId
@@ -91,19 +93,17 @@ pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
     doc
 }
 
-const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
-
 /// Parse HTML document, reading from the given stream of bytes until end,
 /// processing incrementally.
 /// Return the resulting `Document` or any `io::Error`
-pub fn parse_buffered<R>(eh: SharedEncodingHint, r: &mut R)
+pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     -> Result<Document, io::Error>
     where R: io::Read
 {
-    let enc = eh.borrow().top().expect("EnodingHint default encoding required");
+    let enc = hint.borrow().top().expect("EnodingHint default encoding required");
 
     let parser_sink: Parser<Sink> = parse_document(
-        Sink::new(Some(eh.clone())),
+        Sink::new(Some(hint.clone())),
         ParseOpts::default()
     );
 
@@ -111,19 +111,19 @@ pub fn parse_buffered<R>(eh: SharedEncodingHint, r: &mut R)
     // TendrilSink.
     let mut decoder = Decoder::new(enc, parser_sink);
 
-    let mut tendril = Tendril::<form::Bytes>::new();
+    let mut buff = Tendril::<form::Bytes>::new();
     unsafe {
-        tendril.push_uninitialized(PARSE_BUFFER_SIZE);
+        buff.push_uninitialized(PARSE_BUFFER_SIZE);
     }
 
     loop {
-        match r.read(&mut tendril) {
+        match r.read(&mut buff) {
             Ok(0) => return Ok(decoder.finish()),
             Ok(n) => {
                 // FIXME: Specifically continue filling buffer for _short_
-                // reads, to enable full buffer length an encoding hint?
-                tendril.pop_back(PARSE_BUFFER_SIZE - n as u32);
-                decoder.process(tendril.clone());
+                // reads, to enable full buff length an encoding hint?
+                buff.pop_back(PARSE_BUFFER_SIZE - n as u32);
+                decoder.process(buff.clone());
                 break;
             }
             Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
@@ -131,7 +131,7 @@ pub fn parse_buffered<R>(eh: SharedEncodingHint, r: &mut R)
         }
     } // repeat on interrupt
 
-    if let Some(enc) = eh.borrow().changed() {
+    if let Some(enc) = hint.borrow().changed() {
         eprintln!("EncodingHint change detected, switching to {}", enc.name());
         // Only here once, no need to clear change.
 
@@ -142,37 +142,11 @@ pub fn parse_buffered<R>(eh: SharedEncodingHint, r: &mut R)
             ParseOpts::default()
         );
         decoder = Decoder::new(enc, parser_sink);
-        decoder.process(tendril);
+        decoder.process(buff);
     }
 
-    parse_remainder(r, decoder)
-}
 
-// Read remaining bytes from reader, process and finish decoder.
-fn parse_remainder<R>(
-    r: &mut R,
-    mut decoder: Decoder<Parser<Sink>>)
-    -> Result<Document, io::Error>
-    where R: io::Read
-{
-    loop {
-        let mut tendril = Tendril::<form::Bytes>::new();
-        unsafe {
-            tendril.push_uninitialized(PARSE_BUFFER_SIZE);
-        }
-        loop {
-            match r.read(&mut tendril) {
-                Ok(0) => return Ok(decoder.finish()),
-                Ok(n) => {
-                    tendril.pop_back(PARSE_BUFFER_SIZE - n as u32);
-                    decoder.process(tendril);
-                    break;
-                }
-                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
-                Err(e) => return Err(e)
-            }
-        } // repeat on interrupt
-    }
+    decoder.read_to_end(r)
 }
 
 /// A `TreeSink` implementation for parsing html to a [`crate::vdom::Document`]

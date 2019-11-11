@@ -7,7 +7,7 @@ use encoding_rs as enc;
 use html5ever::driver::ParseOpts;
 use html5ever::tree_builder::TreeBuilderOpts;
 
-use prescan::decode::{EncodingHint};
+use prescan::decode::EncodingHint;
 use prescan::vdom::html::parse_buffered;
 
 fn main() {

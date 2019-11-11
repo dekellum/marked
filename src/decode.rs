@@ -11,6 +11,7 @@
 //! Support for streaming charset decoding.
 
 use std::borrow::Cow;
+use std::io;
 
 use encoding_rs as enc;
 use enc::DecoderResult;
@@ -26,9 +27,11 @@ pub use encoding_hint::{
     DEFAULT_CONF, HTML_META_CONF, HTTP_CTYPE_CONF,
 };
 
+pub const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
+
 /// A `TendrilSink` adaptor that takes bytes, decodes them as the given
-/// character encoding, lossily replace ill-formed byte sequences with U+FFFD
-/// replacement characters, and emits Unicode (`StrTendril`).
+/// character encoding, while replacing any ill-formed byte sequences with
+/// U+FFFD replacement characters, and emits Unicode (`StrTendril`).
 ///
 /// This allocates new tendrils for encodings other than UTF-8.
 pub struct Decoder<Sink, A=NonAtomic>
@@ -58,8 +61,7 @@ impl<Sink, A> Decoder<Sink, A>
         Decoder { mode }
     }
 
-    /// Give a reference to the inner sink.
-    /// FIXME: unused
+    /// Return reference to the inner sink.
     pub fn inner_sink(&self) -> &Sink {
         match self.mode {
             Mode::Utf8(ref utf8) => &utf8.inner_sink,
@@ -67,13 +69,31 @@ impl<Sink, A> Decoder<Sink, A>
         }
     }
 
-    /// Give a mutable reference to the inner sink.
-    /// FIXME: unused
-    pub fn inner_sink_mut(&mut self) -> &mut Sink {
-        match self.mode {
-            Mode::Utf8(ref mut utf8) => &mut utf8.inner_sink,
-            Mode::Other(_, ref mut inner_sink) => inner_sink,
-        }
+    /// Read until EOF of stream, processing each buffer, and finish this
+    /// decoder. Returns the sink output or any io::Error.
+    pub fn read_to_end<R>(mut self, r: &mut R)
+        -> Result<Sink::Output, io::Error>
+        where Self: Sized, R: io::Read
+    {
+        // Adapted from TendrilSink::read_from
+        loop {
+            let mut tendril = Tendril::<form::Bytes, A>::new();
+            unsafe {
+                tendril.push_uninitialized(PARSE_BUFFER_SIZE);
+            }
+            loop {
+                match r.read(&mut tendril) {
+                    Ok(0) => return Ok(self.finish()),
+                    Ok(n) => {
+                        tendril.pop_back(PARSE_BUFFER_SIZE - n as u32);
+                        self.process(tendril);
+                        break;
+                    }
+                    Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+                    Err(e) => return Err(e)
+                }
+            } // repeat on interrupt
+        } // repeat until EOF (0) or Err
     }
 }
 
@@ -122,10 +142,12 @@ fn decode_to_sink<Sink, A>(
     loop {
         let mut outt = <Tendril<form::Bytes, A>>::new();
         let max_len = decoder
-            .max_utf8_buffer_length_without_replacement(t.len())
-            .unwrap_or(8192);
+            .max_utf8_buffer_length(t.len())
+            .unwrap_or(PARSE_BUFFER_SIZE as usize);
         unsafe {
-            outt.push_uninitialized(std::cmp::min(max_len as u32, 8192));
+            outt.push_uninitialized(
+                std::cmp::min(max_len as u32, PARSE_BUFFER_SIZE)
+            );
         }
         let (result, bytes_read, bytes_written) =
             decoder.decode_to_utf8_without_replacement(&t, &mut outt, last);
@@ -225,7 +247,8 @@ mod tests {
         (&[b"", b"\xEA", b"", b"\x99", b"", b"\xAE", b""], "\u{a66e}", 0),
 
         (&[b"xy\xEA", b"\x99\xAEz"], "xy\u{a66e}z", 0),
-        (&[b"xy\xEA", b"\xFF", b"\x99\xAEz"], "xy\u{fffd}\u{fffd}\u{fffd}\u{fffd}z", 4),
+        (&[b"xy\xEA", b"\xFF", b"\x99\xAEz"],
+         "xy\u{fffd}\u{fffd}\u{fffd}\u{fffd}z", 4),
         (&[b"xy\xEA\x99", b"\xFFz"], "xy\u{fffd}\u{fffd}z", 2),
 
         // incomplete char at end of input
