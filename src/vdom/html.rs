@@ -29,7 +29,7 @@ use mime;
 use tendril::{fmt as form, Tendril};
 
 use crate::decode::{
-    Decoder, HTML_META_CONF, PARSE_BUFFER_SIZE, SharedEncodingHint
+    Decoder, HTML_META_CONF, PARSE_BUFFER_SIZE, EncodingHint, SharedEncodingHint
 };
 
 use crate::vdom::{
@@ -103,7 +103,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     let enc = hint.borrow().top().expect("EnodingHint default encoding required");
 
     let parser_sink: Parser<Sink> = parse_document(
-        Sink::new(Some(hint.clone())),
+        Sink::new(hint.clone(), true),
         ParseOpts::default()
     );
 
@@ -131,22 +131,30 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
         }
     } // repeat on interrupt
 
-    if let Some(enc) = hint.borrow().changed() {
-        eprintln!("EncodingHint change detected, switching to {}", enc.name());
-        // Only here once, no need to clear change.
+    let (changed, errors) = {
+        let hint = hint.borrow();
+        (hint.changed(), hint.errors())
+    };
+
+    if let Some(enc) = changed {
+        eprintln!("Encoding errors {}, changing to {}", errors, enc.name());
+        hint.borrow_mut().clear_errors();
 
         // Replace decoder and re-process, consuming the original tendril
-        // buffer.
+        // buffer, which was previously cloned.
         let parser_sink = parse_document(
-            Sink::new(None),
+            Sink::new(hint.clone(), false),
             ParseOpts::default()
         );
         decoder = Decoder::new(enc, parser_sink);
         decoder.process(buff);
     }
 
-
-    decoder.read_to_end(r)
+    let res = decoder.read_to_end(r);
+    if res.is_ok() {
+        eprintln!("Final encoding errors {}", hint.borrow().errors());
+    }
+    res
 }
 
 /// A `TreeSink` implementation for parsing html to a [`crate::vdom::Document`]
@@ -154,17 +162,17 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
 pub struct Sink {
     document: Document,
     quirks_mode: QuirksMode,
-    enc_hint: Option<SharedEncodingHint>,
-    enc_check: bool
+    enc_hint: SharedEncodingHint,
+    enc_check: bool,
 }
 
 impl Sink {
-    /// Construct new sink with optional, shared `EncodingHint`.
+    /// Construct new sink with shared `EncodingHint`.
     ///
-    /// If the `EncodingHint` is provided, charsets from meta elements of the
-    /// head element will be hinted as soon as possible in the parse.
-    pub fn new(enc_hint: Option<SharedEncodingHint>) -> Sink {
-        let enc_check = enc_hint.is_some();
+    /// If enc_check is true, encodings mentioned in html meta elements will be
+    /// added to the encoding hint as soon as possible in the parse.
+    pub fn new(enc_hint: SharedEncodingHint, enc_check: bool) -> Sink {
+
         Sink {
             document: Document::new(),
             quirks_mode: QuirksMode::NoQuirks,
@@ -245,7 +253,7 @@ impl Sink {
                       metas);
             let conf = HTML_META_CONF / (metas as f32);
 
-            let mut hints = self.enc_hint.as_ref().unwrap().borrow_mut();
+            let mut hints = self.enc_hint.borrow_mut();
             for cs in charsets {
                 hints.add_hint(cs, conf);
             }
@@ -255,7 +263,7 @@ impl Sink {
 
 impl Default for Sink {
     fn default() -> Self {
-        Sink::new(None)
+        Sink::new(EncodingHint::shared_default(enc::UTF_8), false)
     }
 }
 
@@ -267,7 +275,15 @@ impl TreeSink for Sink {
         self.document
     }
 
-    fn parse_error(&mut self, _: Cow<'static, str>) {}
+    fn parse_error(&mut self, err: Cow<'static, str>) {
+        // Not the nicest error type to work with.
+        if err == "invalid byte sequence" {
+            // From tendril crate (src/stream.rs) or our Decoder
+            self.enc_hint.borrow_mut().increment_error();
+        } else {
+            eprintln!("other parser error: {}", err); //FIXME
+        }
+    }
 
     fn get_document(&mut self) -> NodeId {
         Document::DOCUMENT_NODE_ID

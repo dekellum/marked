@@ -9,6 +9,7 @@ pub struct EncodingHint {
     encodings: HashMap<&'static enc::Encoding, f32>,
     top: Option<&'static enc::Encoding>,
     confidence: f32,
+    errors: u32,
     changed: bool,
 }
 
@@ -35,6 +36,7 @@ impl EncodingHint {
             encodings: HashMap::new(),
             top: None,
             confidence: 0.0,
+            errors: 0,
             changed: false,
         }
     }
@@ -103,6 +105,17 @@ impl EncodingHint {
         self.confidence
     }
 
+    /// Return the total errors accumulated since construction or the last call
+    /// to `clear_errors`.
+    pub fn errors(&self) -> u32 {
+        self.errors
+    }
+
+    /// Increment errors count by one.
+    pub fn increment_error(&mut self) {
+        self.errors += 1
+    }
+
     /// Return the latest top encoding if the top has changed since
     /// construction or the last call to `clear_changed`.
     pub fn changed(&self) -> Option<&'static enc::Encoding> {
@@ -113,9 +126,13 @@ impl EncodingHint {
         }
     }
 
-    /// Clear changed state.
+    /// Clear `changed` flag.
     pub fn clear_changed(&mut self) {
-        self.changed = false
+        self.changed = false;
+    }
+    /// Clear `errors` count.
+    pub fn clear_errors(&mut self) {
+        self.errors = 0;
     }
 }
 

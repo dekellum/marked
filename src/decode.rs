@@ -161,7 +161,8 @@ fn decode_to_sink<Sink, A>(
             DecoderResult::InputEmpty => return,
             DecoderResult::OutputFull => {},
             DecoderResult::Malformed(_, _) => {
-                sink.error(Cow::Borrowed("invalid sequence"));
+                // String matched in Sink, don't change
+                sink.error(Cow::Borrowed("invalid byte sequence"));
                 sink.process("\u{FFFD}".into());
             },
         }
