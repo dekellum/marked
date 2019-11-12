@@ -16,16 +16,15 @@ use markup5ever_rcdom::{SerializableHandle, RcDom};
 use html5ever::serialize as rc_serialize;
 
 use prescan;
-use prescan::vdom::html::Sink;
-use prescan::decode::Decoder;
+use prescan::decode::{Decoder, EncodingHint};
+use prescan::vdom::html::parse_buffered;
 
 #[bench]
 fn round_trip_vdom(b: &mut Bencher) {
     b.iter(|| {
-        let parser_sink = parse_document(Sink::default(), ParseOpts::default());
-        let decoder = Decoder::new(enc::UTF_8, parser_sink);
         let mut fin = sample_file("github-dekellum.html").expect("sample");
-        let doc = decoder.read_until(&mut fin).expect("parse");
+        let eh = EncodingHint::shared_default(enc::UTF_8);
+        let doc = parse_buffered(eh, &mut fin).expect("parse");
         let mut out = Vec::with_capacity(273108);
         doc.serialize(&mut out).expect("serialization");
         assert_eq!(out.len(), 273108);
@@ -38,7 +37,7 @@ fn round_trip_rcdom(b: &mut Bencher) {
         let parser_sink = parse_document(RcDom::default(), ParseOpts::default());
         let decoder = Decoder::new(enc::UTF_8, parser_sink);
         let mut fin = sample_file("github-dekellum.html").expect("sample");
-        let doc = decoder.read_until(&mut fin).expect("parse");
+        let doc = decoder.read_to_end(&mut fin).expect("parse");
         let mut out = Vec::with_capacity(273108);
         let ser_handle: SerializableHandle = doc.document.clone().into();
         rc_serialize(&mut out, &ser_handle, Default::default())
@@ -49,10 +48,9 @@ fn round_trip_rcdom(b: &mut Bencher) {
 
 #[bench]
 fn text_content(b: &mut Bencher) {
-    let parser_sink = parse_document(Sink::default(), ParseOpts::default());
-    let decoder = Decoder::new(enc::UTF_8, parser_sink);
     let mut fin = sample_file("github-dekellum.html").expect("sample");
-    let doc = decoder.read_until(&mut fin).expect("parse");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
 
     b.iter(|| {
         let out = doc.document_node_ref().text();
