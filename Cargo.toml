@@ -14,6 +14,7 @@ encoding_rs     = { version=">=0.8.13, <2.0" }
 xml-rs          = { version=">=0.8, <2.0", package="xml-rs" }
 string_cache    = { version=">=0.8.0, <0.9" }
 mime            = { version=">=0.3.14, <0.4" }
+log             = { version=">=0.4.4, <0.4.9", features = ["std"] }
 
 [dev-dependencies]
 markup5ever_rcdom = { git="https://github.com/dekellum/html5ever", branch="rcdom" }

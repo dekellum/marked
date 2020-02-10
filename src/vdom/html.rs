@@ -24,6 +24,7 @@ use html5ever::interface::tree_builder::{
     ElementFlags, NodeOrText, QuirksMode, TreeSink
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
+use log::{debug, info};
 use mime;
 
 use tendril::{fmt as form, Tendril};
@@ -137,7 +138,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     };
 
     if let Some(enc) = changed {
-        eprintln!("Encoding errors {}, changing to {}", errors, enc.name());
+        info!("Encoding errors {}, changing to {}", errors, enc.name());
         hint.borrow_mut().clear_errors();
 
         // Replace decoder and re-process, consuming the original tendril
@@ -152,7 +153,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
 
     let res = decoder.read_to_end(r);
     if res.is_ok() {
-        eprintln!("Final encoding errors {}", hint.borrow().errors());
+        debug!("Final encoding errors {}", hint.borrow().errors());
     }
     res
 }
@@ -207,7 +208,7 @@ impl Sink {
             }
             NodeOrText::AppendNode(node) => {
                 if self.enc_check && self.document[node].is_elem(t::BODY) {
-                    eprintln!("body appended, checking meta charsets now");
+                    debug!("body appended, checking meta charsets now");
                     self.enc_check = false;
                     self.check_meta_charsets();
                 }
@@ -248,7 +249,7 @@ impl Sink {
             }
         }
         if !charsets.is_empty() {
-            eprintln!("found charsets: {:?} ({})",
+            debug!("found charsets: {:?} ({})",
                       charsets.iter().map(|e| e.name()).collect::<Vec<_>>(),
                       metas);
             let conf = HTML_META_CONF / (metas as f32);
@@ -281,7 +282,7 @@ impl TreeSink for Sink {
             // From tendril crate (src/stream.rs) or our Decoder
             self.enc_hint.borrow_mut().increment_error();
         } else {
-            eprintln!("other parser error: {}", err); //FIXME
+            debug!("other parser error: {}", err); //FIXME
         }
     }
 

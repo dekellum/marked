@@ -7,6 +7,9 @@ use crate::vdom::{
 };
 
 use crate::chain_filters;
+use crate::logger::ensure_logger;
+
+use log::debug;
 
 #[test]
 #[cfg(target_pointer_width = "64")]
@@ -23,6 +26,7 @@ fn size_of() {
 
 #[test]
 fn empty_document() {
+    ensure_logger();
     let doc = Document::default();
     assert_eq!(None, doc.root_element_ref(), "no root Element");
     assert_eq!(1, doc.nodes().count(), "one Document node");
@@ -30,6 +34,7 @@ fn empty_document() {
 
 #[test]
 fn one_element() {
+    ensure_logger();
     let mut doc = Document::new();
     let element = Node::new_element(
         QualName::new(None, ns!(), "one".into()),
@@ -44,6 +49,7 @@ fn one_element() {
 
 #[test]
 fn mixed_text_no_root() {
+    ensure_logger();
     let mut doc = Document::new();
     let element = Node::new_element(
         QualName::new(None, ns!(), "one".into()),
@@ -70,6 +76,7 @@ fn strike_remove_filter(node: &mut Node) -> Action {
 
 #[test]
 fn test_fold_filter() {
+    ensure_logger();
     let mut doc = html::parse_utf8(
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
@@ -85,6 +92,7 @@ fn test_fold_filter() {
 
 #[test]
 fn test_remove_filter() {
+    ensure_logger();
     let mut doc = html::parse_utf8(
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
@@ -100,6 +108,7 @@ fn test_remove_filter() {
 
 #[test]
 fn test_filter_chain() {
+    ensure_logger();
     let mut doc = html::parse_utf8_fragment(
         "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
             .as_bytes()
@@ -125,6 +134,7 @@ fn test_filter_chain() {
 
 #[test]
 fn test_xmp() {
+    ensure_logger();
     let doc = html::parse_utf8_fragment(
         "<div>foo <xmp><i>bar</i></xmp> baz</div>"
             .as_bytes()
@@ -136,12 +146,13 @@ fn test_xmp() {
 
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
-    eprintln!("the doc nodes:\n{:?}", doc);
+    debug!("the doc nodes:\n{:?}", doc);
     assert_eq!(5, doc.nodes.len() - 2);
 }
 
 #[test]
 fn test_plaintext() {
+    ensure_logger();
     let doc = html::parse_utf8_fragment(
         "<div><plaintext><i>bar baz</div>"
             .as_bytes()
@@ -154,12 +165,13 @@ fn test_plaintext() {
 
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
-    eprintln!("the doc nodes:\n{:?}", doc);
+    debug!("the doc nodes:\n{:?}", doc);
     assert_eq!(3, doc.nodes.len() - 2);
 }
 
 #[test]
 fn test_text_fragment() {
+    ensure_logger();
     let doc = html::parse_utf8_fragment(
         "plain &lt; text".as_bytes()
     );
@@ -172,7 +184,7 @@ fn test_text_fragment() {
 
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
-    eprintln!("the doc nodes:\n{:?}", doc);
+    debug!("the doc nodes:\n{:?}", doc);
     assert_eq!(2, doc.nodes.len() - 2);
 
     let text_doc = doc.root_element_ref()
@@ -181,13 +193,14 @@ fn test_text_fragment() {
         .unwrap()
         .deep_clone();
 
-    eprintln!("text doc nodes:\n{:?}", text_doc);
+    debug!("text doc nodes:\n{:?}", text_doc);
 
     assert!(text_doc.root_element().is_none());
 }
 
 #[test]
 fn test_empty_tag() {
+    ensure_logger();
     let doc = html::parse_utf8_fragment(
         "plain<wbr>text".as_bytes()
     );
@@ -200,12 +213,13 @@ fn test_empty_tag() {
 
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
-    eprintln!("the doc nodes:\n{:?}", doc);
+    debug!("the doc nodes:\n{:?}", doc);
     assert_eq!(4, doc.nodes.len() - 2);
 }
 
 #[test]
 fn test_shallow_fragment() {
+    ensure_logger();
     let doc = html::parse_utf8_fragment(
         "<b>b</b> text <i>i</i>".as_bytes()
     );
@@ -218,19 +232,21 @@ fn test_shallow_fragment() {
 
     // Currently node count is only ensured by cloning
     let doc = doc.deep_clone(doc.root_element().unwrap());
-    eprintln!("the doc nodes:\n{:?}", doc);
+    debug!("the doc nodes:\n{:?}", doc);
     assert_eq!(6, doc.nodes.len() - 2);
 }
 
 #[test]
 fn test_empty_fragment() {
+    ensure_logger();
     let doc = html::parse_utf8_fragment("".as_bytes());
-    eprintln!("the doc nodes:\n{:?}", doc);
+    debug!("the doc nodes:\n{:?}", doc);
     assert_eq!("<div></div>", doc.to_string());
 }
 
 #[test]
 fn test_deep_clone() {
+    ensure_logger();
     let doc = html::parse_utf8(
         "<div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
          <div>sibling</div>"
@@ -265,6 +281,7 @@ fn test_deep_clone() {
 
 #[test]
 fn test_select_children() {
+    ensure_logger();
     let doc = html::parse_utf8(
         "<p>1</p>\
          <div>\
@@ -291,6 +308,7 @@ fn test_select_children() {
 
 #[test]
 fn test_select() {
+    ensure_logger();
     let doc = html::parse_utf8_fragment(
         "<p>1</p>\
          <div>\
@@ -319,6 +337,7 @@ fn test_select() {
 
 #[test]
 fn test_meta_content_type() {
+    ensure_logger();
     let doc = html::parse_utf8(
         r####"
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -338,7 +357,7 @@ fn test_meta_content_type() {
     let mut found = false;
     for m in head.select_children(|n| n.is_elem(t::META)) {
         if let Some(a) = m.attr(a::CHARSET) {
-            eprintln!("meta charset: {}", a);
+            debug!("meta charset: {}", a);
         } else if let Some(a) = m.attr(a::HTTP_EQUIV) {
             // FIXME: Parser doesn't normalize whitespace in
             // attributes. Need to trim.
@@ -347,7 +366,7 @@ fn test_meta_content_type() {
                     if let Ok(m) = a.as_ref().trim().parse::<mime::Mime>() {
                         if let Some(cs) = m.get_param(mime::CHARSET) {
                             let cs = cs.as_ref().trim();
-                            eprintln!("meta content-type charset: {}", cs);
+                            debug!("meta content-type charset: {}", cs);
                             assert_eq!("utf-8", cs);
                             found = true;
                         }

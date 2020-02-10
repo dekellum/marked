@@ -5,4 +5,8 @@
 pub mod vdom;
 pub mod decode;
 mod chars;
+
+#[cfg(test)]
+mod logger;
+
 #[macro_use] mod macros;

@@ -10,7 +10,11 @@ use html5ever::tree_builder::TreeBuilderOpts;
 use prescan::decode::EncodingHint;
 use prescan::vdom::html::parse_buffered;
 
+mod logger;
+use logger::setup_logger;
+
 fn main() {
+    setup_logger(1).unwrap();
     let _opts = ParseOpts {
         tree_builder: TreeBuilderOpts {
             drop_doctype: true,
