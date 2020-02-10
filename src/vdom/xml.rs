@@ -94,10 +94,6 @@ impl fmt::Display for XmlError {
 }
 
 impl StdError for XmlError {
-    fn description(&self) -> &str {
-        self.0.description()
-    }
-
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         self.0.source()
     }

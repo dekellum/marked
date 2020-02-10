@@ -134,7 +134,7 @@ impl<'a> Deref for NodeRef<'a> {
 /// the _same_ `Document` (by identity) and with equal `NodeId`s.
 impl PartialEq for NodeRef<'_> {
     fn eq(&self, other: &Self) -> bool {
-        (std::ptr::eq(self.doc, other.doc) && self.id == other.id)
+        std::ptr::eq(self.doc, other.doc) && self.id == other.id
     }
 }
 
