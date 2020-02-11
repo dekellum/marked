@@ -25,8 +25,6 @@ use html5ever::interface::tree_builder::{
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
 use log::{debug, info};
-use mime;
-
 use tendril::{fmt as form, Tendril};
 
 use crate::decode::{
