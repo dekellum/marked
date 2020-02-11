@@ -24,7 +24,7 @@ pub use tendril::StrTendril;
 
 mod node_ref;
 mod serializer;
-pub mod filter;
+#[macro_use] pub mod filter;
 pub mod html;
 mod xml;
 
