@@ -39,7 +39,7 @@ pub use node_ref::{NodeRef, Selector};
 /// Unlike `RcDom`, this uses a simple vector of `Node`s and indexes for
 /// parent/child and sibling ordering. Attributes are stored as separately
 /// allocated vectors for each element. For memory efficiency, a single
-/// document is limited to 4 billion (2^32) total nodes.
+/// document is limited to 4 billion (2^32 - 1) total nodes.
 ///
 /// All `Document` instances, even logically "empty" ones as freshly
 /// constructed, contain a synthetic document node at the fixed
