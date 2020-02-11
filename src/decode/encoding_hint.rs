@@ -5,14 +5,6 @@ use std::rc::Rc;
 
 use encoding_rs as enc;
 
-pub struct EncodingHint {
-    encodings: HashMap<&'static enc::Encoding, f32>,
-    top: Option<&'static enc::Encoding>,
-    confidence: f32,
-    errors: u32,
-    changed: bool,
-}
-
 /// Recommended confidence for any default charset
 pub const DEFAULT_CONF: f32       = 0.01;
 
@@ -23,6 +15,16 @@ pub const HTTP_CTYPE_CONF: f32    = 0.09;
 /// Recommended confidence for the sum of all hints from within an HTML head,
 /// in meta elements.
 pub const HTML_META_CONF: f32     = 0.20;
+
+/// A set of confidence-weighted evidence that a text document is in a
+/// particular encoding.
+pub struct EncodingHint {
+    encodings: HashMap<&'static enc::Encoding, f32>,
+    top: Option<&'static enc::Encoding>,
+    confidence: f32,
+    errors: u32,
+    changed: bool,
+}
 
 /// An `EncodingHint` that can be shared between `Decoder` and `Sink`, by
 /// reference on the same thread, and internally mutated. The type is neither
