@@ -343,7 +343,7 @@ impl TreeSink for Sink {
     {
         self.append_common(
             child,
-            |document| document[sibling].previous_sibling,
+            |document| document[sibling].prev_sibling,
             |document, new_node| document.insert_before(sibling, new_node),
         )
     }

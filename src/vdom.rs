@@ -59,8 +59,8 @@ pub struct NodeId(NonZeroU32);
 #[derive(Debug)]
 pub struct Node {
     parent: Option<NodeId>,
+    prev_sibling: Option<NodeId>,
     next_sibling: Option<NodeId>,
-    previous_sibling: Option<NodeId>,
     first_child: Option<NodeId>,
     last_child: Option<NodeId>,
     data: NodeData,
@@ -118,7 +118,7 @@ impl Document {
         });
         debug_assert!(document_node.parent.is_none());
         debug_assert!(document_node.next_sibling.is_none());
-        debug_assert!(document_node.previous_sibling.is_none());
+        debug_assert!(document_node.prev_sibling.is_none());
         let mut root = None;
         for child in self.children(Document::DOCUMENT_NODE_ID) {
             match &self[child].data {
@@ -155,23 +155,23 @@ impl Document {
     }
 
     fn detach(&mut self, node: NodeId) {
-        let (parent, previous_sibling, next_sibling) = {
+        let (parent, prev_sibling, next_sibling) = {
             let node = &mut self[node];
             (
                 node.parent.take(),
-                node.previous_sibling.take(),
+                node.prev_sibling.take(),
                 node.next_sibling.take(),
             )
         };
 
         if let Some(next_sibling) = next_sibling {
-            self[next_sibling].previous_sibling = previous_sibling
+            self[next_sibling].prev_sibling = prev_sibling
         } else if let Some(parent) = parent {
-            self[parent].last_child = previous_sibling;
+            self[parent].last_child = prev_sibling;
         }
 
-        if let Some(previous_sibling) = previous_sibling {
-            self[previous_sibling].next_sibling = next_sibling;
+        if let Some(prev_sibling) = prev_sibling {
+            self[prev_sibling].next_sibling = next_sibling;
         } else if let Some(parent) = parent {
             self[parent].first_child = next_sibling;
         }
@@ -190,7 +190,7 @@ impl Document {
         self.detach(new_child);
         self[new_child].parent = Some(parent);
         if let Some(last_child) = self[parent].last_child.take() {
-            self[new_child].previous_sibling = Some(last_child);
+            self[new_child].prev_sibling = Some(last_child);
             debug_assert!(self[last_child].next_sibling.is_none());
             self[last_child].next_sibling = Some(new_child);
         } else {
@@ -213,18 +213,18 @@ impl Document {
         self.detach(new_sibling);
         self[new_sibling].parent = self[sibling].parent;
         self[new_sibling].next_sibling = Some(sibling);
-        if let Some(previous_sibling) = self[sibling].previous_sibling.take() {
-            self[new_sibling].previous_sibling = Some(previous_sibling);
+        if let Some(prev_sibling) = self[sibling].prev_sibling.take() {
+            self[new_sibling].prev_sibling = Some(prev_sibling);
             debug_assert_eq!(
-                self[previous_sibling].next_sibling,
+                self[prev_sibling].next_sibling,
                 Some(sibling)
             );
-            self[previous_sibling].next_sibling = Some(new_sibling);
+            self[prev_sibling].next_sibling = Some(new_sibling);
         } else if let Some(parent) = self[sibling].parent {
             debug_assert_eq!(self[parent].first_child, Some(sibling));
             self[parent].first_child = Some(new_sibling);
         }
-        self[sibling].previous_sibling = Some(new_sibling);
+        self[sibling].prev_sibling = Some(new_sibling);
     }
 
     /// Return all decendent text content (character data) of the given node
@@ -443,7 +443,7 @@ impl Node {
     fn new(data: NodeData) -> Self {
         Node {
             parent: None,
-            previous_sibling: None,
+            prev_sibling: None,
             next_sibling: None,
             first_child: None,
             last_child: None,
