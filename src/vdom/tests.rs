@@ -8,8 +8,11 @@ use crate::vdom::{
 
 use crate::chain_filters;
 use crate::logger::ensure_logger;
+use crate::decode::EncodingHint;
 
 use log::debug;
+
+use encoding_rs as enc;
 
 #[test]
 #[cfg(target_pointer_width = "64")]
@@ -338,7 +341,8 @@ fn test_select() {
 #[test]
 fn test_meta_content_type() {
     ensure_logger();
-    let doc = html::parse_utf8(
+    let eh = EncodingHint::shared_default(enc::WINDOWS_1252);
+    let mut reader = std::io::Cursor::new(
         r####"
 <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
@@ -350,8 +354,8 @@ fn test_meta_content_type() {
   <p>Iūdex test.</p>
  </body>
 </html>"####
-            .as_bytes()
-    );
+            .as_bytes());
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let head = root.find_child(|n| n.is_elem(t::HEAD)).expect("head");
     let mut found = false;
