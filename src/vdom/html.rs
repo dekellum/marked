@@ -7,7 +7,7 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
-//! Support for html5ever parsing to `vdom::Document`.
+//! Support for html5ever parsing to `Document`.
 
 use std::borrow::Cow;
 use std::collections::HashSet;
@@ -27,12 +27,11 @@ use html5ever::tendril::{StrTendril, TendrilSink};
 use log::{debug, info};
 use tendril::{fmt as form, Tendril};
 
-use crate::decode::{
-    Decoder, HTML_META_CONF, PARSE_BUFFER_SIZE, EncodingHint, SharedEncodingHint
-};
-
-use crate::vdom::{
-    Attribute, Document, Element, Node, NodeData, NodeId
+use crate::{
+    Attribute, Decoder, Document, Element, EncodingHint,
+    Node, NodeId, SharedEncodingHint,
+    vdom::NodeData,
+    HTML_META_CONF, PARSE_BUFFER_SIZE,
 };
 
 mod meta;
@@ -156,8 +155,8 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     res
 }
 
-/// A `TreeSink` implementation for parsing html to a [`crate::vdom::Document`]
-/// tree.
+/// A `TreeSink` implementation for parsing html to a
+/// [`Document`](crate::Document) tree.
 pub struct Sink {
     document: Document,
     quirks_mode: QuirksMode,

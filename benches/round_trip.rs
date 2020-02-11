@@ -16,8 +16,8 @@ use markup5ever_rcdom::{SerializableHandle, RcDom};
 use html5ever::serialize as rc_serialize;
 
 use prescan;
-use prescan::decode::{Decoder, EncodingHint};
-use prescan::vdom::html::parse_buffered;
+use prescan::{Decoder, EncodingHint};
+use prescan::html::parse_buffered;
 
 #[bench]
 fn round_trip_vdom(b: &mut Bencher) {

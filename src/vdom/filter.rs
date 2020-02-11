@@ -1,4 +1,4 @@
-//! Mutating visitor support for `vdom::Document`.
+//! Mutating visitor support for `Document`.
 
 use crate::chars::replace_ctrl_ws;
 use crate::vdom::{Document, Node, NodeData, NodeId};

@@ -1,9 +1,8 @@
-use crate::vdom::{
-    Attribute, Document, Element, Node, NodeData, QualName, StrTendril,
-    filter,
-    filter::Action,
-    html,
-    html::{a, t},
+use crate::{
+    Attribute, Document, Element, Node, QualName, StrTendril,
+    filter, filter::Action,
+    html, html::{a, t},
+    vdom::NodeData,
 };
 
 use crate::chain_filters;

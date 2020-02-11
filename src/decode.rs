@@ -27,7 +27,7 @@ pub use encoding_hint::{
     DEFAULT_CONF, HTML_META_CONF, HTTP_CTYPE_CONF,
 };
 
-pub const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
+use crate::PARSE_BUFFER_SIZE;
 
 /// A `TendrilSink` adaptor that takes bytes, decodes them as the given
 /// character encoding, while replacing any ill-formed byte sequences with

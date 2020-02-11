@@ -148,7 +148,7 @@ impl Document {
     fn push_node(&mut self, node: Node) -> NodeId {
         let next_index = self.nodes.len()
             .try_into()
-            .expect("vdom::Document (u32) node index overflow");
+            .expect("Document (u32) node index overflow");
         debug_assert!(next_index > 1);
         self.nodes.push(node);
         NodeId(unsafe { NonZeroU32::new_unchecked(next_index) })
