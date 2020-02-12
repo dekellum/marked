@@ -279,7 +279,7 @@ impl TreeSink for Sink {
             // From tendril crate (src/stream.rs) or our Decoder
             self.enc_hint.borrow_mut().increment_error();
         } else {
-            debug!("other parser error: {}", err); //FIXME
+            debug!("other parser error: {}", err);
         }
     }
 
