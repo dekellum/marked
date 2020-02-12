@@ -2,7 +2,16 @@
 
 #[macro_use] extern crate html5ever;
 
+// Default parse buffer size
 const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
+
+mod chars;
+
+mod decode;
+pub use decode::{
+    Decoder, EncodingHint, SharedEncodingHint,
+    DEFAULT_CONF, HTML_META_CONF, HTTP_CTYPE_CONF
+};
 
 mod vdom;
 pub use vdom::{
@@ -11,14 +20,6 @@ pub use vdom::{
     Attribute, LocalName, Namespace, QualName, StrTendril,
     XmlError
 };
-
-mod decode;
-pub use decode::{
-    Decoder, EncodingHint, SharedEncodingHint,
-    DEFAULT_CONF, HTML_META_CONF, HTTP_CTYPE_CONF
-};
-
-mod chars;
 
 #[cfg(test)]
 mod logger;
