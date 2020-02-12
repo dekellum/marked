@@ -5,7 +5,7 @@
 /// *ML `Namespace` constants
 pub mod ns {
     use html5ever::ns;
-    use crate::vdom::Namespace;
+    use crate::dom::Namespace;
 
     pub const HTML:           Namespace = ns!(html);
 }
@@ -13,7 +13,7 @@ pub mod ns {
 /// HTML tag constants
 pub mod t {
     use html5ever::local_name as lname;
-    use crate::vdom::LocalName;
+    use crate::dom::LocalName;
 
     // FIXME: For now this is an incomplete list
 
@@ -31,7 +31,7 @@ pub mod t {
 /// HTML attribute constants
 pub mod a {
     use html5ever::local_name as lname;
-    use crate::vdom::LocalName;
+    use crate::dom::LocalName;
 
     // FIXME: For now this is an incomplete list and lacks any association with
     // elements

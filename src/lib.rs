@@ -13,8 +13,8 @@ pub use decode::{
     DEFAULT_CONF, HTML_META_CONF, HTTP_CTYPE_CONF
 };
 
-mod vdom;
-pub use vdom::{
+mod dom;
+pub use dom::{
     filter, html,
     Document, Element, Node, NodeId, NodeRef, Selector,
     Attribute, LocalName, Namespace, QualName, StrTendril,

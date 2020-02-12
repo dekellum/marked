@@ -1,7 +1,7 @@
 //! Mutating visitor support for `Document`.
 
 use crate::chars::replace_ctrl_ws;
-use crate::vdom::{Document, Node, NodeData, NodeId};
+use crate::dom::{Document, Node, NodeData, NodeId};
 
 /// An instruction returned by the `Fn` closure used by `Document::filter`.
 #[derive(Debug, PartialEq, Eq)]

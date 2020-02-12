@@ -2,7 +2,7 @@ use crate::{
     Attribute, Document, Element, Node, QualName, StrTendril,
     filter, filter::Action,
     html, html::{a, t},
-    vdom::NodeData,
+    dom::NodeData,
 };
 
 use crate::chain_filters;

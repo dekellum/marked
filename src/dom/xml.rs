@@ -15,7 +15,7 @@ use std::error::Error as StdError;
 use xml_rs::reader::XmlEvent;
 use xml_rs::attribute::OwnedAttribute;
 
-use crate::vdom::{
+use crate::dom::{
     Attribute, Document, Element, Node, NodeData, QualName, StrTendril
 };
 

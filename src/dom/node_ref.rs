@@ -2,7 +2,7 @@ use std::fmt;
 use std::iter;
 use std::ops::Deref;
 
-use crate::vdom::{Document, Node, NodeId, StrTendril, push_if};
+use crate::dom::{Document, Node, NodeId, StrTendril, push_if};
 
 /// A `Node` within `Document` lifetime reference.
 ///
