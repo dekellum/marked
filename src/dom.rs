@@ -26,12 +26,11 @@ mod node_ref;
 mod serializer;
 #[macro_use] pub mod filter;
 pub mod html;
-mod xml;
+pub mod xml;
 
 #[cfg(test)]
 mod tests;
 
-pub use xml::XmlError;
 pub use node_ref::{NodeRef, Selector};
 
 /// A DOM-like container for a tree of markup elements and text.

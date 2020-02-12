@@ -1,8 +1,9 @@
 use crate::{
     Attribute, Document, Element, Node, QualName, StrTendril,
+    dom::NodeData,
     filter, filter::Action,
     html, html::{a, t},
-    dom::NodeData,
+    xml,
 };
 
 use crate::chain_filters;
@@ -130,6 +131,35 @@ fn test_filter_chain() {
 
     assert_eq!(
         "<div>foo baz</div>",
+        doc.to_string()
+    );
+}
+
+#[test]
+fn test_simple_xml() {
+    ensure_logger();
+    let doc = xml::parse_utf8(
+        "<a>foo <b><c>bar</c></b> baz</a>"
+            .as_bytes()
+    ).expect("parsed");
+    assert_eq!(
+        "<a>foo <b><c>bar</c></b> baz</a>",
+        doc.to_string()
+    );
+}
+
+#[test]
+fn test_xml_with_decl() {
+    ensure_logger();
+    let doc = xml::parse_utf8(
+r####"
+<?xml version="1.0" encoding="UTF-8"?>
+<a>foo <b><c>bar</c></b> baz</a>
+"####
+        .as_bytes()
+    ).expect("parsed");
+    assert_eq!(
+        "<a>foo <b><c>bar</c></b> baz</a>",
         doc.to_string()
     );
 }

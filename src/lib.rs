@@ -15,10 +15,9 @@ pub use decode::{
 
 mod dom;
 pub use dom::{
-    filter, html,
+    filter, html, xml,
     Document, Element, Node, NodeId, NodeRef, Selector,
     Attribute, LocalName, Namespace, QualName, StrTendril,
-    XmlError
 };
 
 #[cfg(test)]

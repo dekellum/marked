@@ -7,7 +7,7 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
-//! Support for XML parsing.
+//! Support for XML parsing to `Document`.
 
 use std::fmt;
 use std::error::Error as StdError;
@@ -19,60 +19,58 @@ use crate::dom::{
     Attribute, Document, Element, Node, NodeData, QualName, StrTendril
 };
 
-/// XML parsing convenience functions.
-impl Document {
-    pub fn parse_xml(utf8_bytes: &[u8]) -> Result<Self, XmlError> {
-        let mut document = Document::new();
-        let mut current = Document::DOCUMENT_NODE_ID;
-        let mut ancestors = Vec::new();
-        for event in xml_rs::EventReader::new(utf8_bytes) {
-            match event.map_err(XmlError)? {
-                XmlEvent::StartElement {
-                    name, attributes, ..
-                } => {
-                    let id = document.push_node(Node::new(NodeData::Elem(Element {
-                        name: convert_name(name),
-                        attrs: attributes
-                            .into_iter()
-                            .map(|OwnedAttribute { name, value }| Attribute {
-                                name: convert_name(name),
-                                value: value.into()
-                            })
-                            .collect()
-                    })));
-                    document.append(current, id);
-                    ancestors.push(current);
-                    current = id;
-                }
-                XmlEvent::EndElement { .. } => current = ancestors.pop().unwrap(),
-                XmlEvent::CData(s) | XmlEvent::Characters(s) | XmlEvent::Whitespace(s) => {
-                    if let Some(last_child) = document[current].last_child {
-                        let node = &mut document[last_child];
-                        if let NodeData::Text(t) = &mut node.data {
-                            t.push_slice(&s);
-                            continue;
-                        }
-                    }
-                    let id = document.push_node(Node::new(NodeData::Text(s.into())));
-                    document.append(current, id);
-                }
-                XmlEvent::ProcessingInstruction { name, data } => {
-                    let data = if let Some(s) = data {
-                        s.into()
-                    } else {
-                        StrTendril::new()
-                    };
-                    let id = document.push_node(Node::new(NodeData::ProcessingInstruction {
-                        target: name.into(),
-                        data
-                    }));
-                    document.append(current, id);
-                }
-                XmlEvent::StartDocument { .. } | XmlEvent::EndDocument | XmlEvent::Comment(_) => {}
+/// Parse XML document from UTF-8 bytes in RAM.
+pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
+    let mut document = Document::new();
+    let mut current = Document::DOCUMENT_NODE_ID;
+    let mut ancestors = Vec::new();
+    for event in xml_rs::EventReader::new(utf8_bytes) {
+        match event.map_err(XmlError)? {
+            XmlEvent::StartElement {
+                name, attributes, ..
+            } => {
+                let id = document.push_node(Node::new(NodeData::Elem(Element {
+                    name: convert_name(name),
+                    attrs: attributes
+                        .into_iter()
+                        .map(|OwnedAttribute { name, value }| Attribute {
+                            name: convert_name(name),
+                            value: value.into()
+                        })
+                        .collect()
+                })));
+                document.append(current, id);
+                ancestors.push(current);
+                current = id;
             }
+            XmlEvent::EndElement { .. } => current = ancestors.pop().unwrap(),
+            XmlEvent::CData(s) | XmlEvent::Characters(s) | XmlEvent::Whitespace(s) => {
+                if let Some(last_child) = document[current].last_child {
+                    let node = &mut document[last_child];
+                    if let NodeData::Text(t) = &mut node.data {
+                        t.push_slice(&s);
+                        continue;
+                    }
+                }
+                let id = document.push_node(Node::new(NodeData::Text(s.into())));
+                document.append(current, id);
+            }
+            XmlEvent::ProcessingInstruction { name, data } => {
+                let data = if let Some(s) = data {
+                    s.into()
+                } else {
+                    StrTendril::new()
+                };
+                let id = document.push_node(Node::new(NodeData::ProcessingInstruction {
+                    target: name.into(),
+                    data
+                }));
+                document.append(current, id);
+            }
+            XmlEvent::StartDocument { .. } | XmlEvent::EndDocument | XmlEvent::Comment(_) => {}
         }
-        Ok(document)
     }
+    Ok(document)
 }
 
 fn convert_name(name: xml_rs::name::OwnedName) -> QualName {
