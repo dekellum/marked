@@ -7,7 +7,7 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
-//! Support for html5ever parsing to `Document`.
+//! Support for html5 parsing to `Document`.
 
 use std::borrow::Cow;
 use std::collections::HashSet;
