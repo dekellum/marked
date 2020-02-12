@@ -15,12 +15,12 @@ use html5ever::parse_document;
 use markup5ever_rcdom::{SerializableHandle, RcDom};
 use html5ever::serialize as rc_serialize;
 
-use prescan;
-use prescan::{Decoder, EncodingHint};
-use prescan::html::parse_buffered;
+use marked;
+use marked::{Decoder, EncodingHint};
+use marked::html::parse_buffered;
 
 #[bench]
-fn round_trip_vdom(b: &mut Bencher) {
+fn round_trip_redom(b: &mut Bencher) {
     b.iter(|| {
         let mut fin = sample_file("github-dekellum.html").expect("sample");
         let eh = EncodingHint::shared_default(enc::UTF_8);

@@ -15,7 +15,7 @@ struct Monolog {
 
 impl log::Log for Monolog {
     fn enabled(&self, meta: &log::Metadata<'_>) -> bool {
-        meta.level() <= self.other || meta.target().starts_with("prescan")
+        meta.level() <= self.other || meta.target().starts_with("marked")
     }
 
     fn log(&self, record: &log::Record<'_>) {

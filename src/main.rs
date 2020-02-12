@@ -7,8 +7,8 @@ use encoding_rs as enc;
 use html5ever::driver::ParseOpts;
 use html5ever::tree_builder::TreeBuilderOpts;
 
-use prescan::EncodingHint;
-use prescan::html::parse_buffered;
+use marked::EncodingHint;
+use marked::html::parse_buffered;
 
 mod logger;
 use logger::setup_logger;
