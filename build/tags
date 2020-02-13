@@ -92,8 +92,8 @@ kbd          ,  S T F 5   I    , keyboard text
 label        ,  S T F 5   I   B, label for input or other element
 legend       ,  S T F 5       B, caption for a fieldset element
 li           ,  S T F 5        , list item
-listing      ,          D      , preformated text
 link         ,E S T F 5     M  , relationship with an external resource
+listing      ,          D      , preformated text
 main         ,        5        , identify central topic/functional content
 map          ,  S T F 5   I    , image-map
 mark         ,        5   I    , Text marked/highlighted for reference purposes

@@ -139,11 +139,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
 
 %   tags.each do |tag|
     {
-        let mut basic_attrs = vec![
+        let basic_attrs = vec![
             <%= tag.basic_atts.map { |a| clone_if(a, 'a::' + const(a.name.upcase)) }.join(', ') %>
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::<%=clone_if(tag, const(tag.name.upcase))%>, TagMeta {
 %     map_flags(tag).each do |f|

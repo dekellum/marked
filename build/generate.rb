@@ -48,8 +48,9 @@ class Generator
       end
     end
 
+    @tags.sort_by! { |o| o.name }
+    @tags.uniq! { |o| o.name }
     @tag_max_len = @tags.map { |t| t.name.length }.max
-    [ @tags ]
   end
 
   def parse_attributes()
@@ -90,8 +91,10 @@ class Generator
       end
     end
 
+    @attributes.sort_by! { |o| o.name }
+    @attributes.uniq! { |o| o.name }
+
     @attr_max_len = @attributes.map { |t| t.name.length }.max
-    [ @attributes ]
   end
 
   def map_basic_attributes()

@@ -231,10 +231,10 @@ pub mod t {
     pub const LEGEND:        LocalName = lname!("legend");
     /// Tag `<li>`: list item.
     pub const LI:            LocalName = lname!("li");
-    /// Tag `<listing>`: preformated text.
-    pub const LISTING:       LocalName = lname!("listing");
     /// Tag `<link>`: relationship with an external resource.
     pub const LINK:          LocalName = lname!("link");
+    /// Tag `<listing>`: preformated text.
+    pub const LISTING:       LocalName = lname!("listing");
     /// Tag `<main>`: identify central topic/functional content.
     pub const MAIN:          LocalName = lname!("main");
     /// Tag `<map>`: image-map.
@@ -372,91 +372,89 @@ pub mod a {
     use html5ever::local_name as lname;
     use crate::dom::LocalName;
 
-    pub const CLASS:             LocalName = lname!("class");
-    pub const ID:                LocalName = lname!("id");
-    pub const STYLE:             LocalName = lname!("style");
-    /// Attribute hidden: hidden element.
-    pub const HIDDEN:            LocalName = lname!("hidden");
-    /// Attribute title: extra title.
-    pub const TITLE:             LocalName = lname!("title");
-    /// Attribute dir: Text direction; ltr or rtl.
-    pub const DIR:               LocalName = lname!("dir");
-    /// Attribute lang: language_code; also xml:lang.
-    pub const LANG:              LocalName = lname!("lang");
+    pub const ABBR:              LocalName = lname!("abbr");
+    /// Attribute accept: (file) types accepted.
+    pub const ACCEPT:            LocalName = lname!("accept");
+    pub const ACCEPT_CHARSET:    LocalName = lname!("accept-charset");
+    pub const ALIGN:             LocalName = lname!("align");
+    pub const ALT:               LocalName = lname!("alt");
+    pub const AXIS:              LocalName = lname!("axis");
     /// Attribute base: inherited from xml:base (deprecated).
     pub const BASE:              LocalName = lname!("base");
-    /// Attribute http-equiv: HTTP Header name.
-    pub const HTTP_EQUIV:        LocalName = lname!("http-equiv");
-    /// Attribute content: text.
-    pub const CONTENT:           LocalName = lname!("content");
-    /// Attribute scheme: format URI.
-    pub const SCHEME:            LocalName = lname!("scheme");
-    /// Attribute charset: encoding of link or (meta) document.
-    pub const CHARSET:           LocalName = lname!("charset");
-    /// Attribute coords: coordinates; i.e. image map.
-    pub const COORDS:            LocalName = lname!("coords");
-    /// Attribute hreflang: language_code of referent.
-    pub const HREFLANG:          LocalName = lname!("hreflang");
-    /// Attribute href: URL.
-    pub const HREF:              LocalName = lname!("href");
-    pub const MEDIA:             LocalName = lname!("media");
-    /// Attribute name: section_name anchor.
-    pub const NAME:              LocalName = lname!("name");
-    pub const REL:               LocalName = lname!("rel");
-    pub const REV:               LocalName = lname!("rev");
-    pub const SHAPE:             LocalName = lname!("shape");
-    pub const TARGET:            LocalName = lname!("target");
-    pub const TYPE:              LocalName = lname!("type");
-    pub const SRC:               LocalName = lname!("src");
-    pub const DATA:              LocalName = lname!("data");
-    pub const ALT:               LocalName = lname!("alt");
-    pub const HEIGHT:            LocalName = lname!("height");
-    pub const WIDTH:             LocalName = lname!("width");
-    lazy_static::lazy_static! {
-        /// Attribute decoding: preferred method to decode.
-        ///
-        /// This is a lazy static (struct) as its not defined by html5ever.
-        pub static ref DECODING: LocalName = "decoding".into();
-    }
-    pub const ABBR:              LocalName = lname!("abbr");
-    pub const ALIGN:             LocalName = lname!("align");
-    pub const AXIS:              LocalName = lname!("axis");
     pub const BGCOLOR:           LocalName = lname!("bgcolor");
     pub const BORDER:            LocalName = lname!("border");
     pub const CELLPADDING:       LocalName = lname!("cellpadding");
     pub const CELLSPACING:       LocalName = lname!("cellspacing");
     pub const CHAR:              LocalName = lname!("char");
     pub const CHAROFF:           LocalName = lname!("charoff");
+    /// Attribute charset: encoding of link or (meta) document.
+    pub const CHARSET:           LocalName = lname!("charset");
+    pub const CITE:              LocalName = lname!("cite");
+    pub const CLASS:             LocalName = lname!("class");
+    pub const COLOR:             LocalName = lname!("color");
     pub const COLSPAN:           LocalName = lname!("colspan");
+    /// Attribute content: text.
+    pub const CONTENT:           LocalName = lname!("content");
+    pub const CONTROLS:          LocalName = lname!("controls");
+    /// Attribute coords: coordinates; i.e. image map.
+    pub const COORDS:            LocalName = lname!("coords");
+    pub const DATA:              LocalName = lname!("data");
+    pub const DATETIME:          LocalName = lname!("datetime");
+    lazy_static::lazy_static! {
+        /// Attribute decoding: preferred method to decode.
+        ///
+        /// This is a lazy static (struct) as its not defined by html5ever.
+        pub static ref DECODING: LocalName = "decoding".into();
+    }
+    /// Attribute dir: Text direction; ltr or rtl.
+    pub const DIR:               LocalName = lname!("dir");
     pub const FRAME:             LocalName = lname!("frame");
     pub const HEADERS:           LocalName = lname!("headers");
+    pub const HEIGHT:            LocalName = lname!("height");
+    /// Attribute hidden: hidden element.
+    pub const HIDDEN:            LocalName = lname!("hidden");
+    /// Attribute href: URL.
+    pub const HREF:              LocalName = lname!("href");
+    /// Attribute hreflang: language_code of referent.
+    pub const HREFLANG:          LocalName = lname!("hreflang");
+    /// Attribute http-equiv: HTTP Header name.
+    pub const HTTP_EQUIV:        LocalName = lname!("http-equiv");
+    pub const ID:                LocalName = lname!("id");
+    pub const LABEL:             LocalName = lname!("label");
+    /// Attribute lang: language_code; also xml:lang.
+    pub const LANG:              LocalName = lname!("lang");
+    pub const MEDIA:             LocalName = lname!("media");
+    /// Attribute name: section_name anchor.
+    pub const NAME:              LocalName = lname!("name");
     pub const NOWRAP:            LocalName = lname!("nowrap");
+    pub const REL:               LocalName = lname!("rel");
+    pub const REV:               LocalName = lname!("rev");
     pub const ROWSPAN:           LocalName = lname!("rowspan");
     pub const RULES:             LocalName = lname!("rules");
+    /// Attribute scheme: format URI.
+    pub const SCHEME:            LocalName = lname!("scheme");
     pub const SCOPE:             LocalName = lname!("scope");
+    pub const SHAPE:             LocalName = lname!("shape");
     pub const SPAN:              LocalName = lname!("span");
+    pub const SRC:               LocalName = lname!("src");
+    pub const STYLE:             LocalName = lname!("style");
     pub const SUMMARY:           LocalName = lname!("summary");
+    pub const TARGET:            LocalName = lname!("target");
+    /// Attribute title: extra title.
+    pub const TITLE:             LocalName = lname!("title");
+    pub const TYPE:              LocalName = lname!("type");
     pub const VALIGN:            LocalName = lname!("valign");
     pub const VALUE:             LocalName = lname!("value");
-    /// Attribute accept: (file) types accepted.
-    pub const ACCEPT:            LocalName = lname!("accept");
-    pub const ACCEPT_CHARSET:    LocalName = lname!("accept-charset");
-    pub const CITE:              LocalName = lname!("cite");
-    pub const COLOR:             LocalName = lname!("color");
-    pub const CONTROLS:          LocalName = lname!("controls");
-    pub const DATETIME:          LocalName = lname!("datetime");
-    pub const LABEL:             LocalName = lname!("label");
+    pub const WIDTH:             LocalName = lname!("width");
 }
 
 fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
     let mut tag_meta = HashMap::with_capacity(135);
 
     {
-        let mut basic_attrs = vec![
-            a::ID, a::TITLE, a::DIR, a::LANG, a::BASE, a::CHARSET, a::HREFLANG, a::HREF, a::MEDIA, a::NAME, a::REL, a::REV, a::TYPE
+        let basic_attrs = vec![
+            a::BASE, a::CHARSET, a::DIR, a::HREF, a::HREFLANG, a::ID, a::LANG, a::MEDIA, a::NAME, a::REL, a::REV, a::TITLE, a::TYPE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::A, TagMeta {
             is_inline: true,
@@ -465,11 +463,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::ABBR, TagMeta {
             is_inline: true,
@@ -478,11 +474,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::ACRONYM, TagMeta {
             is_deprecated: true,
@@ -492,11 +486,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::ADDRESS, TagMeta {
             basic_attrs,
@@ -504,11 +496,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::APPLET, TagMeta {
             is_deprecated: true,
@@ -517,11 +507,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::MEDIA, a::ALT
+        let basic_attrs = vec![
+            a::ALT, a::BASE, a::DIR, a::LANG, a::MEDIA, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::AREA, TagMeta {
             is_empty: true,
@@ -530,11 +518,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::ARTICLE, TagMeta {
             basic_attrs,
@@ -542,11 +528,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::ASIDE, TagMeta {
             basic_attrs,
@@ -554,11 +538,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::SRC
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::SRC, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::AUDIO, TagMeta {
             is_inline: true,
@@ -567,11 +549,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::B, TagMeta {
             is_inline: true,
@@ -580,11 +560,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
+        let basic_attrs = vec![
             a::BASE, a::HREF
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BASE, TagMeta {
             is_empty: true,
@@ -594,11 +572,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BASEFONT, TagMeta {
             is_empty: true,
@@ -610,11 +586,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BDI, TagMeta {
             is_inline: true,
@@ -623,11 +597,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BDO, TagMeta {
             is_inline: true,
@@ -636,11 +608,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BIG, TagMeta {
             is_deprecated: true,
@@ -650,11 +620,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BLINK, TagMeta {
             is_deprecated: true,
@@ -664,11 +632,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::CITE
+        let basic_attrs = vec![
+            a::BASE, a::CITE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BLOCKQUOTE, TagMeta {
             basic_attrs,
@@ -676,11 +642,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BODY, TagMeta {
             basic_attrs,
@@ -688,11 +652,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BR, TagMeta {
             is_empty: true,
@@ -701,11 +663,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::BUTTON, TagMeta {
             is_inline: true,
@@ -715,11 +675,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::CANVAS, TagMeta {
             is_inline: true,
@@ -728,11 +686,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::CAPTION, TagMeta {
             basic_attrs,
@@ -740,11 +696,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::CENTER, TagMeta {
             is_deprecated: true,
@@ -753,11 +707,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::CITE, TagMeta {
             is_inline: true,
@@ -766,11 +718,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::CODE, TagMeta {
             is_inline: true,
@@ -779,11 +729,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::SPAN
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::SPAN, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::COL, TagMeta {
             is_empty: true,
@@ -792,11 +740,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::SPAN
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::SPAN, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::COLGROUP, TagMeta {
             basic_attrs,
@@ -804,11 +750,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::CONTENT, TagMeta {
             is_deprecated: true,
@@ -818,11 +762,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::VALUE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE, a::VALUE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DATA, TagMeta {
             is_inline: true,
@@ -831,11 +773,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DATALIST, TagMeta {
             is_inline: true,
@@ -845,11 +785,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DD, TagMeta {
             basic_attrs,
@@ -857,11 +795,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::CITE, a::DATETIME
+        let basic_attrs = vec![
+            a::BASE, a::CITE, a::DATETIME, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DEL, TagMeta {
             is_inline: true,
@@ -870,11 +806,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DETAILS, TagMeta {
             basic_attrs,
@@ -882,11 +816,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DFN, TagMeta {
             is_inline: true,
@@ -895,11 +827,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DIALOG, TagMeta {
             basic_attrs,
@@ -907,11 +837,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DIR, TagMeta {
             is_deprecated: true,
@@ -920,11 +848,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DIV, TagMeta {
             basic_attrs,
@@ -932,11 +858,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DL, TagMeta {
             basic_attrs,
@@ -944,11 +868,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::DT, TagMeta {
             basic_attrs,
@@ -956,11 +878,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::EM, TagMeta {
             is_inline: true,
@@ -969,11 +889,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::TYPE, a::SRC, a::HEIGHT, a::WIDTH
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::HEIGHT, a::LANG, a::SRC, a::TITLE, a::TYPE, a::WIDTH
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::EMBED, TagMeta {
             is_empty: true,
@@ -983,11 +901,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::FIELDSET, TagMeta {
             is_banned: true,
@@ -996,11 +912,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::FIGCAPTION, TagMeta {
             basic_attrs,
@@ -1008,11 +922,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::FIGURE, TagMeta {
             basic_attrs,
@@ -1020,11 +932,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::FONT, TagMeta {
             is_deprecated: true,
@@ -1034,11 +944,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::FOOTER, TagMeta {
             basic_attrs,
@@ -1046,11 +954,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ACCEPT, a::ACCEPT_CHARSET
+        let basic_attrs = vec![
+            a::ACCEPT, a::ACCEPT_CHARSET, a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::FORM, TagMeta {
             basic_attrs,
@@ -1058,11 +964,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::BASE, a::SRC
+        let basic_attrs = vec![
+            a::BASE, a::SRC, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::FRAME, TagMeta {
             is_empty: true,
@@ -1073,11 +977,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::FRAMESET, TagMeta {
             is_deprecated: true,
@@ -1087,11 +989,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::H1, TagMeta {
             basic_attrs,
@@ -1099,11 +999,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::H2, TagMeta {
             basic_attrs,
@@ -1111,11 +1009,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::H3, TagMeta {
             basic_attrs,
@@ -1123,11 +1019,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::H4, TagMeta {
             basic_attrs,
@@ -1135,11 +1029,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::H5, TagMeta {
             basic_attrs,
@@ -1147,11 +1039,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::H6, TagMeta {
             basic_attrs,
@@ -1159,11 +1049,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::HEAD, TagMeta {
             is_meta: true,
@@ -1172,11 +1060,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::HEADER, TagMeta {
             basic_attrs,
@@ -1184,11 +1070,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::HGROUP, TagMeta {
             basic_attrs,
@@ -1196,11 +1080,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::HR, TagMeta {
             is_empty: true,
@@ -1209,11 +1091,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::HTML, TagMeta {
             basic_attrs,
@@ -1221,11 +1101,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::I, TagMeta {
             is_inline: true,
@@ -1234,11 +1112,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::BASE, a::ALIGN
+        let basic_attrs = vec![
+            a::ALIGN, a::BASE, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::IFRAME, TagMeta {
             is_inline: true,
@@ -1247,11 +1123,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::SRC, a::ALT, a::HEIGHT, a::WIDTH, a::DECODING.clone()
+        let basic_attrs = vec![
+            a::ALT, a::BASE, a::DECODING.clone(), a::DIR, a::HEIGHT, a::LANG, a::SRC, a::TITLE, a::WIDTH
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::IMG, TagMeta {
             is_empty: true,
@@ -1261,11 +1135,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ALT, a::ACCEPT
+        let basic_attrs = vec![
+            a::ACCEPT, a::ALT, a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::INPUT, TagMeta {
             is_empty: true,
@@ -1276,11 +1148,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::CITE, a::DATETIME
+        let basic_attrs = vec![
+            a::BASE, a::CITE, a::DATETIME, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::INS, TagMeta {
             is_inline: true,
@@ -1289,11 +1159,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::ISINDEX, TagMeta {
             is_deprecated: true,
@@ -1302,11 +1170,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::KBD, TagMeta {
             is_inline: true,
@@ -1315,11 +1181,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::LABEL, TagMeta {
             is_inline: true,
@@ -1329,11 +1193,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::LEGEND, TagMeta {
             is_banned: true,
@@ -1342,11 +1204,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::LI, TagMeta {
             basic_attrs,
@@ -1354,24 +1214,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::CHARSET, a::DIR, a::HREF, a::HREFLANG, a::LANG, a::MEDIA, a::REL, a::REV, a::TITLE, a::TYPE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
-
-        tag_meta.insert(t::LISTING, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::CHARSET, a::HREFLANG, a::HREF, a::MEDIA, a::REL, a::REV, a::TYPE
-        ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::LINK, TagMeta {
             is_empty: true,
@@ -1381,11 +1226,20 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
+
+        tag_meta.insert(t::LISTING, TagMeta {
+            is_deprecated: true,
+            basic_attrs,
+            .. TagMeta::default()
+        });
+    }
+    {
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
+        ];
 
         tag_meta.insert(t::MAIN, TagMeta {
             basic_attrs,
@@ -1393,11 +1247,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::MAP, TagMeta {
             is_inline: true,
@@ -1406,11 +1258,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::MARK, TagMeta {
             is_inline: true,
@@ -1419,11 +1269,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::MENU, TagMeta {
             is_deprecated: true,
@@ -1432,11 +1280,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::MENUITEM, TagMeta {
             is_empty: true,
@@ -1446,11 +1292,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::DIR, a::LANG, a::BASE, a::HTTP_EQUIV, a::CONTENT, a::SCHEME, a::CHARSET
+        let basic_attrs = vec![
+            a::BASE, a::CHARSET, a::CONTENT, a::DIR, a::HTTP_EQUIV, a::LANG, a::SCHEME
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::META, TagMeta {
             is_empty: true,
@@ -1460,11 +1304,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::METER, TagMeta {
             is_inline: true,
@@ -1473,11 +1315,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::NAV, TagMeta {
             basic_attrs,
@@ -1485,11 +1325,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::NOBR, TagMeta {
             is_deprecated: true,
@@ -1499,11 +1337,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::NOFRAMES, TagMeta {
             is_deprecated: true,
@@ -1513,11 +1349,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::NOSCRIPT, TagMeta {
             is_inline: true,
@@ -1527,11 +1361,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::TYPE, a::DATA, a::ALIGN
+        let basic_attrs = vec![
+            a::ALIGN, a::BASE, a::DATA, a::DIR, a::LANG, a::TITLE, a::TYPE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::OBJECT, TagMeta {
             is_inline: true,
@@ -1541,11 +1373,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::OL, TagMeta {
             basic_attrs,
@@ -1553,11 +1383,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::LABEL
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LABEL, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::OPTGROUP, TagMeta {
             is_banned: true,
@@ -1566,11 +1394,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::LABEL
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LABEL, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::OPTION, TagMeta {
             is_banned: true,
@@ -1579,11 +1405,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::OUTPUT, TagMeta {
             is_inline: true,
@@ -1592,11 +1416,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::P, TagMeta {
             basic_attrs,
@@ -1604,11 +1426,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
+        let basic_attrs = vec![
             a::BASE, a::NAME, a::VALUE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::PARAM, TagMeta {
             is_empty: true,
@@ -1617,11 +1437,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::HEIGHT, a::WIDTH
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::HEIGHT, a::LANG, a::TITLE, a::WIDTH
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::PICTURE, TagMeta {
             is_inline: true,
@@ -1630,11 +1448,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::PLAINTEXT, TagMeta {
             is_deprecated: true,
@@ -1643,11 +1459,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::PRE, TagMeta {
             basic_attrs,
@@ -1655,11 +1469,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::PROGRESS, TagMeta {
             is_inline: true,
@@ -1668,11 +1480,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::CITE
+        let basic_attrs = vec![
+            a::BASE, a::CITE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::Q, TagMeta {
             is_inline: true,
@@ -1681,11 +1491,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::RB, TagMeta {
             basic_attrs,
@@ -1693,11 +1501,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::RBC.clone(), TagMeta {
             basic_attrs,
@@ -1705,11 +1511,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::RP, TagMeta {
             basic_attrs,
@@ -1717,11 +1521,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::RT, TagMeta {
             basic_attrs,
@@ -1729,11 +1531,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::RTC, TagMeta {
             basic_attrs,
@@ -1741,11 +1541,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::RUBY, TagMeta {
             is_inline: true,
@@ -1754,11 +1552,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::S, TagMeta {
             is_deprecated: true,
@@ -1768,11 +1564,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SAMP, TagMeta {
             is_inline: true,
@@ -1781,11 +1575,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SCRIPT, TagMeta {
             is_inline: true,
@@ -1795,11 +1587,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SECTION, TagMeta {
             basic_attrs,
@@ -1807,11 +1597,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SELECT, TagMeta {
             is_inline: true,
@@ -1821,11 +1609,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SLOT, TagMeta {
             is_inline: true,
@@ -1835,11 +1621,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SMALL, TagMeta {
             is_inline: true,
@@ -1848,11 +1632,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::TYPE, a::SRC
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::SRC, a::TITLE, a::TYPE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SOURCE, TagMeta {
             is_empty: true,
@@ -1861,11 +1643,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SPAN, TagMeta {
             is_inline: true,
@@ -1874,11 +1654,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::STRIKE, TagMeta {
             is_deprecated: true,
@@ -1888,11 +1666,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::STRONG, TagMeta {
             is_inline: true,
@@ -1901,11 +1677,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::STYLE, TagMeta {
             is_banned: true,
@@ -1914,11 +1688,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SUB, TagMeta {
             is_inline: true,
@@ -1927,11 +1699,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SUMMARY, TagMeta {
             basic_attrs,
@@ -1939,11 +1709,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SUP, TagMeta {
             is_inline: true,
@@ -1952,11 +1720,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::HEIGHT, a::WIDTH
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::HEIGHT, a::LANG, a::TITLE, a::WIDTH
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::SVG, TagMeta {
             basic_attrs,
@@ -1964,11 +1730,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ALIGN, a::SUMMARY
+        let basic_attrs = vec![
+            a::ALIGN, a::BASE, a::DIR, a::LANG, a::SUMMARY, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TABLE, TagMeta {
             basic_attrs,
@@ -1976,11 +1740,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ALIGN
+        let basic_attrs = vec![
+            a::ALIGN, a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TBODY, TagMeta {
             basic_attrs,
@@ -1988,11 +1750,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ALIGN, a::CHAR, a::CHAROFF, a::COLSPAN, a::HEADERS, a::ROWSPAN, a::SCOPE
+        let basic_attrs = vec![
+            a::ALIGN, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::HEADERS, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TD, TagMeta {
             basic_attrs,
@@ -2000,11 +1760,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TEMPLATE, TagMeta {
             is_banned: true,
@@ -2013,11 +1771,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TEXTAREA, TagMeta {
             is_inline: true,
@@ -2027,11 +1783,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ALIGN
+        let basic_attrs = vec![
+            a::ALIGN, a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TFOOT, TagMeta {
             basic_attrs,
@@ -2039,11 +1793,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ABBR, a::ALIGN, a::AXIS, a::CHAR, a::CHAROFF, a::COLSPAN, a::ROWSPAN, a::SCOPE
+        let basic_attrs = vec![
+            a::ABBR, a::ALIGN, a::AXIS, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TH, TagMeta {
             basic_attrs,
@@ -2051,11 +1803,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ALIGN
+        let basic_attrs = vec![
+            a::ALIGN, a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::THEAD, TagMeta {
             basic_attrs,
@@ -2063,11 +1813,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::DATETIME
+        let basic_attrs = vec![
+            a::BASE, a::DATETIME, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TIME, TagMeta {
             is_inline: true,
@@ -2076,11 +1824,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TITLE, TagMeta {
             is_meta: true,
@@ -2089,11 +1835,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::ABBR, a::ALIGN, a::AXIS, a::CHAR, a::CHAROFF, a::COLSPAN, a::HEADERS, a::ROWSPAN, a::SCOPE
+        let basic_attrs = vec![
+            a::ABBR, a::ALIGN, a::AXIS, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::HEADERS, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TR, TagMeta {
             basic_attrs,
@@ -2101,11 +1845,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::TT, TagMeta {
             is_deprecated: true,
@@ -2115,11 +1857,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::U, TagMeta {
             is_deprecated: true,
@@ -2129,11 +1869,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::UL, TagMeta {
             basic_attrs,
@@ -2141,11 +1879,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::VAR, TagMeta {
             is_inline: true,
@@ -2154,11 +1890,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE, a::HEIGHT, a::WIDTH
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::HEIGHT, a::LANG, a::TITLE, a::WIDTH
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::VIDEO, TagMeta {
             is_inline: true,
@@ -2167,11 +1901,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::WBR, TagMeta {
             is_empty: true,
@@ -2181,11 +1913,9 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
         });
     }
     {
-        let mut basic_attrs = vec![
-            a::TITLE, a::DIR, a::LANG, a::BASE
+        let basic_attrs = vec![
+            a::BASE, a::DIR, a::LANG, a::TITLE
         ];
-        basic_attrs.sort();
-        basic_attrs.dedup();
 
         tag_meta.insert(t::XMP, TagMeta {
             is_deprecated: true,
