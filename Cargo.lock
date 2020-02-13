@@ -98,6 +98,7 @@ version = "0.1.0"
 dependencies = [
  "encoding_rs",
  "html5ever",
+ "lazy_static",
  "log",
  "markup5ever_rcdom",
  "mime",

@@ -1,21 +1,26 @@
 # HTML Tags
 #
-# Sources
-#  http://www.w3.org/TR/xhtml11/
-#  http://www.w3.org/TR/html4/
-#  https://developer.mozilla.org/en-US/docs/Web/HTML/Element
-#  https://html.spec.whatwg.org/
-
-# Codes:
+# Format:
+#  Lines prefixed with `#` are comments, uninterpreted
+#  Comma delimited columns: name, flags (see codes below), description
+#
+# Flag codes:
 # E :: Empty Tag
 # S :: In Strict HTML 4.01/XHTML 1.0
 # T :: In Transitional HTML 4.01/XHTML 1.0
 # F :: In frameset annex
-# 5 :: HTML5 new elements
+# 5 :: In HTML5
 # D :: Deprecated
 # I :: Inline elements (Note <br/> is not labeled inline.)
 # M :: Metadata elements (content not visible text), i.e. head
 # B :: Banned/blacklisted elements from which text should not be extracted.
+# U :: Currently undefined by our HTML parser provider
+#
+# Sources
+#  https://developer.mozilla.org/en-US/docs/Web/HTML/Element
+#  https://html.spec.whatwg.org/
+#  https://www.w3.org/TR/html4/
+#  https://www.w3.org/TR/xhtml11/
 
 a            ,  S T F 5   I    , anchor
 abbr         ,  S T F 5   I    , abbreviation
@@ -87,7 +92,7 @@ kbd          ,  S T F 5   I    , keyboard text
 label        ,  S T F 5   I   B, label for input or other element
 legend       ,  S T F 5       B, caption for a fieldset element
 li           ,  S T F 5        , list item
-listing      ,          D
+listing      ,          D      , preformated text
 link         ,E S T F 5     M  , relationship with an external resource
 main         ,        5        , identify central topic/functional content
 map          ,  S T F 5   I    , image-map
@@ -108,12 +113,12 @@ output       ,        5   I    , content is (scripted) outcome of a user action.
 p            ,  S T F 5        , paragraph
 param        ,E S T F 5        , parameter for an object
 picture      ,        5   I    , container for multiple img/source DPI
-plaintext    ,          D      , like xmp, no close tag
+plaintext    ,          D      , like xmp; no close tag
 pre          ,  S T F 5        , preformatted text
 progress     ,        5   I    , a progress bar
 q            ,  S T F 5   I    , short quotation
 rb           ,        5        , ruby base text
-rbc          ,        5        , ruby base container (complex)
+rbc          ,        5         U, ruby base container (complex)
 rp           ,        5        , ruby simple text container
 rt           ,        5        , ruby annotation text
 rtc          ,        5        , ruby text container (complex)
@@ -125,7 +130,7 @@ section      ,        5        , Structure: generic document/application section
 select       ,  S T F 5   I   B, select list (drop-down list)
 slot         ,        5   I   B, (Shadow) DOM placeholder element
 small        ,  S T F 5   I    , small text
-source       ,E       5        , source for picture, audio, video elements
+source       ,E       5        , source for picture/audio/video elements
 span         ,  S T F 5   I    , section in a document
 strike       ,    T F   D I    , strikethrough text
 strong       ,  S T F 5   I    , strong text

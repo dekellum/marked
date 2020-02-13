@@ -1,15 +1,20 @@
 # HTML Attributes
 #
 # Format:
-#  (CSV like) columns: name, tags, description
+#  Lines prefixed with `#` are comments, uninterpreted
+#  Lines matching ([A-Z]+) `::` ALL (except: tags)? define groups of tags
+#  Comma delimited columns: name, tags, description, flags
 #  Tags marked with asterisk (*): attribute is for style purposes only.
 #
+# Flag codes:
+# U :: Currently undefined by our HTML parser provider
+
 # Sources
-#  http://www.w3.org/TR/xhtml11/
-#  http://www.w3.org/TR/html4/
-#  http://dev.w3.org/html5/spec/
-#  http://www.w3schools.com/tags/ref_standardattributes.asp
-#  http://xhtml.com
+#  https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+#  https://html.spec.whatwg.org/
+#  https://www.w3.org/TR/xhtml11/
+#  https://www.w3.org/TR/html4/
+#  https://www.w3schools.com/tags/ref_attributes.asp
 
 CORE :: ALL except: base head html meta param script style title
 class       ,*CORE
@@ -22,7 +27,7 @@ LANG :: ALL except: base br frame frameset hr iframe param
 dir         ,LANG, Text direction; ltr or rtl
 lang        ,LANG, language_code; also xml:lang
 
-GLOBAL :: ALL
+GLOBAL :: ALL except:
 base        ,GLOBAL, inherited from xml:base (deprecated)
 
 # Meta tag attributes
@@ -49,7 +54,7 @@ data        ,object
 alt         ,img area input
 height      ,img picture embed video svg *tr *th *td *iframe *object
 width       ,img picture embed video svg *table *tr *th *td *iframe *object
-decoding    ,img
+decoding    ,img, preferred method to decode, U
 # Table specific attributes
 abbr        ,tr th
 align       ,table tbody tfoot thead tr td th iframe object
@@ -85,7 +90,3 @@ color       ,*basefont *font *hr
 controls    ,*audio *video
 datetime    ,del ins time
 label       ,option optgroup
-
-# Probably more available from here
-
-https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes

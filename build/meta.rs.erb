@@ -1,0 +1,134 @@
+//! Static metadata for HTML elements and attributes.
+//!
+//! This file is maintained by generation via build/generate.rb and should not
+//! be manually edited.
+#![allow(unused)]
+
+use std::collections::HashMap;
+
+use lazy_static::lazy_static;
+
+use crate::dom::LocalName;
+
+lazy_static! {
+    /// A static lookup table for metadata on known HTML tags.
+    pub static ref TAG_META: HashMap<LocalName, TagMeta> = init_tag_metadata();
+}
+
+pub struct TagMeta {
+    is_empty: bool,
+    is_deprecated: bool,
+    is_inline: bool,
+    is_meta: bool,
+    is_banned: bool,
+    basic_attrs: Vec<LocalName>,
+}
+
+impl TagMeta {
+    pub fn is_empty(&self) -> bool {
+        self.is_empty
+    }
+    pub fn is_deprecated(&self) -> bool {
+        self.is_deprecated
+    }
+    pub fn is_inline(&self) -> bool {
+        self.is_inline
+    }
+    pub fn is_meta(&self) -> bool {
+        self.is_meta
+    }
+    pub fn is_banned(&self) -> bool {
+        self.is_banned
+    }
+
+    pub fn has_basic_attr(&self, name: &LocalName) -> bool {
+        self.basic_attrs.binary_search(name).is_ok()
+    }
+}
+
+impl Default for TagMeta {
+    fn default() -> TagMeta {
+        TagMeta {
+            is_empty: false,
+            is_deprecated: false,
+            is_inline: false,
+            is_meta: false,
+            is_banned: false,
+            basic_attrs: vec![],
+        }
+    }
+}
+
+/// `Namespace` constants
+pub mod ns {
+    use html5ever::ns;
+    use crate::dom::Namespace;
+
+    pub const HTML:           Namespace = ns!(html);
+}
+
+/// HTML tag constants
+pub mod t {
+    use html5ever::local_name as lname;
+    use crate::dom::LocalName;
+
+% tags.each do |tag|
+%   if tag.flags.include?('undefined')
+    lazy_static::lazy_static! {
+%     if tag.desc
+        /// Tag `<<%= tag.name %>>`: <%= tag.desc %>.
+        ///
+        /// This is a lazy static (struct) as its not defined by html5ever.
+%     end
+        pub static ref <%=const(tag.name.upcase)%>: LocalName = "<%=tag.name%>".into();
+    }
+%   else
+%     if tag.desc
+    /// Tag `<<%= tag.name %>>`: <%= tag.desc %>.
+%     end
+    pub const <%=twidth(const(tag.name.upcase) + ':', 4)%> LocalName = lname!("<%=tag.name%>");
+%   end
+% end
+}
+
+/// HTML attribute constants
+pub mod a {
+    use html5ever::local_name as lname;
+    use crate::dom::LocalName;
+
+% attributes.each do |a|
+%   if a.flags.include?('undefined')
+    lazy_static::lazy_static! {
+%     if a.desc
+        /// Attribute <%= a.name %>: <%= a.desc %>.
+        ///
+        /// This is a lazy static (struct) as its not defined by html5ever.
+%     end
+        pub static ref <%=const(a.name.upcase)%>: LocalName = "<%=a.name%>".into();
+    }
+%   else
+%     if a.desc
+    /// Attribute <%= a.name %>: <%= a.desc %>.
+%     end
+    pub const <%=awidth(const(a.name.upcase) + ':', 4)%> LocalName = lname!("<%=a.name%>");
+%   end
+% end
+}
+
+fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
+    let mut tag_meta = HashMap::new();
+
+    let mut basic_attrs = vec![
+        a::HREF, a::REL, a::ID, a::CLASS, a::STYLE, a::TARGET, a::TITLE,
+    ];
+    basic_attrs.sort();
+    basic_attrs.dedup();
+
+    tag_meta.insert(t::A, TagMeta {
+        is_inline: true,
+        basic_attrs,
+        .. TagMeta::default()
+    });
+
+    tag_meta
+}
