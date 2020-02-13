@@ -63,8 +63,8 @@ bgcolor     ,*table *tbody *tfoot *tr *td *th *col *colgroup *body
 border      ,*table *img *object
 cellpadding ,*table
 cellspacing ,*table
-char        ,tr td th
-charoff     ,tr td th
+char        ,*tr *td *th
+charoff     ,*tr *td *th
 colspan     ,tr td th
 frame       ,*table
 headers     ,tr td

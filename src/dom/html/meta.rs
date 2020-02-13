@@ -1275,7 +1275,7 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
     });
     tag_meta.insert(t::TD, TagMeta {
         basic_attrs: vec![
-            a::ALIGN, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::HEADERS, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
+            a::ALIGN, a::BASE, a::COLSPAN, a::DIR, a::HEADERS, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
         ],
         .. TagMeta::default()
     });
@@ -1302,7 +1302,7 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
     });
     tag_meta.insert(t::TH, TagMeta {
         basic_attrs: vec![
-            a::ABBR, a::ALIGN, a::AXIS, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
+            a::ABBR, a::ALIGN, a::AXIS, a::BASE, a::COLSPAN, a::DIR, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
         ],
         .. TagMeta::default()
     });
@@ -1328,7 +1328,7 @@ fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
     });
     tag_meta.insert(t::TR, TagMeta {
         basic_attrs: vec![
-            a::ABBR, a::ALIGN, a::AXIS, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::HEADERS, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
+            a::ABBR, a::ALIGN, a::AXIS, a::BASE, a::COLSPAN, a::DIR, a::HEADERS, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
         ],
         .. TagMeta::default()
     });
