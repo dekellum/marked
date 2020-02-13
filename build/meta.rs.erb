@@ -5,8 +5,6 @@
 //! dependency however, the resulting source file (src/dom/html/meta.rs) is
 //! also checked in.
 
-#![allow(unused)]
-
 use std::collections::HashMap;
 
 use lazy_static::lazy_static;
