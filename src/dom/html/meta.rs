@@ -451,1477 +451,938 @@ pub mod a {
 fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
     let mut tag_meta = HashMap::with_capacity(135);
 
-    {
-        let basic_attrs = vec![
+    tag_meta.insert(t::A, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::CHARSET, a::DIR, a::HREF, a::HREFLANG, a::ID, a::LANG, a::MEDIA, a::NAME, a::REL, a::REV, a::TITLE, a::TYPE
-        ];
-
-        tag_meta.insert(t::A, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::ABBR, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::ABBR, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::ACRONYM, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::ACRONYM, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::ADDRESS, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::ADDRESS, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::APPLET, TagMeta {
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::APPLET, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::AREA, TagMeta {
+        is_empty: true,
+        basic_attrs: vec![
             a::ALT, a::BASE, a::DIR, a::LANG, a::MEDIA, a::TITLE
-        ];
-
-        tag_meta.insert(t::AREA, TagMeta {
-            is_empty: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::ARTICLE, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::ARTICLE, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::ASIDE, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::ASIDE, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::AUDIO, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::SRC, a::TITLE
-        ];
-
-        tag_meta.insert(t::AUDIO, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::B, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::B, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BASE, TagMeta {
+        is_empty: true,
+        is_meta: true,
+        basic_attrs: vec![
             a::BASE, a::HREF
-        ];
-
-        tag_meta.insert(t::BASE, TagMeta {
-            is_empty: true,
-            is_meta: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BASEFONT, TagMeta {
+        is_empty: true,
+        is_deprecated: true,
+        is_inline: true,
+        is_meta: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::BASEFONT, TagMeta {
-            is_empty: true,
-            is_deprecated: true,
-            is_inline: true,
-            is_meta: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BDI, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::BDI, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BDO, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::BDO, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BIG, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::BIG, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BLINK, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::BLINK, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BLOCKQUOTE, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::CITE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::BLOCKQUOTE, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BODY, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::BODY, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BR, TagMeta {
+        is_empty: true,
+        basic_attrs: vec![
             a::BASE, a::TITLE
-        ];
-
-        tag_meta.insert(t::BR, TagMeta {
-            is_empty: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::BUTTON, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::BUTTON, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::CANVAS, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::CANVAS, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::CAPTION, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::CAPTION, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::CENTER, TagMeta {
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::CENTER, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::CITE, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::CITE, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::CODE, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::CODE, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::COL, TagMeta {
+        is_empty: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::SPAN, a::TITLE
-        ];
-
-        tag_meta.insert(t::COL, TagMeta {
-            is_empty: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::COLGROUP, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::SPAN, a::TITLE
-        ];
-
-        tag_meta.insert(t::COLGROUP, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::CONTENT, TagMeta {
+        is_deprecated: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::CONTENT, TagMeta {
-            is_deprecated: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DATA, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE, a::VALUE
-        ];
-
-        tag_meta.insert(t::DATA, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DATALIST, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DATALIST, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DD, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DD, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DEL, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::CITE, a::DATETIME, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DEL, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DETAILS, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DETAILS, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DFN, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DFN, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DIALOG, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DIALOG, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DIR, TagMeta {
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DIR, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DIV, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DIV, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DL, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DL, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::DT, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::DT, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::EM, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::EM, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::EMBED, TagMeta {
+        is_empty: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::HEIGHT, a::LANG, a::SRC, a::TITLE, a::TYPE, a::WIDTH
-        ];
-
-        tag_meta.insert(t::EMBED, TagMeta {
-            is_empty: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::FIELDSET, TagMeta {
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::FIELDSET, TagMeta {
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::FIGCAPTION, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::FIGCAPTION, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::FIGURE, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::FIGURE, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::FONT, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::FONT, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::FOOTER, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::FOOTER, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::FORM, TagMeta {
+        basic_attrs: vec![
             a::ACCEPT, a::ACCEPT_CHARSET, a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::FORM, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::FRAME, TagMeta {
+        is_empty: true,
+        is_deprecated: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::SRC, a::TITLE
-        ];
-
-        tag_meta.insert(t::FRAME, TagMeta {
-            is_empty: true,
-            is_deprecated: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::FRAMESET, TagMeta {
+        is_deprecated: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::TITLE
-        ];
-
-        tag_meta.insert(t::FRAMESET, TagMeta {
-            is_deprecated: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::H1, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::H1, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::H2, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::H2, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::H3, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::H3, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::H4, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::H4, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::H5, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::H5, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::H6, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::H6, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::HEAD, TagMeta {
+        is_meta: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG
-        ];
-
-        tag_meta.insert(t::HEAD, TagMeta {
-            is_meta: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::HEADER, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::HEADER, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::HGROUP, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::HGROUP, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::HR, TagMeta {
+        is_empty: true,
+        basic_attrs: vec![
             a::BASE, a::TITLE
-        ];
-
-        tag_meta.insert(t::HR, TagMeta {
-            is_empty: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::HTML, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG
-        ];
-
-        tag_meta.insert(t::HTML, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::I, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::I, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::IFRAME, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::ALIGN, a::BASE, a::TITLE
-        ];
-
-        tag_meta.insert(t::IFRAME, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::IMG, TagMeta {
+        is_empty: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::ALT, a::BASE, a::DECODING.clone(), a::DIR, a::HEIGHT, a::LANG, a::SRC, a::TITLE, a::WIDTH
-        ];
-
-        tag_meta.insert(t::IMG, TagMeta {
-            is_empty: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::INPUT, TagMeta {
+        is_empty: true,
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::ACCEPT, a::ALT, a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::INPUT, TagMeta {
-            is_empty: true,
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::INS, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::CITE, a::DATETIME, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::INS, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::ISINDEX, TagMeta {
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::ISINDEX, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::KBD, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::KBD, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::LABEL, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::LABEL, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::LEGEND, TagMeta {
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::LEGEND, TagMeta {
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::LI, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::LI, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::LINK, TagMeta {
+        is_empty: true,
+        is_meta: true,
+        basic_attrs: vec![
             a::BASE, a::CHARSET, a::DIR, a::HREF, a::HREFLANG, a::LANG, a::MEDIA, a::REL, a::REV, a::TITLE, a::TYPE
-        ];
-
-        tag_meta.insert(t::LINK, TagMeta {
-            is_empty: true,
-            is_meta: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::LISTING, TagMeta {
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::LISTING, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::MAIN, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::MAIN, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::MAP, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::MAP, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::MARK, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::MARK, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::MENU, TagMeta {
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::MENU, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::MENUITEM, TagMeta {
+        is_empty: true,
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::MENUITEM, TagMeta {
-            is_empty: true,
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::META, TagMeta {
+        is_empty: true,
+        is_meta: true,
+        basic_attrs: vec![
             a::BASE, a::CHARSET, a::CONTENT, a::DIR, a::HTTP_EQUIV, a::LANG, a::SCHEME
-        ];
-
-        tag_meta.insert(t::META, TagMeta {
-            is_empty: true,
-            is_meta: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::METER, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::METER, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::NAV, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::NAV, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::NOBR, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::NOBR, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::NOFRAMES, TagMeta {
+        is_deprecated: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::NOFRAMES, TagMeta {
-            is_deprecated: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::NOSCRIPT, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::NOSCRIPT, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::OBJECT, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::ALIGN, a::BASE, a::DATA, a::DIR, a::LANG, a::TITLE, a::TYPE
-        ];
-
-        tag_meta.insert(t::OBJECT, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::OL, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::OL, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::OPTGROUP, TagMeta {
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LABEL, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::OPTGROUP, TagMeta {
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::OPTION, TagMeta {
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LABEL, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::OPTION, TagMeta {
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::OUTPUT, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::OUTPUT, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::P, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::P, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::PARAM, TagMeta {
+        is_empty: true,
+        basic_attrs: vec![
             a::BASE, a::NAME, a::VALUE
-        ];
-
-        tag_meta.insert(t::PARAM, TagMeta {
-            is_empty: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::PICTURE, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::HEIGHT, a::LANG, a::TITLE, a::WIDTH
-        ];
-
-        tag_meta.insert(t::PICTURE, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::PLAINTEXT, TagMeta {
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::PLAINTEXT, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::PRE, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::PRE, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::PROGRESS, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::PROGRESS, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::Q, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::CITE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::Q, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::RB, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::RB, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::RBC.clone(), TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::RBC.clone(), TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::RP, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::RP, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::RT, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::RT, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::RTC, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::RTC, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::RUBY, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::RUBY, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::S, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::S, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SAMP, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SAMP, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SCRIPT, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG
-        ];
-
-        tag_meta.insert(t::SCRIPT, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SECTION, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SECTION, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SELECT, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SELECT, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SLOT, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SLOT, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SMALL, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SMALL, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SOURCE, TagMeta {
+        is_empty: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::SRC, a::TITLE, a::TYPE
-        ];
-
-        tag_meta.insert(t::SOURCE, TagMeta {
-            is_empty: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SPAN, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SPAN, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::STRIKE, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::STRIKE, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::STRONG, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::STRONG, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::STYLE, TagMeta {
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG
-        ];
-
-        tag_meta.insert(t::STYLE, TagMeta {
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SUB, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SUB, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SUMMARY, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SUMMARY, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SUP, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::SUP, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::SVG, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::HEIGHT, a::LANG, a::TITLE, a::WIDTH
-        ];
-
-        tag_meta.insert(t::SVG, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TABLE, TagMeta {
+        basic_attrs: vec![
             a::ALIGN, a::BASE, a::DIR, a::LANG, a::SUMMARY, a::TITLE
-        ];
-
-        tag_meta.insert(t::TABLE, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TBODY, TagMeta {
+        basic_attrs: vec![
             a::ALIGN, a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::TBODY, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TD, TagMeta {
+        basic_attrs: vec![
             a::ALIGN, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::HEADERS, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
-        ];
-
-        tag_meta.insert(t::TD, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TEMPLATE, TagMeta {
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::TEMPLATE, TagMeta {
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TEXTAREA, TagMeta {
+        is_inline: true,
+        is_banned: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::TEXTAREA, TagMeta {
-            is_inline: true,
-            is_banned: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TFOOT, TagMeta {
+        basic_attrs: vec![
             a::ALIGN, a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::TFOOT, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TH, TagMeta {
+        basic_attrs: vec![
             a::ABBR, a::ALIGN, a::AXIS, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
-        ];
-
-        tag_meta.insert(t::TH, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::THEAD, TagMeta {
+        basic_attrs: vec![
             a::ALIGN, a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::THEAD, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TIME, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DATETIME, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::TIME, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TITLE, TagMeta {
+        is_meta: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG
-        ];
-
-        tag_meta.insert(t::TITLE, TagMeta {
-            is_meta: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TR, TagMeta {
+        basic_attrs: vec![
             a::ABBR, a::ALIGN, a::AXIS, a::BASE, a::CHAR, a::CHAROFF, a::COLSPAN, a::DIR, a::HEADERS, a::LANG, a::ROWSPAN, a::SCOPE, a::TITLE
-        ];
-
-        tag_meta.insert(t::TR, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::TT, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::TT, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::U, TagMeta {
+        is_deprecated: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::U, TagMeta {
-            is_deprecated: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::UL, TagMeta {
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::UL, TagMeta {
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::VAR, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::VAR, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::VIDEO, TagMeta {
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::HEIGHT, a::LANG, a::TITLE, a::WIDTH
-        ];
-
-        tag_meta.insert(t::VIDEO, TagMeta {
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::WBR, TagMeta {
+        is_empty: true,
+        is_inline: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
-
-        tag_meta.insert(t::WBR, TagMeta {
-            is_empty: true,
-            is_inline: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
-    {
-        let basic_attrs = vec![
+        ],
+        .. TagMeta::default()
+    });
+    tag_meta.insert(t::XMP, TagMeta {
+        is_deprecated: true,
+        basic_attrs: vec![
             a::BASE, a::DIR, a::LANG, a::TITLE
-        ];
+        ],
+        .. TagMeta::default()
+    });
 
-        tag_meta.insert(t::XMP, TagMeta {
-            is_deprecated: true,
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
     tag_meta
 }

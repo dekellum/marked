@@ -137,20 +137,17 @@ pub mod a {
 fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
     let mut tag_meta = HashMap::with_capacity(<%= tags.length() %>);
 
-%   tags.each do |tag|
-    {
-        let basic_attrs = vec![
-            <%= tag.basic_atts.map { |a| clone_if(a, 'a::' + const(a.name.upcase)) }.join(', ') %>
-        ];
-
-        tag_meta.insert(t::<%=clone_if(tag, const(tag.name.upcase))%>, TagMeta {
-%     map_flags(tag).each do |f|
-            <%=f%>,
-%     end
-            basic_attrs,
-            .. TagMeta::default()
-        });
-    }
+% tags.each do |tag|
+    tag_meta.insert(t::<%=clone_if(tag, const(tag.name.upcase))%>, TagMeta {
+%   map_flags(tag).each do |f|
+        <%=f%>,
 %   end
+        basic_attrs: vec![
+            <%= tag.basic_atts.map { |a| clone_if(a, 'a::' + const(a.name.upcase)) }.join(', ') %>
+        ],
+        .. TagMeta::default()
+    });
+% end
+
     tag_meta
 }
