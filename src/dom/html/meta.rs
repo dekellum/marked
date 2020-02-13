@@ -32,7 +32,7 @@ impl TagMeta {
         self.is_empty
     }
 
-    /// If the tag is deprecated as of html5
+    /// If the tag is deprecated as of html5.
     pub fn is_deprecated(&self) -> bool {
         self.is_deprecated
     }
