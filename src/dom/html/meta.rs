@@ -1,7 +1,9 @@
 //! Static metadata for HTML elements and attributes.
 //!
 //! This file is generated via build/generate.rb and the build/meta.rs.erb
-//! template. It should not be manually edited.
+//! template. It should not be manually edited. To avoid any rust build-time
+//! dependency however, the resulting source file (src/dom/html/meta.rs) is
+//! also checked in.
 
 #![allow(unused)]
 
