@@ -90,15 +90,15 @@ class Generator
       end
     end
 
+    @attr_max_len = @attributes.map { |t| t.name.length }.max
+    [ @attributes ]
+  end
+
   def map_basic_attributes()
     @tags.each do |tag|
       tag.basic_atts =
         @attributes.select { |attr| attr.basic_tags.include?( tag.name ) }
     end
-  end
-
-    @attr_max_len = @attributes.map { |t| t.name.length }.max
-    [ @attributes ]
   end
 
   def twidth( val, extra = 0 )
