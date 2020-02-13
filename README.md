@@ -1,6 +1,7 @@
 # marked
 
-Experiments with HTML parsing, DOMs, charsets, etc.
+Integration of and utilities for parsing, filtering, selecting, and serializing
+HTML and XML markup languages.
 
 ## License
 
