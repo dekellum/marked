@@ -2,7 +2,7 @@ use crate::{
     Attribute, Document, Element, Node, QualName, StrTendril,
     dom::NodeData,
     filter, filter::Action,
-    html, html::{a, t},
+    html, html::{a, t, TAG_META},
     xml,
 };
 
@@ -409,4 +409,20 @@ fn test_meta_content_type() {
         }
     }
     assert!(found);
+}
+
+#[test]
+fn test_tag_metadata() {
+    let a_meta = TAG_META.get(&t::A).unwrap();
+    assert!(a_meta.is_inline());
+    assert!(a_meta.has_basic_attr(&a::HREFLANG));
+
+    assert!(TAG_META.get(&t::AREA).unwrap().is_empty());
+    assert!(TAG_META.get(&t::ACRONYM).unwrap().is_deprecated());
+    assert!(TAG_META.get(&t::BASE).unwrap().is_meta());
+    assert!(TAG_META.get(&t::BUTTON).unwrap().is_banned());
+
+    // The "undefined" (by html5ever) cases:
+    assert!(TAG_META.get(&t::RBC).unwrap().has_basic_attr(&a::BASE));
+    assert!(TAG_META.get(&t::IMG).unwrap().has_basic_attr(&a::DECODING));
 }

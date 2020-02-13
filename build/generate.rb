@@ -23,7 +23,7 @@ class Generator
     'E' => 'empty',
     'D' => 'deprecated',
     'I' => 'inline',
-    'M' => 'metadata',
+    'M' => 'meta',
     'B' => 'banned',
     'U' => 'undefined'}
 
@@ -111,6 +111,20 @@ class Generator
 
   def const( val )
     val.gsub( /\-/, '_' )
+  end
+
+  def clone_if( o, val )
+    if o.flags.include?('undefined')
+      "#{val}.clone()"
+    else
+      val
+    end
+  end
+
+  def map_flags( tag )
+    tag.flags
+      .reject { |f| f == "undefined" }
+      .map { |f| "is_#{f}: true" }
   end
 
   def generate( out_file )

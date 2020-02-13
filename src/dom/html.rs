@@ -36,7 +36,10 @@ use crate::{
 
 mod meta;
 
-pub use self::meta::{a, ns, t};
+pub use self::meta::{
+    a, ns, t,
+    TagMeta, TAG_META
+};
 
 /// Parse HTML document from UTF-8 bytes in RAM.
 pub fn parse_utf8(bytes: &[u8]) -> Document {

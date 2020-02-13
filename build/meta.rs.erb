@@ -1,7 +1,8 @@
 //! Static metadata for HTML elements and attributes.
 //!
-//! This file is maintained by generation via build/generate.rb and should not
-//! be manually edited.
+//! This file is generated via build/generate.rb and the build/meta.rs.erb
+//! template. It should not be manually edited.
+
 #![allow(unused)]
 
 use std::collections::HashMap;
@@ -15,6 +16,7 @@ lazy_static! {
     pub static ref TAG_META: HashMap<LocalName, TagMeta> = init_tag_metadata();
 }
 
+/// Metadata about HTML tags and their attributes.
 pub struct TagMeta {
     is_empty: bool,
     is_deprecated: bool,
@@ -25,22 +27,39 @@ pub struct TagMeta {
 }
 
 impl TagMeta {
+    /// If the element is defined to be empty: having no contents or end tag.
     pub fn is_empty(&self) -> bool {
         self.is_empty
     }
+
+    /// If the tag is deprecated as of html5
     pub fn is_deprecated(&self) -> bool {
         self.is_deprecated
     }
+
+    /// If the element is _inline_: not a block producing element under normal
+    /// usage. Note that `<br>` is not considered inline.
     pub fn is_inline(&self) -> bool {
         self.is_inline
     }
+
+    /// If the element represents metadata only, where any content is not
+    /// displayed text. e.g. `<head>`.
     pub fn is_meta(&self) -> bool {
         self.is_meta
     }
+
+    /// If the element is banned/blacklisted, where any content is not
+    /// extracted, displayed, or otherwise used.
     pub fn is_banned(&self) -> bool {
         self.is_banned
     }
 
+    /// Return true if the given name is part of the _basic_ set of known
+    /// attributes for this element.
+    ///
+    /// This _basic set_ of attributes excludes those that are used exclusively
+    /// for styling purposes.
     pub fn has_basic_attr(&self, name: &LocalName) -> bool {
         self.basic_attrs.binary_search(name).is_ok()
     }
@@ -116,19 +135,24 @@ pub mod a {
 }
 
 fn init_tag_metadata() -> HashMap<LocalName, TagMeta> {
-    let mut tag_meta = HashMap::new();
+    let mut tag_meta = HashMap::with_capacity(<%= tags.length() %>);
 
-    let mut basic_attrs = vec![
-        a::HREF, a::REL, a::ID, a::CLASS, a::STYLE, a::TARGET, a::TITLE,
-    ];
-    basic_attrs.sort();
-    basic_attrs.dedup();
+%   tags.each do |tag|
+    {
+        let mut basic_attrs = vec![
+            <%= tag.basic_atts.map { |a| clone_if(a, 'a::' + const(a.name.upcase)) }.join(', ') %>
+        ];
+        basic_attrs.sort();
+        basic_attrs.dedup();
 
-    tag_meta.insert(t::A, TagMeta {
-        is_inline: true,
-        basic_attrs,
-        .. TagMeta::default()
-    });
-
+        tag_meta.insert(t::<%=clone_if(tag, const(tag.name.upcase))%>, TagMeta {
+%     map_flags(tag).each do |f|
+            <%=f%>,
+%     end
+            basic_attrs,
+            .. TagMeta::default()
+        });
+    }
+%   end
     tag_meta
 }
