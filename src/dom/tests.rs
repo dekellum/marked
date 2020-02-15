@@ -202,6 +202,37 @@ fn test_plaintext() {
 }
 
 #[test]
+fn test_img_decoding_unknown() {
+    ensure_logger();
+    // The decoding attribute is unknown to html5ever
+    let doc = html::parse_utf8_fragment(
+        r##"<img href="foo" decoding="sync"/>"##
+            .as_bytes()
+    );
+    assert_eq!(
+        doc.root_element_ref()
+            .unwrap()
+            .find_child(|n| n.is_elem(t::IMG))
+            .expect("<img>")
+            .as_element()
+            .unwrap()
+            .attr(&*a::DECODING) //Note required alt syntax
+            .unwrap()
+            .as_ref(),
+        "sync");
+
+    assert_eq!(
+        r##"<div><img href="foo" decoding="sync"></div>"##,
+        doc.to_string()
+    );
+
+    // Currently node count is only ensured by cloning
+    let doc = doc.deep_clone(doc.root_element().unwrap());
+    debug!("the doc nodes:\n{:?}", doc);
+    assert_eq!(2, doc.nodes.len() - 2);
+}
+
+#[test]
 fn test_text_fragment() {
     ensure_logger();
     let doc = html::parse_utf8_fragment(
