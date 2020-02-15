@@ -269,6 +269,27 @@ fn test_shallow_fragment() {
 }
 
 #[test]
+fn test_inline_fragment() {
+    ensure_logger();
+
+    // An single inline element such as <i> will not be used as the root
+    let doc = html::parse_utf8_fragment(
+        "<i>text</i>".as_bytes()
+    );
+    assert_eq!(
+        "<div>\
+         <i>text</i>\
+         </div>",
+        doc.to_string()
+    );
+
+    // Currently node count is only ensured by cloning
+    let doc = doc.deep_clone(doc.root_element().unwrap());
+    debug!("the doc nodes:\n{:?}", doc);
+    assert_eq!(3, doc.nodes.len() - 2);
+}
+
+#[test]
 fn test_empty_fragment() {
     ensure_logger();
     let doc = html::parse_utf8_fragment("".as_bytes());

@@ -52,7 +52,8 @@ pub fn parse_utf8(bytes: &[u8]) -> Document {
 /// Parse an HTML fragement from UTF-8 bytes in RAM.
 ///
 /// A single root element is guaranteed. If the provided fragment does not
-/// include one, a root <div> element is included as parent.
+/// contain a single, block level (e.g. not [`TagMeta::is_inline`]) element, a
+/// root `<div>` element is included as parent.
 pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
     let sink = Sink::default();
 
@@ -71,15 +72,18 @@ pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
     let root_id = doc.root_element().expect("a root");
     debug_assert!(doc[root_id].is_elem(t::HTML));
 
-    // If the root has a single element child, then make that element child the
-    // new root and return.
-    // FIXME: Only do this, further, if its a block level element?
+    // If the root has a single element child, which is not an inline
+    // element, then make that element child the new root and return.
     if doc.children(root_id).count() == 1 {
         let child_id = doc[root_id].first_child.unwrap();
-        if doc[child_id].as_element().is_some() {
-            doc.fold(root_id);
-            debug_assert!(doc.root_element().is_some());
-            return doc;
+        if let Some(elm) = doc[child_id].as_element() {
+            if let Some(meta) = elm.html_tag_meta() {
+                if !meta.is_inline() {
+                    doc.fold(root_id);
+                    debug_assert!(doc.root_element().is_some());
+                    return doc;
+                }
+            }
         }
     }
 

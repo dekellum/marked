@@ -369,6 +369,16 @@ impl Element {
     {
         self.name.local == lname.into()
     }
+
+    /// Return [`html::TagMeta`] for this element, if the tag is a known part
+    /// of the HTML `Namespace`.
+    pub fn html_tag_meta(&self) -> Option<&'static html::TagMeta> {
+        if self.name.ns == html::ns::HTML {
+            html::TAG_META.get(&self.name.local)
+        } else {
+            None
+        }
+    }
 }
 
 impl Node {
