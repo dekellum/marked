@@ -124,6 +124,13 @@ class Generator
     end
   end
 
+  def tags_with( flag )
+    @tags
+      .select {|t| t.flags.include?(flag) }
+      .map { |t| t.name }
+      .join(' ')
+  end
+
   def map_flags( tag )
     tag.flags
       .reject { |f| f == "undefined" }

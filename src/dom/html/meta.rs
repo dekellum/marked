@@ -27,30 +27,46 @@ pub struct TagMeta {
 }
 
 impl TagMeta {
-    /// If the element is defined to be empty: having no contents or end tag.
+    /// Return true if the element is defined to be empty: having no contents
+    /// or end tag.
+    ///
+    /// Tags include: `area base basefont br col embed frame hr img input link menuitem meta param source wbr`.
     pub fn is_empty(&self) -> bool {
         self.is_empty
     }
 
-    /// If the tag is deprecated as of html5.
+    /// Return true if the tag is deprecated as of html5.
+    ///
+    /// Tags include: `acronym applet basefont big blink center content dir font frame frameset isindex listing menu menuitem nobr noframes plaintext s strike tt u xmp`.
     pub fn is_deprecated(&self) -> bool {
         self.is_deprecated
     }
 
-    /// If the element is _inline_: not a block producing element under normal
-    /// usage. Note that `<br>` is not considered inline.
+    /// Return true if the tag reprsents an _inline_ element: is not a block
+    /// layout producing element under normal use.
+    ///
+    /// Because HTML 5 no longer specifies this property, this is a
+    /// somewhat arbitrary distinction maintained here, loosely based on HTML 4
+    /// but extending for new tags. One noteworthy exception is that `<br>` is
+    /// not considered inline.
+    ///
+    /// Tags include: `a abbr acronym audio b basefont bdi bdo big blink button canvas cite code data datalist del dfn em embed font i iframe img input ins kbd label map mark meter nobr noscript object output picture progress q ruby s samp script select slot small span strike strong sub sup textarea time tt u var video wbr`.
     pub fn is_inline(&self) -> bool {
         self.is_inline
     }
 
-    /// If the element represents metadata only, where any content is not
-    /// displayed text. e.g. `<head>`.
+    /// Return true if the tag represents metadata only, where any content is
+    /// not displayed text. e.g. `<head>`.
+    ///
+    /// Tags include: `base basefont head link meta title`.
     pub fn is_meta(&self) -> bool {
         self.is_meta
     }
 
-    /// If the element is banned/blacklisted, where any content is not
-    /// extracted, displayed, or otherwise used.
+    /// Return true if the tag is banned/blacklisted: where no content should
+    /// be extracted, displayed, or otherwise used.
+    ///
+    /// Tags include: `button content datalist fieldset frame frameset input label legend noframes noscript object optgroup option script select slot style template textarea`.
     pub fn is_banned(&self) -> bool {
         self.is_banned
     }
@@ -58,8 +74,8 @@ impl TagMeta {
     /// Return true if the given name is part of the _basic_ set of known
     /// attributes for this element.
     ///
-    /// This _basic set_ of attributes excludes those that are used exclusively
-    /// for styling purposes.
+    /// This _basic set_ of attributes excludes, among other things, attributes
+    /// that are used exclusively for styling purposes.
     pub fn has_basic_attr(&self, name: &LocalName) -> bool {
         self.basic_attrs.binary_search(name).is_ok()
     }
