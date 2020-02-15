@@ -27,7 +27,7 @@ class Generator
     'B' => 'banned',
     'U' => 'undefined'}
 
-  def parse_tags()
+  def parse_tags
     @tags = []
 
     open( File.join( BASEDIR, 'tags' ), 'r' ) do |fin|
@@ -53,7 +53,7 @@ class Generator
     @tag_max_len = @tags.map { |t| t.name.length }.max
   end
 
-  def parse_attributes()
+  def parse_attributes
     @attributes = []
     tagsets = {}
 
@@ -97,7 +97,7 @@ class Generator
     @attr_max_len = @attributes.map { |t| t.name.length }.max
   end
 
-  def map_basic_attributes()
+  def map_basic_attributes
     @tags.each do |tag|
       tag.basic_atts =
         @attributes.select { |attr| attr.basic_tags.include?( tag.name ) }
