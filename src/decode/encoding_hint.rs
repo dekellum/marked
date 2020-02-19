@@ -16,6 +16,10 @@ pub const HTTP_CTYPE_CONF: f32    = 0.09;
 /// in meta elements.
 pub const HTML_META_CONF: f32     = 0.20;
 
+/// Recommended confidence for hints based on a leading Byte-Order-Mark (BOM)
+/// at the start of a document stream.
+pub const BOM_CONF: f32           = 0.31;
+
 /// A set of confidence-weighted evidence that a text document is in a
 /// particular encoding.
 #[derive(Debug)]

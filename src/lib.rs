@@ -10,7 +10,7 @@ mod chars;
 mod decode;
 pub use decode::{
     Decoder, EncodingHint, SharedEncodingHint,
-    DEFAULT_CONF, HTML_META_CONF, HTTP_CTYPE_CONF
+    DEFAULT_CONF, HTML_META_CONF, HTTP_CTYPE_CONF, BOM_CONF
 };
 
 mod dom;

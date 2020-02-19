@@ -31,7 +31,7 @@ use crate::{
     Attribute, Decoder, Document, Element, EncodingHint,
     Node, NodeId, SharedEncodingHint,
     dom::NodeData,
-    HTML_META_CONF, PARSE_BUFFER_SIZE,
+    BOM_CONF, HTML_META_CONF, PARSE_BUFFER_SIZE,
 };
 
 mod meta;
@@ -140,6 +140,41 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
             Ok(n) => {
                 let n = n as u32;
                 trace!("read {} bytes (len {})", n, i + n);
+
+                // One time, leading Byte-order-mark (BOM) detection for UTF-16
+                // little/big endian, or UTF-8.  This is part of the `decode`
+                // algorithm of the Encoding Standard which is not implemented
+                // by either encoding_rs or html5ever. html5ever will ignore a
+                // BOM character so we need not remove it before processing.
+                // If the new hint is compelling, then break early to reprocess
+                // with a new decoder.
+                if i < 2 && (i + n) >= 2 {
+                    match (buff[0], buff[1]) {
+                        (0xFE, 0xFF) => {
+                            if hint.borrow_mut().add_hint(enc::UTF_16BE, BOM_CONF) {
+                                i += n;
+                                break;
+                            }
+                        }
+                        (0xFF, 0xFE) => {
+                            if hint.borrow_mut().add_hint(enc::UTF_16LE, BOM_CONF) {
+                                i += n;
+                                break;
+                            }
+                        }
+                        (0xEF, 0xBB) => {
+                            if (i + n) >= 3 &&
+                                buff[2] == 0xBF &&
+                                hint.borrow_mut().add_hint(enc::UTF_8, BOM_CONF)
+                            {
+                                i += n;
+                                break;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
                 decoder.as_mut().unwrap().process(buff.subtendril(i, n));
                 i += n;
                 debug_assert!(i <= PARSE_BUFFER_SIZE);
