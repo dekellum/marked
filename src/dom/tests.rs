@@ -1,3 +1,5 @@
+use std::{io, io::Read};
+
 use crate::{
     Attribute, Document, Element, Node, QualName, StrTendril,
     dom::NodeData,
@@ -420,7 +422,7 @@ fn test_select() {
 }
 
 #[test]
-fn test_meta_content_type() {
+fn test_meta_buffered() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::WINDOWS_1252);
     let mut reader = std::io::Cursor::new(
@@ -438,29 +440,40 @@ fn test_meta_content_type() {
             .as_bytes());
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
-    let head = root.find_child(|n| n.is_elem(t::HEAD)).expect("head");
-    let mut found = false;
-    for m in head.select_children(|n| n.is_elem(t::META)) {
-        if let Some(a) = m.attr(a::CHARSET) {
-            debug!("meta charset: {}", a);
-        } else if let Some(a) = m.attr(a::HTTP_EQUIV) {
-            // FIXME: Parser doesn't normalize whitespace in
-            // attributes. Need to trim.
-            if a.as_ref().trim().eq_ignore_ascii_case("Content-Type") {
-                if let Some(a) = m.attr(a::CONTENT) {
-                    if let Ok(m) = a.as_ref().trim().parse::<mime::Mime>() {
-                        if let Some(cs) = m.get_param(mime::CHARSET) {
-                            let cs = cs.as_ref().trim();
-                            debug!("meta content-type charset: {}", cs);
-                            assert_eq!("utf-8", cs);
-                            found = true;
-                        }
-                    }
-                }
-            }
-        }
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("Iūdex test.", body.text().unwrap().as_ref().trim());
+}
+
+// Simulates short reads.
+struct ShortRead<R: Read>(R);
+
+impl<R: Read> Read for ShortRead<R> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, io::Error> {
+        let end = std::cmp::min(buf.len(), 17);
+        self.0.read(&mut buf[0..end])
     }
-    assert!(found);
+}
+
+#[test]
+fn test_meta_buffered_short() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::WINDOWS_1252);
+    let mut reader = ShortRead(std::io::Cursor::new(
+        r####"
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <META http-equiv=" CONTENT-TYPE" content='text/html; charset=" utf-8"'/>
+  <title>Iūdex</title>
+ </head>
+ <body>
+  <p>Iūdex test.</p>
+ </body>
+</html>"####
+            .as_bytes()));
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("Iūdex test.", body.text().unwrap().as_ref().trim());
 }
 
 #[test]

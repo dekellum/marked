@@ -3,7 +3,7 @@
 #[macro_use] extern crate html5ever;
 
 // Default parse buffer size
-const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
+pub const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
 
 mod chars;
 

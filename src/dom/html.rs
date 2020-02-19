@@ -24,7 +24,7 @@ use html5ever::interface::tree_builder::{
     ElementFlags, NodeOrText, QuirksMode, TreeSink
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
-use log::{debug, info};
+use log::{debug, info, trace};
 use tendril::{fmt as form, Tendril};
 
 use crate::{
@@ -98,9 +98,15 @@ pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
     doc
 }
 
-/// Parse HTML document, reading from the given stream of bytes until end,
-/// processing incrementally.
-/// Return the resulting `Document` or any `io::Error`
+/// Parse and return an HTML `Document`, reading from the given stream of bytes
+/// until end, processing incrementally.
+///
+/// The [`SharedEncodingHint`] must have a top (e.g. default) encoding, which
+/// will be used initially for decoding bytes. The initial
+/// [`PARSE_BUFFER_SIZE`] bytes of the stream are buffered and if a compelling
+/// alternative encoding hint is found in the documents `<head>`, the parse
+/// will be restarted from the beginning with that encoding and continuing
+/// until the end.
 pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     -> Result<Document, io::Error>
     where R: io::Read
@@ -112,38 +118,56 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
         ParseOpts::default()
     );
 
-    // Decoders are "Sink adaptors". Like the Parser, they also impl trait
-    // TendrilSink.
-    let mut decoder = Decoder::new(enc, parser_sink);
+    // Decoders are "Sink adaptors" that also impl TendrilSink.
+    // The decoder is consumed to finish the parse.
+    let mut decoder = Some(Decoder::new(enc, parser_sink));
 
+    // Read up to _SIZE bytes, processing as we go and finishing if end is
+    // reached in that size.
     let mut buff = Tendril::<form::Bytes>::new();
     unsafe {
         buff.push_uninitialized(PARSE_BUFFER_SIZE);
     }
-
+    let mut i = 0;
+    let mut finished = None;
     loop {
-        match r.read(&mut buff) {
-            Ok(0) => return Ok(decoder.finish()),
-            Ok(n) => {
-                // FIXME: Specifically continue filling buffer for _short_
-                // reads, to enable full buff length an encoding hint?
-                buff.pop_back(PARSE_BUFFER_SIZE - n as u32);
-                decoder.process(buff.clone());
+        match r.read(&mut buff[i as usize..]) {
+            Ok(0) => {
+                trace!("read 0 bytes (end len {})", i);
+                finished = Some(decoder.take().unwrap().finish());
                 break;
+            }
+            Ok(n) => {
+                let n = n as u32;
+                trace!("read {} bytes (len {})", n, i + n);
+                decoder.as_mut().unwrap().process(buff.subtendril(i, n));
+                i += n;
+                debug_assert!(i <= PARSE_BUFFER_SIZE);
+                if i == PARSE_BUFFER_SIZE {
+                    break;
+                }
             }
             Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
             Err(e) => return Err(e)
         }
-    } // repeat on interrupt
+    } // repeat on interrupt or short read.
+
+    // Avoid any uninitialized trailing bytes
+    buff.pop_back(PARSE_BUFFER_SIZE - i);
 
     let (changed, errors) = {
         let hint = hint.borrow();
+        trace!("revised hint: {:?}", hint);
         (hint.changed(), hint.errors())
     };
 
     if let Some(enc) = changed {
-        info!("Encoding errors {}, changing to {}", errors, enc.name());
+        info!(
+            "Reparsing with encoding {} (prior encoding errors: {})",
+            enc.name(), errors
+        );
         hint.borrow_mut().clear_errors();
+        finished = None;
 
         // Replace decoder and re-process, consuming the original tendril
         // buffer, which was previously cloned.
@@ -151,11 +175,16 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
             Sink::new(hint.clone(), false),
             ParseOpts::default()
         );
-        decoder = Decoder::new(enc, parser_sink);
-        decoder.process(buff);
+        decoder = Some(Decoder::new(enc, parser_sink));
+        decoder.as_mut().unwrap().process(buff);
     }
 
-    let res = decoder.read_to_end(r);
+    // If (still) finished, return that Document, else read and process to end.
+    let res = if let Some(d) = finished {
+        Ok(d)
+    } else {
+        decoder.take().unwrap().read_to_end(r)
+    };
     if res.is_ok() {
         debug!("Final encoding errors {}", hint.borrow().errors());
     }

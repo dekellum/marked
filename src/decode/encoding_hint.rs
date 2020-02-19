@@ -18,6 +18,7 @@ pub const HTML_META_CONF: f32     = 0.20;
 
 /// A set of confidence-weighted evidence that a text document is in a
 /// particular encoding.
+#[derive(Debug)]
 pub struct EncodingHint {
     encodings: HashMap<&'static enc::Encoding, f32>,
     top: Option<&'static enc::Encoding>,
