@@ -1,3 +1,4 @@
+use std::fs::File;
 use std::{io, io::Read};
 
 use crate::{
@@ -490,4 +491,87 @@ fn test_tag_metadata() {
     // The "undefined" (by html5ever) cases:
     assert!(TAG_META.get(&t::RBC).unwrap().has_basic_attr(&a::BASE));
     assert!(TAG_META.get(&t::IMG).unwrap().has_basic_attr(&a::DECODING));
+}
+
+fn sample_file(fname: &str) -> File {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let fpath = format!("{}/samples/{}", root, fname);
+    File::open(fpath).unwrap()
+}
+
+#[test]
+fn test_documento_utf8() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = sample_file("documento_utf8.html");
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
+fn test_documento_utf8_bom() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = sample_file("documento_utf8_bom.html");
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
+fn test_documento_utf16be_bom() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = sample_file("documento_utf16be_bom.html");
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
+fn test_documento_utf16le_bom() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = sample_file("documento_utf16le_bom.html");
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
+fn test_documento_utf16le() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_16LE);
+    let mut reader = sample_file("documento_utf16le.html");
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
+fn test_documento_windows1252_meta() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = sample_file("documento_windows1252_meta.html");
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
+fn test_documento_utf8_meta() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::WINDOWS_1252);
+    let mut reader = sample_file("documento_utf8_meta.html");
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
 }
