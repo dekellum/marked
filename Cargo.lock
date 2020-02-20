@@ -102,6 +102,7 @@ dependencies = [
  "log",
  "markup5ever_rcdom",
  "mime",
+ "rand",
  "string_cache",
  "tendril",
  "xml-rs",

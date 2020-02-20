@@ -13,9 +13,9 @@ use crate::chain_filters;
 use crate::logger::ensure_logger;
 use crate::decode::EncodingHint;
 
-use log::debug;
-
 use encoding_rs as enc;
+use log::debug;
+use rand::Rng;
 
 #[test]
 #[cfg(target_pointer_width = "64")]
@@ -423,61 +423,6 @@ fn test_select() {
 }
 
 #[test]
-fn test_meta_buffered() {
-    ensure_logger();
-    let eh = EncodingHint::shared_default(enc::WINDOWS_1252);
-    let mut reader = std::io::Cursor::new(
-        r####"
-<html xmlns="http://www.w3.org/1999/xhtml">
- <head>
-  <meta charset='UTF-8'/>
-  <META http-equiv=" CONTENT-TYPE" content='text/html; charset=" utf-8"'/>
-  <title>Iūdex</title>
- </head>
- <body>
-  <p>Iūdex test.</p>
- </body>
-</html>"####
-            .as_bytes());
-    let doc = html::parse_buffered(eh, &mut reader).unwrap();
-    let root = doc.root_element_ref().expect("root");
-    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
-    assert_eq!("Iūdex test.", body.text().unwrap().as_ref().trim());
-}
-
-// Simulates short reads.
-struct ShortRead<R: Read>(R);
-
-impl<R: Read> Read for ShortRead<R> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, io::Error> {
-        let end = std::cmp::min(buf.len(), 17);
-        self.0.read(&mut buf[0..end])
-    }
-}
-
-#[test]
-fn test_meta_buffered_short() {
-    ensure_logger();
-    let eh = EncodingHint::shared_default(enc::WINDOWS_1252);
-    let mut reader = ShortRead(std::io::Cursor::new(
-        r####"
-<html xmlns="http://www.w3.org/1999/xhtml">
- <head>
-  <META http-equiv=" CONTENT-TYPE" content='text/html; charset=" utf-8"'/>
-  <title>Iūdex</title>
- </head>
- <body>
-  <p>Iūdex test.</p>
- </body>
-</html>"####
-            .as_bytes()));
-    let doc = html::parse_buffered(eh, &mut reader).unwrap();
-    let root = doc.root_element_ref().expect("root");
-    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
-    assert_eq!("Iūdex test.", body.text().unwrap().as_ref().trim());
-}
-
-#[test]
 fn test_tag_metadata() {
     let a_meta = TAG_META.get(&t::A).unwrap();
     assert!(a_meta.is_inline());
@@ -493,6 +438,28 @@ fn test_tag_metadata() {
     assert!(TAG_META.get(&t::IMG).unwrap().has_basic_attr(&a::DECODING));
 }
 
+// Simulates randomized short reads and interrupts
+struct ShortRead<R: Read>(R);
+
+impl<R: Read> Read for ShortRead<R> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, io::Error> {
+        let mut rng = rand::thread_rng();
+        let end = if rng.gen_bool(0.20) {
+            buf.len()
+        } else {
+            rng.gen_range(0, buf.len()+1)
+        };
+        if end > 0 {
+            self.0.read(&mut buf[0..end])
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Interrupted,
+                "short interruption!"
+            ))
+        }
+    }
+}
+
 fn sample_file(fname: &str) -> File {
     let root = env!("CARGO_MANIFEST_DIR");
     let fpath = format!("{}/samples/{}", root, fname);
@@ -503,7 +470,7 @@ fn sample_file(fname: &str) -> File {
 fn test_documento_utf8() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
-    let mut reader = sample_file("documento_utf8.html");
+    let mut reader = ShortRead(sample_file("documento_utf8.html"));
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
@@ -514,7 +481,7 @@ fn test_documento_utf8() {
 fn test_documento_utf8_bom() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
-    let mut reader = sample_file("documento_utf8_bom.html");
+    let mut reader = ShortRead(sample_file("documento_utf8_bom.html"));
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
@@ -525,7 +492,7 @@ fn test_documento_utf8_bom() {
 fn test_documento_utf16be_bom() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
-    let mut reader = sample_file("documento_utf16be_bom.html");
+    let mut reader = ShortRead(sample_file("documento_utf16be_bom.html"));
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
@@ -536,7 +503,7 @@ fn test_documento_utf16be_bom() {
 fn test_documento_utf16le_bom() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
-    let mut reader = sample_file("documento_utf16le_bom.html");
+    let mut reader = ShortRead(sample_file("documento_utf16le_bom.html"));
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
@@ -547,7 +514,7 @@ fn test_documento_utf16le_bom() {
 fn test_documento_utf16le() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_16LE);
-    let mut reader = sample_file("documento_utf16le.html");
+    let mut reader = ShortRead(sample_file("documento_utf16le.html"));
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
@@ -558,7 +525,7 @@ fn test_documento_utf16le() {
 fn test_documento_windows1252_meta() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
-    let mut reader = sample_file("documento_windows1252_meta.html");
+    let mut reader = ShortRead(sample_file("documento_windows1252_meta.html"));
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
@@ -569,7 +536,7 @@ fn test_documento_windows1252_meta() {
 fn test_documento_utf8_meta() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::WINDOWS_1252);
-    let mut reader = sample_file("documento_utf8_meta.html");
+    let mut reader = ShortRead(sample_file("documento_utf8_meta.html"));
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
