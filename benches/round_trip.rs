@@ -20,19 +20,7 @@ use marked::{Decoder, EncodingHint};
 use marked::html::parse_buffered;
 
 #[bench]
-fn round_trip_redom(b: &mut Bencher) {
-    b.iter(|| {
-        let mut fin = sample_file("github-dekellum.html").expect("sample");
-        let eh = EncodingHint::shared_default(enc::UTF_8);
-        let doc = parse_buffered(eh, &mut fin).expect("parse");
-        let mut out = Vec::with_capacity(273108);
-        doc.serialize(&mut out).expect("serialization");
-        assert_eq!(out.len(), 273108);
-    });
-}
-
-#[bench]
-fn round_trip_rcdom(b: &mut Bencher) {
+fn round_trip_0_rcdom(b: &mut Bencher) {
     b.iter(|| {
         let parser_sink = parse_document(RcDom::default(), ParseOpts::default());
         let decoder = Decoder::new(enc::UTF_8, parser_sink);
@@ -43,6 +31,18 @@ fn round_trip_rcdom(b: &mut Bencher) {
         rc_serialize(&mut out, &ser_handle, Default::default())
             .expect("serialization");
         assert_eq!(out.len(), 272273);
+    });
+}
+
+#[bench]
+fn round_trip_1_marked(b: &mut Bencher) {
+    b.iter(|| {
+        let mut fin = sample_file("github-dekellum.html").expect("sample");
+        let eh = EncodingHint::shared_default(enc::UTF_8);
+        let doc = parse_buffered(eh, &mut fin).expect("parse");
+        let mut out = Vec::with_capacity(273108);
+        doc.serialize(&mut out).expect("serialization");
+        assert_eq!(out.len(), 273108);
     });
 }
 
