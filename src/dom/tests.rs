@@ -542,3 +542,27 @@ fn test_documento_utf8_meta() {
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
 }
+
+#[test]
+fn test_iro0094_shiftjis_meta() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = ShortRead(sample_file("iro0094_shiftjis_meta.html"));
+    let doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let _body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::SHIFT_JIS);
+    assert_eq!(eh.borrow().errors(), 0);
+}
+
+#[test]
+fn test_matsunami_eucjp_meta() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = ShortRead(sample_file("matsunami_eucjp_meta.html"));
+    let doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let _body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::EUC_JP);
+    assert_eq!(eh.borrow().errors(), 0);
+}
