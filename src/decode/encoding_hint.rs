@@ -98,21 +98,26 @@ impl EncodingHint {
         }
     }
 
-    /// Return true if a given encoding name could be read with _both_ the
-    /// current top encoding and from the provided encoding (from the same
-    /// bytes).
+    /// Return true if the given encoding name could be read with _both_ any
+    /// current top encoding and from the provided encoding, from the same
+    /// source bytes.
     ///
     /// All supported encoding names are ASCII, so any _parsed_ name encoding
     /// hint that would transition from an ASCII-compatible encoding
     /// (e.g. Windows-1252, UTF-8) to an ASCII-incompatible encoding
-    /// (e.g. UTF-16 or ISO-2022-JP), or vice-versa, is nonsensical and should
-    /// be ignored.
+    /// (e.g. UTF-16, REPLACEMENT), or vice-versa, or to different
+    /// ASCII-incompatible encodings (e.g. UTF-16BE to UTF-16LE) is nonsensical
+    /// and should be ignored.
     ///
-    /// Note that this check should not be applied to hints from
-    /// Byte-Order-Marks since they aren't ASCII names.
+    /// Note that this check should only be applied to text hints in the
+    /// document itself, and not applied to hints from Byte-Order-Marks since
+    /// they aren't ASCII names, or the HTTP Content-Type header since it isn't
+    /// part of the document body.
     pub fn could_read_from(&self, enc: &'static enc::Encoding) -> bool {
         if let Some(t) = self.top {
-            if enc.is_ascii_compatible() != t.is_ascii_compatible() {
+            if  ( includes_ascii(t) && !includes_ascii(enc)) ||
+                (!includes_ascii(t) && t != enc)
+            {
                 return false;
             }
         }
@@ -162,6 +167,13 @@ impl EncodingHint {
     }
 }
 
+// Could the encoding include an ASCII text encoding name?
+// This is slightly more lenient then Encoding::is_ascii_compatible in that it
+// grants that ISO-2022-JP _could be_ in ASCII mode.
+fn includes_ascii(enc: &'static enc::Encoding) -> bool {
+    !(enc == enc::UTF_16BE || enc == enc::UTF_16LE || enc == enc::REPLACEMENT)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -205,5 +217,26 @@ mod tests {
             "desired replacement for first two hints"
         );
         assert_eq!(0.3 + 0.4, encs.confidence());
+    }
+
+    #[test]
+    fn could_read_from() {
+        let mut eh = EncodingHint::new();
+        eh.add_hint(enc::UTF_8, 0.5);
+        assert!( eh.could_read_from(enc::UTF_8));
+        assert!( eh.could_read_from(enc::WINDOWS_1252));
+        assert!( eh.could_read_from(enc::ISO_2022_JP));
+        assert!(!eh.could_read_from(enc::UTF_16LE));
+        assert!(!eh.could_read_from(enc::UTF_16BE));
+    }
+
+    #[test]
+    fn could_read_from_multi_byte() {
+        let mut eh = EncodingHint::new();
+        eh.add_hint(enc::UTF_16LE, 0.5);
+        assert!( eh.could_read_from(enc::UTF_16LE));
+        assert!(!eh.could_read_from(enc::UTF_16BE));
+        assert!(!eh.could_read_from(enc::ISO_2022_JP));
+        assert!(!eh.could_read_from(enc::UTF_8));
     }
 }

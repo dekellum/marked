@@ -501,6 +501,19 @@ fn test_documento_utf16be_bom() {
 }
 
 #[test]
+fn test_documento_utf16be_meta_utf16le() {
+    ensure_logger();
+    let eh = EncodingHint::shared_with_hint(enc::UTF_16BE, HTTP_CTYPE_CONF);
+    // The contained meta should be ignored, since, if it was correct, we
+    // couldn't read it from the initial UTF-16BE encoding!
+    let mut reader = ShortRead(sample_file("documento_utf16be_meta_utf16le.html"));
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
 fn test_documento_utf16le_bom() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
