@@ -209,7 +209,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
 }
 
 // Return encoding for any Byte-Order-Mark found at start of buff.
-pub fn bom_enc(buff: &Tendril::<form::Bytes>) -> Option<&'static enc::Encoding>
+fn bom_enc(buff: &Tendril::<form::Bytes>) -> Option<&'static enc::Encoding>
 {
     match (buff[0], buff[1], buff[2]) {
         (0xFE, 0xFF,    _) => Some(enc::UTF_16BE),
