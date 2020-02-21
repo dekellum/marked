@@ -108,76 +108,102 @@ pub mod t {
     use crate::dom::LocalName;
 
     /// Tag `<a>`: anchor.
+    /// (meta: inline)
     pub const A:             LocalName = lname!("a");
     /// Tag `<abbr>`: abbreviation.
+    /// (meta: inline)
     pub const ABBR:          LocalName = lname!("abbr");
     /// Tag `<acronym>`: acronym.
+    /// (meta: deprecated inline)
     pub const ACRONYM:       LocalName = lname!("acronym");
     /// Tag `<address>`: contact information for the author or owner.
     pub const ADDRESS:       LocalName = lname!("address");
     /// Tag `<applet>`: embedded applet.
+    /// (meta: deprecated)
     pub const APPLET:        LocalName = lname!("applet");
     /// Tag `<area>`: area inside an image-map.
+    /// (meta: empty)
     pub const AREA:          LocalName = lname!("area");
     /// Tag `<article>`: Structure: an independent content element.
     pub const ARTICLE:       LocalName = lname!("article");
     /// Tag `<aside>`: Structure: tengentially related content.
     pub const ASIDE:         LocalName = lname!("aside");
     /// Tag `<audio>`: Sound content.
+    /// (meta: inline)
     pub const AUDIO:         LocalName = lname!("audio");
     /// Tag `<b>`: bold text.
+    /// (meta: inline)
     pub const B:             LocalName = lname!("b");
     /// Tag `<base>`: default address or target for all links on a page.
+    /// (meta: empty meta)
     pub const BASE:          LocalName = lname!("base");
     /// Tag `<basefont>`: default font; color; or size for the text in a page.
+    /// (meta: empty deprecated inline meta)
     pub const BASEFONT:      LocalName = lname!("basefont");
     /// Tag `<bdi>`: Text isolated from surrounding for BIDI formatting.
+    /// (meta: inline)
     pub const BDI:           LocalName = lname!("bdi");
     /// Tag `<bdo>`: the text direction.
+    /// (meta: inline)
     pub const BDO:           LocalName = lname!("bdo");
     /// Tag `<big>`: big text.
+    /// (meta: deprecated inline)
     pub const BIG:           LocalName = lname!("big");
     /// Tag `<blink>`: blinking text.
+    /// (meta: deprecated inline)
     pub const BLINK:         LocalName = lname!("blink");
     /// Tag `<blockquote>`: long quotation.
     pub const BLOCKQUOTE:    LocalName = lname!("blockquote");
     /// Tag `<body>`: the document's body.
     pub const BODY:          LocalName = lname!("body");
     /// Tag `<br>`: single line break.
+    /// (meta: empty)
     pub const BR:            LocalName = lname!("br");
     /// Tag `<button>`: push button.
+    /// (meta: inline banned)
     pub const BUTTON:        LocalName = lname!("button");
     /// Tag `<canvas>`: canvas for drawing graphics and animations.
+    /// (meta: inline)
     pub const CANVAS:        LocalName = lname!("canvas");
     /// Tag `<caption>`: table caption.
     pub const CAPTION:       LocalName = lname!("caption");
     /// Tag `<center>`: centered text.
+    /// (meta: deprecated)
     pub const CENTER:        LocalName = lname!("center");
     /// Tag `<cite>`: citation.
+    /// (meta: inline)
     pub const CITE:          LocalName = lname!("cite");
     /// Tag `<code>`: computer code text.
+    /// (meta: inline)
     pub const CODE:          LocalName = lname!("code");
     /// Tag `<col>`: attribute values for one or more columns in a table.
+    /// (meta: empty)
     pub const COL:           LocalName = lname!("col");
     /// Tag `<colgroup>`: group of columns in a table for formatting.
     pub const COLGROUP:      LocalName = lname!("colgroup");
     /// Tag `<content>`: Shadow DOM content placeholder element.
+    /// (meta: deprecated banned)
     pub const CONTENT:       LocalName = lname!("content");
     /// Tag `<data>`: adds machine-oriented data representation.
+    /// (meta: inline)
     pub const DATA:          LocalName = lname!("data");
     /// Tag `<datalist>`: container for option elements.
+    /// (meta: inline banned)
     pub const DATALIST:      LocalName = lname!("datalist");
     /// Tag `<dd>`: description of a term in a definition list.
     pub const DD:            LocalName = lname!("dd");
     /// Tag `<del>`: deleted text.
+    /// (meta: inline)
     pub const DEL:           LocalName = lname!("del");
     /// Tag `<details>`: optional additional details (also: summary).
     pub const DETAILS:       LocalName = lname!("details");
     /// Tag `<dfn>`: definition term.
+    /// (meta: inline)
     pub const DFN:           LocalName = lname!("dfn");
     /// Tag `<dialog>`: dialog box or other interactive component.
     pub const DIALOG:        LocalName = lname!("dialog");
     /// Tag `<dir>`: directory list.
+    /// (meta: deprecated)
     pub const DIR:           LocalName = lname!("dir");
     /// Tag `<div>`: section in a document.
     pub const DIV:           LocalName = lname!("div");
@@ -186,24 +212,30 @@ pub mod t {
     /// Tag `<dt>`: term (an item) in a definition list.
     pub const DT:            LocalName = lname!("dt");
     /// Tag `<em>`: emphasized text.
+    /// (meta: inline)
     pub const EM:            LocalName = lname!("em");
     /// Tag `<embed>`: embed content by external app or plug-in.
+    /// (meta: empty inline)
     pub const EMBED:         LocalName = lname!("embed");
     /// Tag `<fieldset>`: border around elements in a form.
+    /// (meta: banned)
     pub const FIELDSET:      LocalName = lname!("fieldset");
     /// Tag `<figcaption>`: Structure: a figure caption.
     pub const FIGCAPTION:    LocalName = lname!("figcaption");
     /// Tag `<figure>`: Structure: self contained content that can be moved.
     pub const FIGURE:        LocalName = lname!("figure");
     /// Tag `<font>`: font; color; or size for text.
+    /// (meta: deprecated inline)
     pub const FONT:          LocalName = lname!("font");
     /// Tag `<footer>`: Structure: a footer of a section.
     pub const FOOTER:        LocalName = lname!("footer");
     /// Tag `<form>`: form for user input.
     pub const FORM:          LocalName = lname!("form");
     /// Tag `<frame>`: window (a frame) in a frameset.
+    /// (meta: empty deprecated banned)
     pub const FRAME:         LocalName = lname!("frame");
     /// Tag `<frameset>`: set of frames.
+    /// (meta: deprecated banned)
     pub const FRAMESET:      LocalName = lname!("frameset");
     /// Tag `<h1>`: heading level 1.
     pub const H1:            LocalName = lname!("h1");
@@ -218,89 +250,121 @@ pub mod t {
     /// Tag `<h6>`: heading level 6.
     pub const H6:            LocalName = lname!("h6");
     /// Tag `<head>`: information about the document.
+    /// (meta: meta)
     pub const HEAD:          LocalName = lname!("head");
     /// Tag `<header>`: Structure: a header of a section.
     pub const HEADER:        LocalName = lname!("header");
     /// Tag `<hgroup>`: Structure: a group of headings.
     pub const HGROUP:        LocalName = lname!("hgroup");
     /// Tag `<hr>`: horizontal line.
+    /// (meta: empty)
     pub const HR:            LocalName = lname!("hr");
     /// Tag `<html>`: document.
     pub const HTML:          LocalName = lname!("html");
     /// Tag `<i>`: italic text.
+    /// (meta: inline)
     pub const I:             LocalName = lname!("i");
     /// Tag `<iframe>`: inline frame.
+    /// (meta: inline)
     pub const IFRAME:        LocalName = lname!("iframe");
     /// Tag `<img>`: image.
+    /// (meta: empty inline)
     pub const IMG:           LocalName = lname!("img");
     /// Tag `<input>`: input control.
+    /// (meta: empty inline banned)
     pub const INPUT:         LocalName = lname!("input");
     /// Tag `<ins>`: inserted text.
+    /// (meta: inline)
     pub const INS:           LocalName = lname!("ins");
     /// Tag `<isindex>`: searchable index related to a document.
+    /// (meta: deprecated)
     pub const ISINDEX:       LocalName = lname!("isindex");
     /// Tag `<kbd>`: keyboard text.
+    /// (meta: inline)
     pub const KBD:           LocalName = lname!("kbd");
     /// Tag `<label>`: label for input or other element.
+    /// (meta: inline banned)
     pub const LABEL:         LocalName = lname!("label");
     /// Tag `<legend>`: caption for a fieldset element.
+    /// (meta: banned)
     pub const LEGEND:        LocalName = lname!("legend");
     /// Tag `<li>`: list item.
     pub const LI:            LocalName = lname!("li");
     /// Tag `<link>`: relationship with an external resource.
+    /// (meta: empty meta)
     pub const LINK:          LocalName = lname!("link");
     /// Tag `<listing>`: preformated text.
+    /// (meta: deprecated)
     pub const LISTING:       LocalName = lname!("listing");
     /// Tag `<main>`: identify central topic/functional content.
     pub const MAIN:          LocalName = lname!("main");
     /// Tag `<map>`: image-map.
+    /// (meta: inline)
     pub const MAP:           LocalName = lname!("map");
     /// Tag `<mark>`: Text marked/highlighted for reference purposes.
+    /// (meta: inline)
     pub const MARK:          LocalName = lname!("mark");
     /// Tag `<menu>`: menu list.
+    /// (meta: deprecated)
     pub const MENU:          LocalName = lname!("menu");
     /// Tag `<menuitem>`: a command in a menu.
+    /// (meta: empty deprecated)
     pub const MENUITEM:      LocalName = lname!("menuitem");
     /// Tag `<meta>`: metadata.
+    /// (meta: empty meta)
     pub const META:          LocalName = lname!("meta");
     /// Tag `<meter>`: a linear guage for a scaler value.
+    /// (meta: inline)
     pub const METER:         LocalName = lname!("meter");
     /// Tag `<nav>`: Structure: container for navigational links.
     pub const NAV:           LocalName = lname!("nav");
     /// Tag `<nobr>`: contained text; white-space: nowrap.
+    /// (meta: deprecated inline)
     pub const NOBR:          LocalName = lname!("nobr");
     /// Tag `<noframes>`: alternate content where frames not supported.
+    /// (meta: deprecated banned)
     pub const NOFRAMES:      LocalName = lname!("noframes");
     /// Tag `<noscript>`: alternate content script not supported.
+    /// (meta: inline banned)
     pub const NOSCRIPT:      LocalName = lname!("noscript");
     /// Tag `<object>`: embedded object.
+    /// (meta: inline banned)
     pub const OBJECT:        LocalName = lname!("object");
     /// Tag `<ol>`: ordered list.
     pub const OL:            LocalName = lname!("ol");
     /// Tag `<optgroup>`: group of related options in a select list.
+    /// (meta: banned)
     pub const OPTGROUP:      LocalName = lname!("optgroup");
     /// Tag `<option>`: option in a select list.
+    /// (meta: banned)
     pub const OPTION:        LocalName = lname!("option");
     /// Tag `<output>`: content is (scripted) outcome of a user action..
+    /// (meta: inline)
     pub const OUTPUT:        LocalName = lname!("output");
     /// Tag `<p>`: paragraph.
     pub const P:             LocalName = lname!("p");
     /// Tag `<param>`: parameter for an object.
+    /// (meta: empty)
     pub const PARAM:         LocalName = lname!("param");
     /// Tag `<picture>`: container for multiple img/source DPI.
+    /// (meta: inline)
     pub const PICTURE:       LocalName = lname!("picture");
     /// Tag `<plaintext>`: like xmp; no close tag.
+    /// (meta: deprecated)
     pub const PLAINTEXT:     LocalName = lname!("plaintext");
     /// Tag `<pre>`: preformatted text.
     pub const PRE:           LocalName = lname!("pre");
     /// Tag `<progress>`: a progress bar.
+    /// (meta: inline)
     pub const PROGRESS:      LocalName = lname!("progress");
     /// Tag `<q>`: short quotation.
+    /// (meta: inline)
     pub const Q:             LocalName = lname!("q");
     /// Tag `<rb>`: ruby base text.
     pub const RB:            LocalName = lname!("rb");
     lazy_static::lazy_static! {
         /// Tag `<rbc>`: ruby base container (complex).
+        /// (meta: undefined)
         ///
         /// This is a lazy static (struct) as its not defined by html5ever.
         pub static ref RBC: LocalName = "rbc".into();
@@ -312,36 +376,50 @@ pub mod t {
     /// Tag `<rtc>`: ruby text container (complex).
     pub const RTC:           LocalName = lname!("rtc");
     /// Tag `<ruby>`: ruby pronunciation aid.
+    /// (meta: inline)
     pub const RUBY:          LocalName = lname!("ruby");
     /// Tag `<s>`: strikethrough text.
+    /// (meta: deprecated inline)
     pub const S:             LocalName = lname!("s");
     /// Tag `<samp>`: sample computer code.
+    /// (meta: inline)
     pub const SAMP:          LocalName = lname!("samp");
     /// Tag `<script>`: client-side script.
+    /// (meta: inline banned)
     pub const SCRIPT:        LocalName = lname!("script");
     /// Tag `<section>`: Structure: generic document/application section.
     pub const SECTION:       LocalName = lname!("section");
     /// Tag `<select>`: select list (drop-down list).
+    /// (meta: inline banned)
     pub const SELECT:        LocalName = lname!("select");
     /// Tag `<slot>`: (Shadow) DOM placeholder element.
+    /// (meta: inline banned)
     pub const SLOT:          LocalName = lname!("slot");
     /// Tag `<small>`: small text.
+    /// (meta: inline)
     pub const SMALL:         LocalName = lname!("small");
     /// Tag `<source>`: source for picture/audio/video elements.
+    /// (meta: empty)
     pub const SOURCE:        LocalName = lname!("source");
     /// Tag `<span>`: section in a document.
+    /// (meta: inline)
     pub const SPAN:          LocalName = lname!("span");
     /// Tag `<strike>`: strikethrough text.
+    /// (meta: deprecated inline)
     pub const STRIKE:        LocalName = lname!("strike");
     /// Tag `<strong>`: strong text.
+    /// (meta: inline)
     pub const STRONG:        LocalName = lname!("strong");
     /// Tag `<style>`: style information for a document.
+    /// (meta: banned)
     pub const STYLE:         LocalName = lname!("style");
     /// Tag `<sub>`: subscripted text.
+    /// (meta: inline)
     pub const SUB:           LocalName = lname!("sub");
     /// Tag `<summary>`: summary of details element.
     pub const SUMMARY:       LocalName = lname!("summary");
     /// Tag `<sup>`: superscripted text.
+    /// (meta: inline)
     pub const SUP:           LocalName = lname!("sup");
     /// Tag `<svg>`: inline scalable vector graphics.
     pub const SVG:           LocalName = lname!("svg");
@@ -352,8 +430,10 @@ pub mod t {
     /// Tag `<td>`: cell in a table.
     pub const TD:            LocalName = lname!("td");
     /// Tag `<template>`: html sub-tree notrenderered except by script.
+    /// (meta: banned)
     pub const TEMPLATE:      LocalName = lname!("template");
     /// Tag `<textarea>`: multi-line text input control.
+    /// (meta: inline banned)
     pub const TEXTAREA:      LocalName = lname!("textarea");
     /// Tag `<tfoot>`: Groups the footer content in a table.
     pub const TFOOT:         LocalName = lname!("tfoot");
@@ -362,24 +442,32 @@ pub mod t {
     /// Tag `<thead>`: Groups the header content in a table.
     pub const THEAD:         LocalName = lname!("thead");
     /// Tag `<time>`: A date or time.
+    /// (meta: inline)
     pub const TIME:          LocalName = lname!("time");
     /// Tag `<title>`: the title of a document.
+    /// (meta: meta)
     pub const TITLE:         LocalName = lname!("title");
     /// Tag `<tr>`: row in a table.
     pub const TR:            LocalName = lname!("tr");
     /// Tag `<tt>`: teletype text.
+    /// (meta: deprecated inline)
     pub const TT:            LocalName = lname!("tt");
     /// Tag `<u>`: underlined text.
+    /// (meta: deprecated inline)
     pub const U:             LocalName = lname!("u");
     /// Tag `<ul>`: unordered list.
     pub const UL:            LocalName = lname!("ul");
     /// Tag `<var>`: variable part of a text.
+    /// (meta: inline)
     pub const VAR:           LocalName = lname!("var");
     /// Tag `<video>`: video container.
+    /// (meta: inline)
     pub const VIDEO:         LocalName = lname!("video");
     /// Tag `<wbr>`: A line break opportunity.
+    /// (meta: empty inline)
     pub const WBR:           LocalName = lname!("wbr");
     /// Tag `<xmp>`: preformatted text.
+    /// (meta: deprecated)
     pub const XMP:           LocalName = lname!("xmp");
 }
 

@@ -112,6 +112,9 @@ pub mod t {
     lazy_static::lazy_static! {
 %     if tag.desc
         /// Tag `<<%= tag.name %>>`: <%= tag.desc %>.
+%       unless tag.flags.empty?
+        /// (meta: <%= tag.flags.join(' ') %>)
+%       end
         ///
         /// This is a lazy static (struct) as its not defined by html5ever.
 %     end
@@ -120,6 +123,9 @@ pub mod t {
 %   else
 %     if tag.desc
     /// Tag `<<%= tag.name %>>`: <%= tag.desc %>.
+%       unless tag.flags.empty?
+    /// (meta: <%= tag.flags.join(' ') %>)
+%       end
 %     end
     pub const <%=twidth(const(tag.name.upcase) + ':', 4)%> LocalName = lname!("<%=tag.name%>");
 %   end
