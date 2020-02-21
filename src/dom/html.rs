@@ -160,7 +160,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
 
                 decoder.as_mut().unwrap().process(buff.subtendril(i, n));
                 i += n;
-                if i == PARSE_BUFFER_SIZE {
+                if i == PARSE_BUFFER_SIZE || hint.borrow().changed().is_some() {
                     break;
                 }
             }
