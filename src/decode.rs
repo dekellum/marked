@@ -24,7 +24,6 @@ mod encoding_hint;
 
 pub use encoding_hint::{
     EncodingHint, SharedEncodingHint,
-    DEFAULT_CONF, HTML_META_CONF, HTTP_CTYPE_CONF, BOM_CONF,
 };
 
 use crate::PARSE_BUFFER_SIZE;

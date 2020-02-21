@@ -5,20 +5,7 @@ use std::rc::Rc;
 
 use encoding_rs as enc;
 
-/// Recommended confidence for any default charset
-pub const DEFAULT_CONF: f32       = 0.01;
-
-/// Recommended confidence for a hint from an HTTP content-type header with
-/// charset.
-pub const HTTP_CTYPE_CONF: f32    = 0.09;
-
-/// Recommended confidence for the sum of all hints from within an HTML head,
-/// in meta elements.
-pub const HTML_META_CONF: f32     = 0.20;
-
-/// Recommended confidence for hints based on a leading Byte-Order-Mark (BOM)
-/// at the start of a document stream.
-pub const BOM_CONF: f32           = 0.31;
+use crate::DEFAULT_CONF;
 
 /// A set of confidence-weighted evidence that a text document is in a
 /// particular encoding.
@@ -49,7 +36,7 @@ impl EncodingHint {
     }
 
     /// Construct a new Encoding hint with the specified encoding at
-    /// `DEFAULT_CONF` confidence, wrapped for sharing.
+    /// [`DEFAULT_CONF`] confidence, wrapped for sharing.
     pub fn shared_default(enc: &'static enc::Encoding) -> SharedEncodingHint {
         let mut eh = EncodingHint::new();
         eh.add_hint(enc, DEFAULT_CONF);
