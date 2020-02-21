@@ -57,6 +57,17 @@ impl EncodingHint {
         Rc::new(RefCell::new(eh))
     }
 
+    /// Construct a new Encoding hint with the specified encoding and
+    /// confidence, wrapped for sharing.
+    pub fn shared_with_hint(enc: &'static enc::Encoding, confidence: f32)
+        -> SharedEncodingHint
+    {
+        let mut eh = EncodingHint::new();
+        eh.add_hint(enc, confidence);
+        eh.clear_changed();
+        Rc::new(RefCell::new(eh))
+    }
+
     /// Add a hint for an encoding, by label ASCII-intepreted bytes, and some
     /// positive confidence value.  If no encoding (or applicable replacement)
     /// is found for the specified label, returns false.  Return true if an
@@ -98,6 +109,27 @@ impl EncodingHint {
         } else {
             false
         }
+    }
+
+    /// Return true if a given encoding name could be read with _both_ the
+    /// current top encoding and from the provided encoding (from the same
+    /// bytes).
+    ///
+    /// All supported encoding names are ASCII, so any _parsed_ name encoding
+    /// hint that would transition from an ASCII-compatible encoding
+    /// (e.g. Windows-1252, UTF-8) to an ASCII-incompatible encoding
+    /// (e.g. UTF-16 or ISO-2022-JP), or vice-versa, is nonsensical and should
+    /// be ignored.
+    ///
+    /// Note that this check should not be applied to hints from
+    /// Byte-Order-Marks since they aren't ASCII names.
+    pub fn could_read_from(&self, enc: &'static enc::Encoding) -> bool {
+        if let Some(t) = self.top {
+            if enc.is_ascii_compatible() != t.is_ascii_compatible() {
+                return false;
+            }
+        }
+        true
     }
 
     /// Return the top (most confident) encoding, if at least one encoding has

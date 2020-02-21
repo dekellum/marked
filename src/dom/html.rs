@@ -310,14 +310,19 @@ impl Sink {
             }
         }
         if !charsets.is_empty() {
-            debug!("found charsets: {:?} ({})",
-                      charsets.iter().map(|e| e.name()).collect::<Vec<_>>(),
-                      metas);
+            debug!(
+                "found charsets: {:?} ({})",
+                charsets.iter().map(|e| e.name()).collect::<Vec<_>>(),
+                metas);
             let conf = HTML_META_CONF / (metas as f32);
 
             let mut hints = self.enc_hint.borrow_mut();
             for cs in charsets {
-                hints.add_hint(cs, conf);
+                if hints.could_read_from(cs) {
+                    hints.add_hint(cs, conf);
+                } else {
+                    debug!("Ignoring impossible hint: {}", cs.name());
+                }
             }
         }
     }

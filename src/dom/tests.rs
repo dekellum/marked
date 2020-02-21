@@ -7,6 +7,7 @@ use crate::{
     filter, filter::Action,
     html, html::{a, t, TAG_META},
     xml,
+    HTTP_CTYPE_CONF,
 };
 
 use crate::chain_filters;
@@ -515,6 +516,32 @@ fn test_documento_utf16le() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_16LE);
     let mut reader = ShortRead(sample_file("documento_utf16le.html"));
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
+fn test_documento_utf16le_meta_utf8() {
+    ensure_logger();
+    let eh = EncodingHint::shared_with_hint(enc::UTF_16LE, HTTP_CTYPE_CONF);
+    // The contained meta should be ignored, since, if it was correct, we
+    // couldn't read it from the initial UTF-16 encoding!
+    let mut reader = ShortRead(sample_file("documento_utf16le_meta_utf8.html"));
+    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
+}
+
+#[test]
+fn test_documento_utf8_meta_utf16() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    // The contained meta should be ignored, since, if it was correct, we
+    // couldn't read it from the initial UTF-16 encoding!
+    let mut reader = ShortRead(sample_file("documento_utf8_meta_utf16.html"));
     let doc = html::parse_buffered(eh, &mut reader).unwrap();
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
