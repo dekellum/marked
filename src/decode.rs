@@ -26,7 +26,7 @@ pub use encoding_hint::{
     EncodingHint, SharedEncodingHint,
 };
 
-use crate::PARSE_BUFFER_SIZE;
+use crate::READ_BUFFER_SIZE;
 
 /// A `TendrilSink` adaptor that takes bytes, decodes them as the given
 /// character encoding, while replacing any ill-formed byte sequences with
@@ -43,7 +43,7 @@ enum Mode<Sink, A>
     where Sink: TendrilSink<form::UTF8, A>, A: Atomicity
 {
     Utf8(Utf8LossyDecoder<Sink, A>),
-    Other(enc::Decoder, Sink),
+    Other(enc::Decoder, Tendril<form::Bytes, A>, Sink),
 }
 
 impl<Sink, A> Decoder<Sink, A>
@@ -54,7 +54,13 @@ impl<Sink, A> Decoder<Sink, A>
         let mode = if encoding == enc::UTF_8 {
             Mode::Utf8(Utf8LossyDecoder::new(sink))
         } else {
-            Mode::Other(encoding.new_decoder(), sink)
+            let mut outt = Tendril::<form::Bytes, A>::new();
+            let decoder = encoding.new_decoder();
+            unsafe {
+                outt.push_uninitialized(READ_BUFFER_SIZE);
+            }
+
+            Mode::Other(decoder, outt, sink)
         };
 
         Decoder { mode }
@@ -64,7 +70,7 @@ impl<Sink, A> Decoder<Sink, A>
     pub fn inner_sink(&self) -> &Sink {
         match self.mode {
             Mode::Utf8(ref utf8) => &utf8.inner_sink,
-            Mode::Other(_, ref inner_sink) => inner_sink,
+            Mode::Other(_, _, ref inner_sink) => inner_sink,
         }
     }
 
@@ -74,25 +80,21 @@ impl<Sink, A> Decoder<Sink, A>
         -> Result<Sink::Output, io::Error>
         where Self: Sized, R: io::Read
     {
-        // Adapted from TendrilSink::read_from
+        let mut buff = Tendril::<form::Bytes, A>::new();
+        unsafe {
+            buff.push_uninitialized(READ_BUFFER_SIZE);
+        }
         loop {
-            let mut tendril = Tendril::<form::Bytes, A>::new();
-            unsafe {
-                tendril.push_uninitialized(PARSE_BUFFER_SIZE);
-            }
-            loop {
-                match r.read(&mut tendril) {
-                    Ok(0) => return Ok(self.finish()),
-                    Ok(n) => {
-                        tendril.pop_back(PARSE_BUFFER_SIZE - n as u32);
-                        self.process(tendril);
-                        break;
-                    }
-                    Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
-                    Err(e) => return Err(e)
+            debug_assert_eq!(buff.len32(), READ_BUFFER_SIZE);
+            match r.read(&mut buff) {
+                Ok(0) => return Ok(self.finish()),
+                Ok(n) => {
+                    self.process(buff.subtendril(0, n as u32));
                 }
-            } // repeat on interrupt
-        } // repeat until EOF (0) or Err
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) => return Err(e)
+            }
+        } // repeat until EOF of Err
     }
 }
 
@@ -104,11 +106,11 @@ impl<Sink, A> TendrilSink<form::Bytes, A> for Decoder<Sink, A>
     fn process(&mut self, t: Tendril<form::Bytes, A>) {
         match self.mode {
             Mode::Utf8(ref mut utf8) => utf8.process(t),
-            Mode::Other(ref mut decoder, ref mut sink) => {
+            Mode::Other(ref mut decoder, ref mut outt, ref mut sink) => {
                 if t.is_empty() {
                     return;
                 }
-                decode_to_sink(t, decoder, sink, false);
+                decode_to_sink(t, decoder, outt, sink, false);
             },
         }
     }
@@ -116,15 +118,16 @@ impl<Sink, A> TendrilSink<form::Bytes, A> for Decoder<Sink, A>
     fn error(&mut self, desc: Cow<'static, str>) {
         match self.mode {
             Mode::Utf8(ref mut utf8) => utf8.error(desc),
-            Mode::Other(_, ref mut sink) => sink.error(desc),
+            Mode::Other(_, _, ref mut sink) => sink.error(desc),
         }
     }
 
     fn finish(self) -> Sink::Output {
         match self.mode {
             Mode::Utf8(utf8) => utf8.finish(),
-            Mode::Other(mut decoder, mut sink) => {
-                decode_to_sink(Tendril::new(), &mut decoder, &mut sink, true);
+            Mode::Other(mut decoder, mut outt, mut sink) => {
+                decode_to_sink(
+                    Tendril::new(), &mut decoder, &mut outt, &mut sink, true);
                 sink.finish()
             }
         }
@@ -134,22 +137,14 @@ impl<Sink, A> TendrilSink<form::Bytes, A> for Decoder<Sink, A>
 fn decode_to_sink<Sink, A>(
     mut t: Tendril<form::Bytes, A>,
     decoder: &mut enc::Decoder,
+    outt: &mut Tendril<form::Bytes, A>,
     sink: &mut Sink,
     last: bool)
     where Sink: TendrilSink<form::UTF8, A>, A: Atomicity
 {
     loop {
-        let mut outt = <Tendril<form::Bytes, A>>::new();
-        let max_len = decoder
-            .max_utf8_buffer_length(t.len())
-            .unwrap_or(PARSE_BUFFER_SIZE as usize);
-        unsafe {
-            outt.push_uninitialized(
-                std::cmp::min(max_len as u32, PARSE_BUFFER_SIZE)
-            );
-        }
         let (result, bytes_read, bytes_written) =
-            decoder.decode_to_utf8_without_replacement(&t, &mut outt, last);
+            decoder.decode_to_utf8_without_replacement(&t, outt, last);
         if bytes_written > 0 {
             sink.process(unsafe {
                 outt.subtendril(0, bytes_written as u32)

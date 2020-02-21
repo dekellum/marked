@@ -2,9 +2,13 @@
 
 #[macro_use] extern crate html5ever;
 
-/// Default parse buffer size used for parsing, including an initial buffer
-/// which may be reparsed after new encoding hints are considered.
-pub const PARSE_BUFFER_SIZE: u32 = 4 * 1024;
+/// Initial parse buffer size in which encoding hints are considered, possibly
+/// triggering reparse.
+pub const INITIAL_BUFFER_SIZE: u32 = 4 * 1024;
+
+/// Subsequent parse buffer size used for reading and parsing, after
+/// [`INITIAL_BUFFER_SIZE`].
+pub const READ_BUFFER_SIZE: u32 = 16 * 1024;
 
 /// Recommended confidence for an initial default encoding.
 ///

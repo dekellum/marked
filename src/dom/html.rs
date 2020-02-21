@@ -31,7 +31,7 @@ use crate::{
     Attribute, Decoder, Document, Element, EncodingHint,
     Node, NodeId, SharedEncodingHint,
     dom::NodeData,
-    BOM_CONF, HTML_META_CONF, PARSE_BUFFER_SIZE,
+    BOM_CONF, HTML_META_CONF, INITIAL_BUFFER_SIZE,
 };
 
 mod meta;
@@ -102,11 +102,11 @@ pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
 /// until end, processing incrementally.
 ///
 /// The [`SharedEncodingHint`] must have a top (e.g. default) encoding, which
-/// will be used initially for decoding bytes. The initial
-/// [`PARSE_BUFFER_SIZE`] bytes of the stream are buffered and if a compelling
-/// alternative encoding hint is found via a leading Byte-Order-Mark (BOM) or
-/// in the documents `<head>`, the parse will be restarted from the beginning
-/// with that encoding and continuing until the end.
+/// will be used initially for decoding bytes. The [`INITIAL_BUFFER_SIZE`]
+/// bytes of the stream are buffered and if a compelling alternative encoding
+/// hint is found via a leading Byte-Order-Mark (BOM) or in the documents
+/// `<head>`, the parse will be restarted from the beginning with that encoding
+/// and continuing until the end.
 pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     -> Result<Document, io::Error>
     where R: io::Read
@@ -126,7 +126,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     // reached in that size.
     let mut buff = Tendril::<form::Bytes>::new();
     unsafe {
-        buff.push_uninitialized(PARSE_BUFFER_SIZE);
+        buff.push_uninitialized(INITIAL_BUFFER_SIZE);
     }
     let mut i = 0;
     let mut finished = None;
@@ -160,7 +160,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
 
                 decoder.as_mut().unwrap().process(buff.subtendril(i, n));
                 i += n;
-                if i == PARSE_BUFFER_SIZE || hint.borrow().changed().is_some() {
+                if i == INITIAL_BUFFER_SIZE || hint.borrow().changed().is_some() {
                     break;
                 }
             }
@@ -170,7 +170,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     } // repeat on interrupt or short read.
 
     // Avoid any uninitialized trailing bytes
-    buff.pop_back(PARSE_BUFFER_SIZE - i);
+    buff.pop_back(INITIAL_BUFFER_SIZE - i);
 
     let (changed, errors) = {
         let hint = hint.borrow();
