@@ -2,35 +2,37 @@ use std::mem;
 
 use tendril::StrTendril;
 
-/// Replace `is_ctrl_ws` characters with single space, and optionally
-/// leading/trailing spaces.
-pub(crate) fn replace_ctrl_ws(
+/// Replace ws and/or control characters with a single U+0020 SPACE, and optionally
+/// remove leading/trailing spaces.
+pub(crate) fn replace_chars(
     st: &mut StrTendril,
+    ws: bool,
+    control: bool,
     trim_start: bool,
     trim_end: bool)
 {
     let mut last = 0;
-    let mut ws = false;
+    let mut replacing = false;
     let mut ost = StrTendril::with_capacity(st.len32());
     // FIXME: Optimize (no-alloc, replace) for cases where there is no real
     // change
 
     let ins = st.as_ref();
     for (i, ch) in ins.char_indices() {
-        if is_ctrl_ws(ch) {
-            if !ws {
+        if do_replace(ch, ws, control) {
+            if !replacing {
                 ost.push_slice(&ins[last..i]);
-                ws = true;
+                replacing = true;
             }
-        } else if ws {
+        } else if replacing {
             if ost.len32() > 0 || !trim_start {
                 ost.push_char(' ');
             }
             last = i;
-            ws = false;
+            replacing = false;
         }
     }
-    if ws {
+    if replacing {
         if !trim_end {
             ost.push_char(' ');
         }
@@ -40,23 +42,40 @@ pub(crate) fn replace_ctrl_ws(
     mem::replace(st, ost);
 }
 
+fn do_replace(c: char, ws: bool, control: bool) -> bool {
+    use CharClass::*;
+    match char_class(c) {
+        Control if control => true,
+        WhiteSpace if ws => true,
+        _ => false,
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum CharClass {
+    Unclassified,
+    Control,
+    WhiteSpace
+}
+
 /// Return true if char is a control, Unicode whitespace, BOM, or otherwise
 /// invalid.
-fn is_ctrl_ws(c: char) -> bool {
+fn char_class(c: char) -> CharClass {
+    use CharClass::*;
     // FIXME: Should probably break this up into several different
     // classifications. For now, treat all matches as a single class.
     match c {
-        '\u{0000}'..='\u{0008}' | // C0 control chars (XML disallowed)
+        '\u{0000}'..='\u{0008}' => Control,    // C0 (XML disallowed)
         '\u{0009}'              | // HT
         '\u{000A}'              | // LF
-        '\u{000B}'              | // VT
-        '\u{000C}'              | // FF (C0)
-        '\u{000D}'              | // CR
-        '\u{000E}'..='\u{001F}' | // C0 control chars (XML disallowed)
-        '\u{0020}'              | // SPACE
+        '\u{000B}'              => WhiteSpace, // VT
+        '\u{000C}'              => Control,    // FF (C0)
+        '\u{000D}'              => WhiteSpace, // CR
+        '\u{000E}'..='\u{001F}' => Control,    // C0
+        '\u{0020}'              => WhiteSpace, // SPACE
 
         '\u{007F}'              | // DEL (C0)
-        '\u{0080}'..='\u{009F}' | // C1 control chars (XML disallowed)
+        '\u{0080}'..='\u{009F}' => Control,    // C1 (XML disallowed)
 
         '\u{00A0}'              | // NO-BREAK SPACE (NBSP)
 
@@ -74,13 +93,12 @@ fn is_ctrl_ws(c: char) -> bool {
         '\u{205F}'              | // MEDIUM MATHEMATICAL SPACE
         '\u{2060}'              | // WORD JOINER
 
-        '\u{3000}'              | // IDEOGRAPHIC SPACE
+        '\u{3000}'              => WhiteSpace, // IDEOGRAPHIC SPACE
 
         '\u{FEFF}'              | // BOM
         '\u{FFFE}'              | // Bad BOM (not assigned)
-        '\u{FFFF}'                // Not assigned (invalid Unicode)
-            => true,
-        _ => false
+        '\u{FFFF}'              => Control,    // Not assigned (invalid)
+        _ => Unclassified,
     }
 
     // FIXME: see markup5ever/data/mod.rs: C1_REPLACEMENTS replaced with
@@ -94,9 +112,12 @@ mod tests {
     use tendril::SliceExt;
 
     #[test]
-    fn ctrl_ws() {
-        assert!(is_ctrl_ws('\u{0008}'));
-        assert!(!is_ctrl_ws('x'));
+    fn test_char_class() {
+        use CharClass::*;
+        assert_eq!(Control,      char_class('\u{0008}'));
+        assert_eq!(Unclassified, char_class('x'));
+        assert_eq!(WhiteSpace,   char_class('\n'));
+        assert_eq!(WhiteSpace,   char_class('\t'));
     }
 
     #[test]
@@ -135,13 +156,13 @@ mod tests {
 
     fn assert_clean_trim(exp: &str, src: &str) {
         let mut st = src.to_tendril();
-        replace_ctrl_ws(&mut st, true, true);
+        replace_chars(&mut st, true, true, true, true);
         assert_eq!(exp, st.as_ref());
     }
 
     fn assert_clean(exp: &str, src: &str) {
         let mut st = src.to_tendril();
-        replace_ctrl_ws(&mut st, false, false);
+        replace_chars(&mut st, true, true, false, false);
         assert_eq!(exp, st.as_ref());
     }
 }

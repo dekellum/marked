@@ -1,6 +1,6 @@
 //! Mutating visitor support for `Document`.
 
-use crate::chars::replace_ctrl_ws;
+use crate::chars::replace_chars;
 use crate::dom::{Document, Node, NodeData, NodeId};
 
 /// An instruction returned by the `Fn` closure used by `Document::filter`.
@@ -30,7 +30,7 @@ pub enum Action {
 #[allow(unused)]
 pub(crate) fn text_normalize(node: &mut Node) -> Action {
     if let NodeData::Text(ref mut t) = node.data {
-        replace_ctrl_ws(t, false, false);
+        replace_chars(t, true, true, false, false);
     }
     Action::Continue
 }
