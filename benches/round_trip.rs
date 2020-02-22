@@ -22,9 +22,11 @@ use marked::html::parse_buffered;
 #[bench]
 fn b00_round_trip_rcdom(b: &mut Bencher) {
     b.iter(|| {
-        let parser_sink = parse_document(RcDom::default(), ParseOpts::default());
+        let parser_sink =
+            parse_document(RcDom::default(), ParseOpts::default());
         let decoder = Decoder::new(enc::UTF_8, parser_sink);
-        let mut fin = sample_file("github-dekellum.html").expect("sample");
+        let mut fin = sample_file("github-dekellum.html")
+            .expect("sample_file");
         let doc = decoder.read_to_end(&mut fin).expect("parse");
         let mut out = Vec::with_capacity(273108);
         let ser_handle: SerializableHandle = doc.document.clone().into();
@@ -37,7 +39,8 @@ fn b00_round_trip_rcdom(b: &mut Bencher) {
 #[bench]
 fn b01_round_trip_marked(b: &mut Bencher) {
     b.iter(|| {
-        let mut fin = sample_file("github-dekellum.html").expect("sample");
+        let mut fin = sample_file("github-dekellum.html")
+            .expect("sample_file");
         let eh = EncodingHint::shared_default(enc::UTF_8);
         let doc = parse_buffered(eh, &mut fin).expect("parse");
         let mut out = Vec::with_capacity(273108);
@@ -47,17 +50,39 @@ fn b01_round_trip_marked(b: &mut Bencher) {
 }
 
 #[bench]
-fn b11_decode_parse_marked(b: &mut Bencher) {
+fn b11_decode_eucjp_parse_marked(b: &mut Bencher) {
     b.iter(|| {
-        let mut fin = sample_file("matsunami_eucjp_meta.html").expect("sample");
+        let mut fin = sample_file("matsunami_eucjp_meta.html")
+            .expect("sample_file");
         let eh = EncodingHint::shared_default(enc::UTF_8);
-        let _doc = parse_buffered(eh, &mut fin).expect("parse");
+        parse_buffered(eh, &mut fin).expect("parse");
+    });
+}
+
+#[bench]
+fn b12_decode_windows1251_parse_marked(b: &mut Bencher) {
+    b.iter(|| {
+        let mut fin = sample_file("russez_windows1251_meta.html")
+            .expect("sample_file");
+        let eh = EncodingHint::shared_default(enc::UTF_8);
+        parse_buffered(eh, &mut fin).expect("parse");
+    });
+}
+
+#[bench]
+fn b13_utf8_parse_marked(b: &mut Bencher) {
+    b.iter(|| {
+        let mut fin = sample_file("github-dekellum.html")
+            .expect("sample_file");
+        let eh = EncodingHint::shared_default(enc::UTF_8);
+        parse_buffered(eh, &mut fin).expect("parse");
     });
 }
 
 #[bench]
 fn b20_text_content(b: &mut Bencher) {
-    let mut fin = sample_file("github-dekellum.html").expect("sample");
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let doc = parse_buffered(eh, &mut fin).expect("parse");
 
