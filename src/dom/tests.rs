@@ -606,3 +606,24 @@ fn test_matsunami_eucjp_meta() {
     assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::EUC_JP);
     assert_eq!(eh.borrow().errors(), 0);
 }
+
+#[test]
+fn test_russez_windows1251_meta() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = ShortRead(sample_file("russez_windows1251_meta.html"));
+    let doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    let root = doc.root_element_ref().expect("root");
+    let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
+    assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::WINDOWS_1251);
+    assert_eq!(eh.borrow().errors(), 0);
+    assert!(
+        body.find(|n| {
+            if let Some(st) = n.as_text() {
+                st.as_ref().contains("Промышленно-производственные")
+            } else {
+                false
+            }
+        }).is_some()
+    );
+}
