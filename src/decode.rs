@@ -13,6 +13,7 @@
 use std::borrow::Cow;
 use std::io;
 
+use log::trace;
 use encoding_rs as enc;
 use enc::DecoderResult;
 
@@ -140,14 +141,13 @@ fn decode_to_sink<Sink, A>(
 {
     loop {
         let mut outt = <Tendril<form::Bytes, A>>::new();
-        let max_len = decoder
+        let len = decoder
             .max_utf8_buffer_length(inpt.len())
             .unwrap_or(READ_BUFFER_SIZE as usize);
-        unsafe {
-            outt.push_uninitialized(
-                std::cmp::min(max_len as u32, READ_BUFFER_SIZE)
-            );
-        }
+        let len = std::cmp::min(len as u32, READ_BUFFER_SIZE);
+        trace!("decode buffer len {}", len);
+        unsafe { outt.push_uninitialized(len); }
+
         let (result, bytes_read, bytes_written) =
             decoder.decode_to_utf8_without_replacement(&inpt, &mut outt, last);
         if bytes_written > 0 {
@@ -157,8 +157,10 @@ fn decode_to_sink<Sink, A>(
             });
         }
         match result {
-            DecoderResult::InputEmpty => return,
-            DecoderResult::OutputFull => {},
+            DecoderResult::InputEmpty => break,
+            DecoderResult::OutputFull => {
+                trace!("decode OutputFull");
+            },
             DecoderResult::Malformed(_, _) => {
                 // String matched in Sink, don't change
                 sink.error(Cow::Borrowed("invalid byte sequence"));
@@ -167,7 +169,7 @@ fn decode_to_sink<Sink, A>(
         }
         inpt.pop_front(bytes_read as u32);
         if inpt.is_empty() {
-            return;
+            break;
         }
     }
 }
