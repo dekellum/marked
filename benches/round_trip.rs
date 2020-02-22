@@ -20,7 +20,7 @@ use marked::{Decoder, EncodingHint};
 use marked::html::parse_buffered;
 
 #[bench]
-fn round_trip_0_rcdom(b: &mut Bencher) {
+fn b00_round_trip_rcdom(b: &mut Bencher) {
     b.iter(|| {
         let parser_sink = parse_document(RcDom::default(), ParseOpts::default());
         let decoder = Decoder::new(enc::UTF_8, parser_sink);
@@ -35,7 +35,7 @@ fn round_trip_0_rcdom(b: &mut Bencher) {
 }
 
 #[bench]
-fn round_trip_1_marked(b: &mut Bencher) {
+fn b01_round_trip_marked(b: &mut Bencher) {
     b.iter(|| {
         let mut fin = sample_file("github-dekellum.html").expect("sample");
         let eh = EncodingHint::shared_default(enc::UTF_8);
@@ -47,7 +47,16 @@ fn round_trip_1_marked(b: &mut Bencher) {
 }
 
 #[bench]
-fn text_content(b: &mut Bencher) {
+fn b11_decode_parse_marked(b: &mut Bencher) {
+    b.iter(|| {
+        let mut fin = sample_file("matsunami_eucjp_meta.html").expect("sample");
+        let eh = EncodingHint::shared_default(enc::UTF_8);
+        let _doc = parse_buffered(eh, &mut fin).expect("parse");
+    });
+}
+
+#[bench]
+fn b20_text_content(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html").expect("sample");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let doc = parse_buffered(eh, &mut fin).expect("parse");
