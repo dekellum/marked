@@ -2,8 +2,8 @@ use std::mem;
 
 use tendril::StrTendril;
 
-/// Replace ws and/or control characters with a single U+0020 SPACE, and optionally
-/// remove leading/trailing spaces.
+/// Replace ws and/or control characters with a single U+0020 SPACE, and
+/// optionally remove leading/trailing spaces.
 pub(crate) fn replace_chars(
     st: &mut StrTendril,
     ws: bool,
@@ -45,7 +45,7 @@ pub(crate) fn replace_chars(
 fn do_replace(c: char, ws: bool, control: bool) -> bool {
     use CharClass::*;
     match char_class(c) {
-        Control if control => true,
+        ZeroSpace | Control if control => true,
         WhiteSpace if ws => true,
         _ => false,
     }
@@ -55,15 +55,14 @@ fn do_replace(c: char, ws: bool, control: bool) -> bool {
 enum CharClass {
     Unclassified,
     Control,
-    WhiteSpace
+    WhiteSpace,
+    ZeroSpace
 }
 
 /// Return true if char is a control, Unicode whitespace, BOM, or otherwise
 /// invalid.
 fn char_class(c: char) -> CharClass {
     use CharClass::*;
-    // FIXME: Should probably break this up into several different
-    // classifications. For now, treat all matches as a single class.
     match c {
         '\u{0000}'..='\u{0008}' => Control,    // C0 (XML disallowed)
         '\u{0009}'              | // HT
@@ -76,26 +75,29 @@ fn char_class(c: char) -> CharClass {
 
         '\u{007F}'              | // DEL (C0)
         '\u{0080}'..='\u{009F}' => Control,    // C1 (XML disallowed)
+        '\u{00A0}'              => WhiteSpace, // NO-BREAK SPACE (NBSP)
 
-        '\u{00A0}'              | // NO-BREAK SPACE (NBSP)
+        // Not white, rendered with a line:
+        // '\u{1680}'           => Un-         // OGHAM SPACE MARK
 
-        '\u{1680}'              | // OGHAM SPACE MARK
-        '\u{180E}'              | // MONGOLIAN VOWEL SEPARATOR
+        // Effects subsequent characters in mongolion:
+        // '\u{180E}'           => Un-         // MONGOLIAN VOWEL SEPARATOR
 
-        '\u{2000}'..='\u{200A}' | // EN QUAD..HAIR SPACE exotics
+        '\u{2000}'..='\u{200A}' => WhiteSpace, // EN QUAD..HAIR SPACE
         '\u{200B}'              | // ZERO WIDTH SPACE
+        '\u{200C}'              => ZeroSpace,  // ZERO WIDTH NON-JOINER
 
         '\u{2028}'              | // LINE SEPARATOR
         '\u{2029}'              | // PARAGRAPH SEPARATOR
 
         '\u{202F}'              | // NARROW NO-BREAK SPACE
 
-        '\u{205F}'              | // MEDIUM MATHEMATICAL SPACE
-        '\u{2060}'              | // WORD JOINER
+        '\u{205F}'              => WhiteSpace, // MEDIUM MATHEMATICAL SPACE
+        '\u{2060}'              => ZeroSpace,  // WORD JOINER
 
         '\u{3000}'              => WhiteSpace, // IDEOGRAPHIC SPACE
 
-        '\u{FEFF}'              | // BOM
+        '\u{FEFF}'              => ZeroSpace,  // BOM or ZERO WIDTH NON-BREAKING
         '\u{FFFE}'              | // Bad BOM (not assigned)
         '\u{FFFF}'              => Control,    // Not assigned (invalid)
         _ => Unclassified,
