@@ -29,7 +29,7 @@ pub enum Action {
 /// whitespace.
 ///
 /// The filter is aware of whitespace significance rules in HTML `<pre>` blocks
-/// as well as block vs inline elements in general. It assumes, with out
+/// as well as block vs inline elements in general. It assumes, without
 /// knowledge of any potential unconventinal external styling, that leading and
 /// trailing whitespace may be removed at block element boundaries.
 pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
@@ -63,7 +63,6 @@ fn is_block(node: &Node) -> bool {
     false
 }
 
-
 /// Mutating filter methods.
 impl Document {
     /// Perform a depth-first (e.g. children before parent nodes) walk of the
@@ -95,10 +94,13 @@ impl Document {
                 }
             }
         }
+
+        // Safety: The filter `Fn` needs only a non-mutable reference to
+        // Document, but borrow-check doesn't allow this.  We hold a mutable
+        // (self) reference across the call and no safe mutations of `Node` can
+        // invalidate the `Document`. `Node` itself contains no references to
+        // `Document`, only indexes and its own data.
         let d = &*self as *const Document;
-        // Safety: Filter needs only a non-mutable reference to Document. Its
-        // _potentially_ unsafe because it also gets a mutable Node reference
-        // from the same Document. However: FIXME
         f(unsafe { &*d }, &mut self[id])
     }
 }
