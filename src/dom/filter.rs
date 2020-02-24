@@ -1,7 +1,10 @@
 //! Mutating visitor support for `Document`.
 
 use crate::chars::replace_chars;
-use crate::dom::{Document, Node, NodeData, NodeId};
+use crate::dom::{
+    html::{t, TAG_META},
+    Document, Node, NodeData, NodeId
+};
 
 /// An instruction returned by the `Fn` closure used by `Document::filter`.
 #[derive(Debug, PartialEq, Eq)]
@@ -22,17 +25,44 @@ pub enum Action {
     // Replace(NodeData)
 }
 
-// FIXME: This is a limited and very simple application PoC which at least gets
-// rid of known problem chars. It will go too far with replacing newlines in
-// `<pre>` (or `<xmp>`!) blocks. We don't presently have inline vs. block
-// element classification to use when considering to trim start or end of a
-// text node.
-pub fn text_normalize(node: &mut Node) -> Action {
+/// Normalizes text nodes by replacing control characters and minimizing
+/// whitespace.
+///
+/// The filter is aware of whitespace significance rules in HTML `<pre>` blocks
+/// as well as block vs inline elements in general. It assumes, with out
+/// knowledge of any potential unconventinal external styling, that leading and
+/// trailing whitespace may be removed at block element boundaries.
+pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
     if let NodeData::Text(ref mut t) = node.data {
-        replace_chars(t, true, true, false, false);
+        let parent = node.parent.unwrap();
+        let parent_is_block = is_block(&doc[parent]);
+        let in_pre = doc
+            .node_and_ancestors(parent)
+            .find(|id| doc[*id].is_elem(t::PRE))
+            .is_some();
+        let trim_l = parent_is_block &&
+            (node.prev_sibling.is_none() ||
+             is_block(&doc[node.prev_sibling.unwrap()]));
+        let trim_r = parent_is_block &&
+            (node.next_sibling.is_none() ||
+             is_block(&doc[node.next_sibling.unwrap()]));
+
+        replace_chars(t, !in_pre, true, trim_l, trim_r);
     }
     Action::Continue
 }
+
+// FIXME: Consider also offering a simpler version of the above?
+
+fn is_block(node: &Node) -> bool {
+    if let Some(elm) = node.as_element() {
+        if let Some(tmeta) = TAG_META.get(&elm.name.local) {
+            return !tmeta.is_inline();
+        }
+    }
+    false
+}
+
 
 /// Mutating filter methods.
 impl Document {

@@ -103,7 +103,7 @@ fn b30_text_nomalize_content(b: &mut Bencher) {
         let mut doc = doc.deep_clone(doc.root_element().unwrap());
         doc.filter(text_normalize);
         let out = doc.document_node_ref().text().unwrap();
-        assert_eq!(out.len32(), 8255, "txt: {}", out.as_ref());
+        assert_eq!(out.len32(), 6948, "txt: {}", out.as_ref());
     });
 }
 
@@ -117,10 +117,9 @@ fn b31_text_nomalize_content_identity(b: &mut Bencher) {
     b.iter(|| {
         doc.filter(text_normalize);
         let out = doc.document_node_ref().text().unwrap();
-        assert_eq!(out.len32(), 8255, "txt: {}", out.as_ref());
+        assert_eq!(out.len32(), 6948, "txt: {}", out.as_ref());
     });
 }
-
 
 fn sample_file(fname: &str) -> Result<File, io::Error> {
     let root = env!("CARGO_MANIFEST_DIR");
