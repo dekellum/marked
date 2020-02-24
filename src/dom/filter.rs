@@ -5,10 +5,10 @@ use log::debug;
 use crate::chars::replace_chars;
 use crate::dom::{
     html::{t, TAG_META},
-    Document, Node, NodeData, NodeId
+    Document, Element, Node, NodeData, NodeId
 };
 
-/// An instruction returned by the `Fn` closure used by `Document::filter`.
+/// An instruction returned by the `Fn` closure used by [`Document::filter`].
 #[derive(Debug, PartialEq, Eq)]
 pub enum Action {
     /// Continue filtering, without further changes to this `Node`.
@@ -22,7 +22,9 @@ pub enum Action {
     Detach,
 }
 
-/// Remove known banned-elements and any elements which are unknown.
+/// Remove known banned-elements
+/// [`TagMeta::is_banned`](crate::html::TagMeta::is_banned) and any elements
+/// which are unknown.
 pub fn detach_banned_elements(_d: &Document, node: &mut Node) -> Action {
     if let Some(ref mut elm) = node.as_element_mut() {
         if let Some(tmeta) = TAG_META.get(&elm.name.local) {
@@ -37,8 +39,8 @@ pub fn detach_banned_elements(_d: &Document, node: &mut Node) -> Action {
     Action::Continue
 }
 
-/// Filter out attributes that are not included in the "basic" set [`TagMeta`]
-/// for each element.
+/// Filter out attributes that are not included in the "basic" set
+/// [`TagMeta`](crate::html::TagMeta) for each element.
 pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
     if let Some(ref mut elm) = node.as_element_mut() {
         if let Some(tmeta) = TAG_META.get(&elm.name.local) {
@@ -53,17 +55,18 @@ pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
 /// Normalize text nodes by replacing control characters and minimizing
 /// whitespace.
 ///
-/// The filter is aware of whitespace significance rules in HTML `<pre>` blocks
-/// as well as block vs inline elements in general. It assumes, without
-/// knowledge of any potential unconventinal external styling, that leading and
-/// trailing whitespace may be removed at block element boundaries.
+/// The filter is aware of whitespace significance rules in HTML `<pre>` (or
+/// similar tag) blocks as well as block vs inline elements in general. It
+/// assumes, without knowledge of any potential unconventinal external styling,
+/// that leading and trailing whitespace may be removed at block element
+/// boundaries.
 pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
     if let NodeData::Text(ref mut t) = node.data {
         let parent = node.parent.unwrap();
         let parent_is_block = is_block(&doc[parent]);
         let in_pre = doc
             .node_and_ancestors(parent)
-            .find(|id| doc[*id].is_elem(t::PRE))
+            .find(|id| is_preform_node(&doc[*id]))
             .is_some();
         let trim_l = parent_is_block &&
             (node.prev_sibling.is_none() ||
@@ -80,16 +83,16 @@ pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
 // FIXME: Consider also offering a simpler version of the above for XML or
 // where speed trumps precision.
 
-/// Convert any `<xmp>` elements to `<pre>`.
+/// Convert any `<xmp>`, `<listing>`, or `<plaintext>` elements to `<pre>`.
 ///
-/// XMP is deprecated in later HTML versions and is X(HT)ML incompatible, but
-/// can still can be found in the wild.  After the HTML parse where special
-/// internal markup rules are applied, `<xmp>` is equivelent to `<pre>`, and is
-/// safer if converted. This filter should be applied _before_ any other filter
-/// with specific behavior for `<pre>`, like [`text_normalize`].
+/// The `<xmp>`, `<listing>` and `<plaintext>` tags are deprecated in later
+/// HTML versions and are XML/XHTML incompatible, but can still can be found in
+/// the wild.  After the HTML parse where special internal markup rules are
+/// applied, these are roughly equivelent to `<pre>`, and its safer if
+/// converted.
 pub fn xmp_to_pre(_doc: &Document, node: &mut Node) -> Action {
     if let Some(ref mut elm) = node.as_element_mut() {
-        if elm.is_elem(t::XMP) {
+        if is_preformatted(elm) {
             elm.name.local = t::PRE;
         }
     }
@@ -103,6 +106,14 @@ fn is_block(node: &Node) -> bool {
         }
     }
     false
+}
+
+fn is_preformatted(e: &Element) -> bool {
+    e.is_elem(t::PRE) || e.is_elem(t::XMP) || e.is_elem(t::PLAINTEXT)
+}
+
+fn is_preform_node(n: &Node) -> bool {
+    n.is_elem(t::PRE) || n.is_elem(t::XMP) || n.is_elem(t::PLAINTEXT)
 }
 
 /// Mutating filter methods.

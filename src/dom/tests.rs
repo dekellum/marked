@@ -199,10 +199,11 @@ fn test_xmp() {
 
     doc.filter(chain_filters!(
         filter::xmp_to_pre,
-        filter::text_normalize,
+        filter::text_normalize
     ));
+
     assert_eq!(
-        "<div>foo<pre>&lt;i&gt;bar &lt;/i&gt;</pre>baz</div>",
+        "<div>foo<pre>&lt;i&gt;bar\n&lt;/i&gt;\n</pre>baz</div>",
         doc.to_string()
     );
 
@@ -215,13 +216,23 @@ fn test_xmp() {
 #[test]
 fn test_plaintext() {
     ensure_logger();
-    let doc = html::parse_utf8_fragment(
-        "<div><plaintext><i>bar baz</div>"
+    let mut doc = html::parse_utf8_fragment(
+        "<div><plaintext>bar\n\tbaz</div>"
             .as_bytes()
     );
     // Serializer isn't aware that <plaintext> doesn't need end tags, etc.
     assert_eq!(
-        "<div><plaintext><i>bar baz</div></plaintext></div>",
+        "<div><plaintext>bar\n\tbaz</div></plaintext></div>",
+        doc.to_string()
+    );
+
+    doc.filter(chain_filters!(
+        filter::xmp_to_pre,
+        filter::text_normalize
+    ));
+
+    assert_eq!(
+        "<div><pre>bar\n\tbaz&lt;/div&gt;</pre></div>",
         doc.to_string()
     );
 
