@@ -13,20 +13,21 @@ pub(crate) fn replace_chars(
 {
     let mut last = 0;
     let mut replacing = false;
-    let mut ost = StrTendril::with_capacity(st.len32());
-    // FIXME: Optimize (no-alloc, replace) for cases where there is no real
-    // change
+    let mut ost = None; // output lazy allocated
 
     let ins = st.as_ref();
     for (i, ch) in ins.char_indices() {
         if do_replace(ch, ws, control) {
             if !replacing {
-                ost.push_slice(&ins[last..i]);
+                if ost.is_none() {
+                    ost = Some(StrTendril::with_capacity(st.len32()));
+                }
+                ost.as_mut().unwrap().push_slice(&ins[last..i]);
                 replacing = true;
             }
         } else if replacing {
-            if ost.len32() > 0 || !trim_start {
-                ost.push_char(' ');
+            if ost.as_ref().unwrap().len32() > 0 || !trim_start {
+                ost.as_mut().unwrap().push_char(' ');
             }
             last = i;
             replacing = false;
@@ -34,12 +35,14 @@ pub(crate) fn replace_chars(
     }
     if replacing {
         if !trim_end {
-            ost.push_char(' ');
+            ost.as_mut().unwrap().push_char(' ');
         }
-    } else {
-        ost.push_slice(&ins[last..]);
+    } else if ost.is_some() {
+        ost.as_mut().unwrap().push_slice(&ins[last..]);
     }
-    mem::replace(st, ost);
+    if ost.is_some() {
+        mem::replace(st, ost.take().unwrap());
+    }
 }
 
 fn do_replace(c: char, ws: bool, control: bool) -> bool {

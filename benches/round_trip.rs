@@ -17,6 +17,7 @@ use html5ever::serialize as rc_serialize;
 
 use marked;
 use marked::{Decoder, EncodingHint};
+use marked::filter::text_normalize;
 use marked::html::parse_buffered;
 
 #[bench]
@@ -91,6 +92,35 @@ fn b20_text_content(b: &mut Bencher) {
         assert_eq!(out.unwrap().len32(), 31637);
     });
 }
+
+#[bench]
+fn b30_text_nomalize_content(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
+    b.iter(|| {
+        let mut doc = doc.deep_clone(doc.root_element().unwrap());
+        doc.filter(text_normalize);
+        let out = doc.document_node_ref().text().unwrap();
+        assert_eq!(out.len32(), 8255, "txt: {}", out.as_ref());
+    });
+}
+
+#[bench]
+fn b31_text_nomalize_content_identity(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut doc = parse_buffered(eh, &mut fin).expect("parse");
+    doc.filter(text_normalize);
+    b.iter(|| {
+        doc.filter(text_normalize);
+        let out = doc.document_node_ref().text().unwrap();
+        assert_eq!(out.len32(), 8255, "txt: {}", out.as_ref());
+    });
+}
+
 
 fn sample_file(fname: &str) -> Result<File, io::Error> {
     let root = env!("CARGO_MANIFEST_DIR");

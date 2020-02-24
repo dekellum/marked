@@ -27,8 +27,7 @@ pub enum Action {
 // `<pre>` (or `<xmp>`!) blocks. We don't presently have inline vs. block
 // element classification to use when considering to trim start or end of a
 // text node.
-#[allow(unused)]
-pub(crate) fn text_normalize(node: &mut Node) -> Action {
+pub fn text_normalize(node: &mut Node) -> Action {
     if let NodeData::Text(ref mut t) = node.data {
         replace_chars(t, true, true, false, false);
     }
