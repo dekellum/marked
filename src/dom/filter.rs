@@ -1,5 +1,7 @@
 //! Mutating visitor support for `Document`.
 
+use log::debug;
+
 use crate::chars::replace_chars;
 use crate::dom::{
     html::{t, TAG_META},
@@ -18,14 +20,37 @@ pub enum Action {
 
     /// Detach this `Node`, and any children, from the tree.
     Detach,
-
-    // Replace this element with the given NodeData, for the same position in
-    // the tree.
-    // FIXME: Any case we need this for?
-    // Replace(NodeData)
 }
 
-/// Normalizes text nodes by replacing control characters and minimizing
+/// Remove known banned-elements and any elements which are unknown.
+pub fn detach_banned_elements(_d: &Document, node: &mut Node) -> Action {
+    if let Some(ref mut elm) = node.as_element_mut() {
+        if let Some(tmeta) = TAG_META.get(&elm.name.local) {
+            if tmeta.is_banned() {
+                return Action::Detach;
+            }
+        } else {
+            debug!("Detaching unknown element tag {}", &elm.name.local);
+            return Action::Detach;
+        }
+    }
+    Action::Continue
+}
+
+/// Filter out attributes that are not included in the "basic" set [`TagMeta`]
+/// for each element.
+pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
+    if let Some(ref mut elm) = node.as_element_mut() {
+        if let Some(tmeta) = TAG_META.get(&elm.name.local) {
+            elm.attrs.retain(|a| tmeta.has_basic_attr(&a.name.local));
+        } else {
+            debug!("unknown tag {:?}, attributes unmodified", &elm.name.local);
+        }
+    }
+    Action::Continue
+}
+
+/// Normalize text nodes by replacing control characters and minimizing
 /// whitespace.
 ///
 /// The filter is aware of whitespace significance rules in HTML `<pre>` blocks
@@ -52,7 +77,24 @@ pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
     Action::Continue
 }
 
-// FIXME: Consider also offering a simpler version of the above?
+// FIXME: Consider also offering a simpler version of the above for XML or
+// where speed trumps precision.
+
+/// Convert any `<xmp>` elements to `<pre>`.
+///
+/// XMP is deprecated in later HTML versions and is X(HT)ML incompatible, but
+/// can still can be found in the wild.  After the HTML parse where special
+/// internal markup rules are applied, `<xmp>` is equivelent to `<pre>`, and is
+/// safer if converted. This filter should be applied _before_ any other filter
+/// with specific behavior for `<pre>`, like [`text_normalize`].
+pub fn xmp_to_pre(_doc: &Document, node: &mut Node) -> Action {
+    if let Some(ref mut elm) = node.as_element_mut() {
+        if elm.is_elem(t::XMP) {
+            elm.name.local = t::PRE;
+        }
+    }
+    Action::Continue
+}
 
 fn is_block(node: &Node) -> bool {
     if let Some(elm) = node.as_element() {

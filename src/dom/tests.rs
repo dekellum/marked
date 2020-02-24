@@ -140,6 +140,22 @@ fn test_filter_chain() {
 }
 
 #[test]
+fn test_filter_chain_large_sample() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = sample_file("github-dekellum.html");
+    let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
+    doc.filter(chain_filters!(
+        filter::detach_banned_elements,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+        filter::text_normalize
+    ));
+
+    assert_eq!(29209, doc.to_string().len());
+}
+
+#[test]
 fn test_simple_xml() {
     ensure_logger();
     let doc = xml::parse_utf8(
@@ -171,12 +187,22 @@ r####"
 #[test]
 fn test_xmp() {
     ensure_logger();
-    let doc = html::parse_utf8_fragment(
-        "<div>foo <xmp><i>bar</i></xmp> baz</div>"
+    let mut doc = html::parse_utf8_fragment(
+        "<div>foo <xmp><i>bar\n</i>\n</xmp> baz</div>"
             .as_bytes()
     );
+
     assert_eq!(
-        "<div>foo <xmp><i>bar</i></xmp> baz</div>",
+        "<div>foo <xmp><i>bar\n</i>\n</xmp> baz</div>",
+        doc.to_string()
+    );
+
+    doc.filter(chain_filters!(
+        filter::xmp_to_pre,
+        filter::text_normalize,
+    ));
+    assert_eq!(
+        "<div>foo<pre>&lt;i&gt;bar &lt;/i&gt;</pre>baz</div>",
         doc.to_string()
     );
 

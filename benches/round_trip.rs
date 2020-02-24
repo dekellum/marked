@@ -17,7 +17,8 @@ use html5ever::serialize as rc_serialize;
 
 use marked;
 use marked::{Decoder, EncodingHint};
-use marked::filter::text_normalize;
+use marked::chain_filters;
+use marked::filter;
 use marked::html::parse_buffered;
 
 #[bench]
@@ -101,9 +102,14 @@ fn b30_text_nomalize_content(b: &mut Bencher) {
     let doc = parse_buffered(eh, &mut fin).expect("parse");
     b.iter(|| {
         let mut doc = doc.deep_clone(doc.root_element().unwrap());
-        doc.filter(text_normalize);
+        doc.filter(chain_filters!(
+            filter::detach_banned_elements,
+            filter::retain_basic_attributes,
+            filter::xmp_to_pre,
+            filter::text_normalize
+        ));
         let out = doc.document_node_ref().text().unwrap();
-        assert_eq!(out.len32(), 6948, "txt: {}", out.as_ref());
+        assert_eq!(out.len32(), 3699, "txt: {}", out.as_ref());
     });
 }
 
@@ -113,11 +119,17 @@ fn b31_text_nomalize_content_identity(b: &mut Bencher) {
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
-    doc.filter(text_normalize);
+    let filters = chain_filters!(
+        filter::detach_banned_elements,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+        filter::text_normalize
+    );
+    doc.filter(filters);
     b.iter(|| {
-        doc.filter(text_normalize);
+        doc.filter(filters);
         let out = doc.document_node_ref().text().unwrap();
-        assert_eq!(out.len32(), 6948, "txt: {}", out.as_ref());
+        assert_eq!(out.len32(), 3699, "txt: {}", out.as_ref());
     });
 }
 
