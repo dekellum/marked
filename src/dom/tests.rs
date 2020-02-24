@@ -603,7 +603,13 @@ fn test_documento_utf8_meta() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::WINDOWS_1252);
     let mut reader = ShortRead(sample_file("documento_utf8_meta.html"));
-    let doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
+    doc.filter(chain_filters!(
+        filter::detach_banned_elements,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+        filter::text_normalize
+    ));
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
@@ -614,7 +620,13 @@ fn test_iro0094_shiftjis_meta() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut reader = ShortRead(sample_file("iro0094_shiftjis_meta.html"));
-    let doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    let mut doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    doc.filter(chain_filters!(
+        filter::detach_banned_elements,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+        filter::text_normalize
+    ));
     let root = doc.root_element_ref().expect("root");
     let _body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::SHIFT_JIS);
@@ -626,7 +638,13 @@ fn test_matsunami_eucjp_meta() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut reader = ShortRead(sample_file("matsunami_eucjp_meta.html"));
-    let doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    let mut doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    doc.filter(chain_filters!(
+        filter::detach_banned_elements,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+        filter::text_normalize
+    ));
     let root = doc.root_element_ref().expect("root");
     let _body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::EUC_JP);
@@ -638,7 +656,13 @@ fn test_russez_windows1251_meta() {
     ensure_logger();
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut reader = ShortRead(sample_file("russez_windows1251_meta.html"));
-    let doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    let mut doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
+    doc.filter(chain_filters!(
+        filter::detach_banned_elements,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+        filter::text_normalize
+    ));
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::WINDOWS_1251);
@@ -646,10 +670,11 @@ fn test_russez_windows1251_meta() {
     assert!(
         body.find(|n| {
             if let Some(st) = n.as_text() {
-                st.as_ref().contains("Промышленно-производственные")
+                st.as_ref().contains("Промышленно")
             } else {
                 false
             }
-        }).is_some()
+        }).is_some(),
+        "txt: {}", body.text().unwrap().as_ref()
     );
 }
