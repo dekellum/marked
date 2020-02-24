@@ -5,7 +5,7 @@ use tendril::StrTendril;
 /// Replace or remove sequences of white-space and/or control characters, and
 /// optionally remove leading/trailing spaces.
 ///
-/// _What_ char classes to replace is given via `ws` and `control` flags. If a
+/// _What_ char classes to replace is given via `ws` and `ctrl` flags. If a
 /// sequence is _all_ control or zero-width spaces, then it is simple removed
 /// (without replacement). If there is at least one non-zero width white-space
 /// character then the sequence is replaces with U+0020 SPACE.  The string (st)
@@ -65,6 +65,7 @@ fn replace_mask(c: char, ws: bool, ctrl: bool) -> u8 {
     }
 }
 
+// Character classes of internal interest (not the same as Unicode classes).
 #[derive(Debug, Eq, PartialEq)]
 enum CharClass {
     Unclassified,
@@ -73,23 +74,25 @@ enum CharClass {
     Control,
 }
 
-/// Return true if char is a control, Unicode whitespace, BOM, or otherwise
-/// invalid.
+// Return CharClass for a char
 fn char_class(c: char) -> CharClass {
     use CharClass::*;
     match c {
         '\u{0000}'..='\u{0008}' => Control,    // C0 (XML disallowed)
-        '\u{0009}'              | // HT
-        '\u{000A}'              | // LF
+        '\u{0009}'              |              // HT
+        '\u{000A}'              |              // LF
         '\u{000B}'              => WhiteSpace, // VT
         '\u{000C}'              => Control,    // FF (C0)
         '\u{000D}'              => WhiteSpace, // CR
         '\u{000E}'..='\u{001F}' => Control,    // C0
         '\u{0020}'              => WhiteSpace, // SPACE
 
-        '\u{007F}'              | // DEL (C0)
+        '\u{007F}'              |              // DEL (C0)
         '\u{0080}'..='\u{009F}' => Control,    // C1 (XML disallowed)
         '\u{00A0}'              => WhiteSpace, // NO-BREAK SPACE (NBSP)
+
+        // Not always (zero) white; shows hypen when line is wrapped.
+        // '\u{00AD}'           => Un-         // SOFT HYPHEN,
 
         // Not white, rendered with a line:
         // '\u{1680}'           => Un-         // OGHAM SPACE MARK
@@ -98,13 +101,13 @@ fn char_class(c: char) -> CharClass {
         // '\u{180E}'           => Un-         // MONGOLIAN VOWEL SEPARATOR
 
         '\u{2000}'..='\u{200A}' => WhiteSpace, // EN QUAD..HAIR SPACE
-        '\u{200B}'              | // ZERO WIDTH SPACE
+        '\u{200B}'              |              // ZERO WIDTH SPACE
         '\u{200C}'              => ZeroSpace,  // ZERO WIDTH NON-JOINER
 
-        '\u{2028}'              | // LINE SEPARATOR
-        '\u{2029}'              | // PARAGRAPH SEPARATOR
+        '\u{2028}'              |              // LINE SEPARATOR
+        '\u{2029}'              |              // PARAGRAPH SEPARATOR
 
-        '\u{202F}'              | // NARROW NO-BREAK SPACE
+        '\u{202F}'              |              // NARROW NO-BREAK SPACE
 
         '\u{205F}'              => WhiteSpace, // MEDIUM MATHEMATICAL SPACE
         '\u{2060}'              => ZeroSpace,  // WORD JOINER
@@ -112,7 +115,7 @@ fn char_class(c: char) -> CharClass {
         '\u{3000}'              => WhiteSpace, // IDEOGRAPHIC SPACE
 
         '\u{FEFF}'              => ZeroSpace,  // BOM or ZERO WIDTH NON-BREAKING
-        '\u{FFFE}'              | // Bad BOM (not assigned)
+        '\u{FFFE}'              |              // Bad BOM (not assigned)
         '\u{FFFF}'              => Control,    // Not assigned (invalid)
         _ => Unclassified,
     }
