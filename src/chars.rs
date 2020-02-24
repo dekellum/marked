@@ -2,39 +2,48 @@ use std::mem;
 
 use tendril::StrTendril;
 
-/// Replace ws and/or control characters with a single U+0020 SPACE, and
+/// Replace or remove sequences of white-space and/or control characters, and
 /// optionally remove leading/trailing spaces.
+///
+/// _What_ char classes to replace is given via `ws` and `control` flags. If a
+/// sequence is _all_ control or zero-width spaces, then it is simple removed
+/// (without replacement). If there is at least one non-zero width white-space
+/// character then the sequence is replaces with U+0020 SPACE.  The string (st)
+/// is only lazily re-allocated (replaced) if a change is required.
 pub(crate) fn replace_chars(
     st: &mut StrTendril,
     ws: bool,
-    control: bool,
+    ctrl: bool,
     trim_start: bool,
     trim_end: bool)
 {
     let mut last = 0;
-    let mut replacing = false;
     let mut ost = None; // output lazy allocated
+    let mut replacing = 0u8;
 
     let ins = st.as_ref();
     for (i, ch) in ins.char_indices() {
-        if do_replace(ch, ws, control) {
-            if !replacing {
+        let rmask = replace_mask(ch, ws, ctrl);
+        if rmask > 0 {
+            if replacing == 0 {
                 if ost.is_none() {
                     ost = Some(StrTendril::with_capacity(st.len32()));
                 }
                 ost.as_mut().unwrap().push_slice(&ins[last..i]);
-                replacing = true;
             }
-        } else if replacing {
-            if ost.as_ref().unwrap().len32() > 0 || !trim_start {
+            replacing |= rmask;
+        } else if replacing > 0 {
+            if  replacing >= 2 &&
+                (ost.as_ref().unwrap().len32() > 0 || !trim_start)
+            {
                 ost.as_mut().unwrap().push_char(' ');
             }
             last = i;
-            replacing = false;
+            replacing = 0;
         }
     }
-    if replacing {
-        if !trim_end {
+    if replacing > 0 {
+        if replacing >= 2 && !trim_end {
             ost.as_mut().unwrap().push_char(' ');
         }
     } else if ost.is_some() {
@@ -45,21 +54,23 @@ pub(crate) fn replace_chars(
     }
 }
 
-fn do_replace(c: char, ws: bool, control: bool) -> bool {
+// Compare CharClass to flags and return bit-1 (Control or Zero-width) or bit-2
+// (WhiteSpace).
+fn replace_mask(c: char, ws: bool, ctrl: bool) -> u8 {
     use CharClass::*;
     match char_class(c) {
-        ZeroSpace | Control if control => true,
-        WhiteSpace if ws => true,
-        _ => false,
+        ZeroSpace | Control if ctrl => 1,
+        WhiteSpace if ws => 2,
+        _ => 0,
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
 enum CharClass {
     Unclassified,
-    Control,
     WhiteSpace,
-    ZeroSpace
+    ZeroSpace,
+    Control,
 }
 
 /// Return true if char is a control, Unicode whitespace, BOM, or otherwise
@@ -119,26 +130,47 @@ mod tests {
     #[test]
     fn test_char_class() {
         use CharClass::*;
-        assert_eq!(Control,      char_class('\u{0008}'));
         assert_eq!(Unclassified, char_class('x'));
+        assert_eq!(Control,      char_class('\u{0008}'));
+        assert_eq!(ZeroSpace,    char_class('\u{2060}'));
         assert_eq!(WhiteSpace,   char_class('\n'));
-        assert_eq!(WhiteSpace,   char_class('\t'));
+        assert_eq!(WhiteSpace,   char_class('\n'));
     }
 
     #[test]
     fn replace() {
         assert_clean("",  "" );
+        assert_clean("",  "\u{2060}" );
         assert_clean(" ", " ");
 
         assert_clean("x",   "x"   );
         assert_clean(" x ", " x  ");
-        assert_clean(" x",  " x"  );
+        assert_clean(" x",  " x\u{2060}"  );
         assert_clean("x ",  "x "  );
+
+        assert_clean("aa b ",  "\u{009F}a\u{009F}a  b " );
 
         assert_clean("aa b c ", "aa b c "     );
         assert_clean("aa b c",  "aa \t b c"   );
         assert_clean(" aa b c", "\t aa \t b c");
+    }
 
+    #[test]
+    fn replace_ctrl_only() {
+        assert_clean_ctrl("",  "" );
+        assert_clean_ctrl("",  "\u{2060}" );
+        assert_clean_ctrl(" ", " ");
+
+        assert_clean_ctrl("x",   "x"   );
+        assert_clean_ctrl(" x  ", " x  ");
+        assert_clean_ctrl(" x",  " x\u{2060}"  );
+        assert_clean_ctrl("x ",  "x "  );
+
+        assert_clean_ctrl("aaa  b ",  "\u{009F}a\u{009F}aa  b " );
+
+        assert_clean_ctrl("aa b c ", "aa b c "     );
+        assert_clean_ctrl("aa \t b c",  "aa \t b c"   );
+        assert_clean_ctrl("\t aa \t b c", "\t aa \t b c");
     }
 
     #[test]
@@ -154,6 +186,8 @@ mod tests {
         assert_clean_trim("x", " x"  );
         assert_clean_trim("x",  "x " );
 
+        assert_clean_trim("aa b",  " a\u{009F}a\u{009F}  b " );
+
         assert_clean_trim("aa b c", "aa b c "     );
         assert_clean_trim("aa b c", "aa \t b c"   );
         assert_clean_trim("aa b c", "\t aa \t b c");
@@ -168,6 +202,12 @@ mod tests {
     fn assert_clean(exp: &str, src: &str) {
         let mut st = src.to_tendril();
         replace_chars(&mut st, true, true, false, false);
+        assert_eq!(exp, st.as_ref());
+    }
+
+    fn assert_clean_ctrl(exp: &str, src: &str) {
+        let mut st = src.to_tendril();
+        replace_chars(&mut st, false, true, false, false);
         assert_eq!(exp, st.as_ref());
     }
 }
