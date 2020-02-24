@@ -40,7 +40,7 @@ impl Document {
     /// entire document, from the document root node, allowing the provided
     /// function to make changes to each `Node`.
     pub fn filter<F>(&mut self, mut f: F)
-        where F: Fn(&mut Node) -> Action
+        where F: Fn(&Document, &mut Node) -> Action
     {
         self.filter_at(Document::DOCUMENT_NODE_ID, &mut f);
     }
@@ -49,7 +49,7 @@ impl Document {
     /// specified node ID, allowing the provided function to make changes to
     /// each `Node`.
     pub fn filter_at<F>(&mut self, id: NodeId, f: &mut F) -> Action
-        where F: Fn(&mut Node) -> Action
+        where F: Fn(&Document, &mut Node) -> Action
     {
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
@@ -65,8 +65,11 @@ impl Document {
                 }
             }
         }
-
-        f(&mut self[id])
+        let d = &*self as *const Document;
+        // Safety: Filter needs only a non-mutable reference to Document. Its
+        // _potentially_ unsafe because it also gets a mutable Node reference
+        // from the same Document. However: FIXME
+        f(unsafe { &*d }, &mut self[id])
     }
 }
 
@@ -76,11 +79,11 @@ impl Document {
 #[macro_export]
 macro_rules! chain_filters {
     ($first:expr $(, $subs:expr)* $(,)?) => (
-        |node: &mut $crate::Node| {
-            let mut action: $crate::filter::Action = $first(node);
+        |doc: & $crate::Document, node: &mut $crate::Node| {
+            let mut action: $crate::filter::Action = $first(doc, node);
         $(
             if action == $crate::filter::Action::Continue {
-                action = $subs(node);
+                action = $subs(doc, node);
             }
         )*
             action
