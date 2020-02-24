@@ -158,12 +158,17 @@ impl Document {
     }
 }
 
-/// Compose a new filter closure, by chaining a list of closures or function
-/// paths. Each is executed in order, while the return action remains
+/// Compose a new filter closure, by chaining a list of 1 to many closures or
+/// function paths. Each is executed in order, while the return action remains
 /// `Continue`.
 #[macro_export]
 macro_rules! chain_filters {
-    ($first:expr $(, $subs:expr)* $(,)?) => (
+    ($solo:expr $(,)?) => (
+        |doc: & $crate::Document, node: &mut $crate::Node| {
+            $solo(doc, node)
+        }
+    );
+    ($first:expr $(, $subs:expr)+ $(,)?) => (
         |doc: & $crate::Document, node: &mut $crate::Node| {
             let mut action: $crate::filter::Action = $first(doc, node);
         $(

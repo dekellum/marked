@@ -104,7 +104,8 @@ fn test_remove_filter() {
         "<div>foo <strike><i>bar</i>s</strike> baz</div>"
             .as_bytes()
     );
-    doc.filter(strike_remove_filter);
+    // Non-useful chain but confirms it works on one!
+    doc.filter(chain_filters!(strike_remove_filter));
     assert_eq!(
         "<html><head></head><body>\
          <div>foo  baz</div>\
