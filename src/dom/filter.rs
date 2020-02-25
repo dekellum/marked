@@ -60,6 +60,7 @@ pub fn detach_empty_inline(doc: &Document, node: &mut Node) -> Action {
     Action::Continue
 }
 
+/// Detach any comment nodes.
 pub fn detach_comments(_d: &Document, node: &mut Node) -> Action {
     if let NodeData::Comment(_) = node.data {
         Action::Detach
@@ -68,7 +69,7 @@ pub fn detach_comments(_d: &Document, node: &mut Node) -> Action {
     }
 }
 
-
+/// Detach any processing instruction nodes.
 pub fn detach_pis(_d: &Document, node: &mut Node) -> Action {
     if let NodeData::ProcessingInstruction {..} = node.data {
         Action::Detach
@@ -76,7 +77,6 @@ pub fn detach_pis(_d: &Document, node: &mut Node) -> Action {
         Action::Continue
     }
 }
-
 
 /// Filter out attributes that are not included in the "basic" set
 /// [`TagMeta`](crate::html::TagMeta) for each element.
@@ -91,8 +91,8 @@ pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
     Action::Continue
 }
 
-/// Normalize text nodes by replacing control characters and minimizing
-/// whitespace.
+/// Normalize text nodes by merging, replacing control characters and
+/// minimizing whitespace.
 ///
 /// The filter is aware of whitespace significance rules in HTML `<pre>` (or
 /// similar tag) blocks as well as block vs inline elements in general. It
@@ -100,26 +100,49 @@ pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
 /// that leading and trailing whitespace may be removed at block element
 /// boundaries.
 ///
-/// Because this filter works on text nodes, depth first, it is likely better
-/// to apply this filter in a second pass, _after_ filters like
-/// [`detach_banned_elements`] are applied in a first pass, to avoid the cost
-/// of normalizing text in banned/unknown elements which will be detached.
+/// Because this filter works on text nodes, depth first, it _must not be
+/// combined with other filters that detach elements_ such as
+/// [`detach_banned_elements`], etc. _Doing so might lead to loss of text!_
+/// Instead, run this filter in a subequent pass, on its own or with other
+/// non-detaching filters.
 pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
     if let NodeData::Text(ref mut t) = node.data {
+        let node_l = node.prev_sibling.map(|id| &doc[id]);
+
+        // Merge Strategy: We only have mutable access to the current node, so
+        // we merge by copying text node(s) from our immediate right (following
+        // siblings). To avoid duplication, if we find any text node to our
+        // immediate left (previous), then we assume this node has been copied
+        // already and detach.  While this is workable, it does make this
+        // filter susceptible to loosing text if combined with other filters
+        // that detach. The reason is that the detach may occur where the copy
+        // didn't, due to previously intervening nodes.
+        if node_l.map_or(false, |n| n.as_text().is_some()) {
+            return Action::Detach;
+        }
+
+        let following = iter::successors(
+            node.next_sibling,
+            move |&id| doc[id].next_sibling);
+        let mut node_r = None;
+        for idr in following {
+            if let Some(rt) = doc[idr].as_text() {
+                t.push_tendril(rt);
+            } else {
+                node_r = Some(&doc[idr]);
+                break;
+            }
+        }
+
         let parent = node.parent.unwrap();
         let parent_is_block = is_block(&doc[parent]);
         let in_pre = doc
             .node_and_ancestors(parent)
             .any(|id| is_preform_node(&doc[id]));
 
-        // Trim left side if left is a block boundary or text element with
-        // a terminal space (already normalized):
-        let node_l = node.prev_sibling.and_then(|id| Some(&doc[id]));
         let trim_l = (parent_is_block && node_l.is_none()) ||
-            node_l.map_or(false, is_block) ||
-            node_l.map_or(false, is_text_with_space);
+            node_l.map_or(false, is_block);
 
-        let node_r = node.next_sibling.and_then(|id| Some(&doc[id]));
         let trim_r = (parent_is_block && node_r.is_none()) ||
             node_r.map_or(false, is_block);
 
@@ -160,16 +183,6 @@ fn is_block(node: &Node) -> bool {
     false
 }
 
-fn is_text_with_space(node: &Node) -> bool {
-    if let Some(st) = node.as_text() {
-        let s = &st[..];
-        let sb = s.as_bytes();
-        *sb.last().expect("not empty") == 0x20
-    } else {
-        false
-    }
-}
-
 // Note this isn't an exact negation of `is_block`: it still returns false for
 // unknown elements.
 fn is_inline(node: &Node) -> bool {
@@ -198,7 +211,7 @@ fn is_logical_ws(n: &Node) -> bool {
 }
 
 fn is_multi_media(n: &Node) -> bool {
-    n.is_elem(t::AUDIO) ||
+    /**/n.is_elem(t::AUDIO) ||
         n.is_elem(t::EMBED) ||
         n.is_elem(t::IFRAME) ||
         n.is_elem(t::IMG) ||
@@ -206,6 +219,7 @@ fn is_multi_media(n: &Node) -> bool {
         n.is_elem(t::OBJECT) ||
         n.is_elem(t::PICTURE) ||
         n.is_elem(t::PROGRESS) ||
+        n.is_elem(t::SVG) ||
         n.is_elem(t::VIDEO)
 }
 

@@ -131,8 +131,9 @@ fn test_filter_chain() {
         other_filter,
         strike_remove_filter,
         |_d: &Document, _n: &mut Node| { Action::Continue }, // in place noop
-        filter::text_normalize
     ));
+
+    doc.filter(filter::text_normalize);
 
     assert_eq!(
         "<div>foo baz</div>",
@@ -146,15 +147,24 @@ fn test_filter_chain_large_sample() {
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut reader = sample_file("github-dekellum.html");
     let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
-    doc.filter(chain_filters!(
+    let pass_1 = chain_filters!(
         filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
         filter::detach_empty_inline,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
-    ));
+    );
+    doc.filter(pass_1);
     doc.filter(filter::text_normalize);
+    assert_eq!(25893, doc.to_string().len(), "{}",
+               doc.to_string());
 
-    assert_eq!(28793, doc.to_string().len());
+    // Make sure filtering is stable/idempotent
+    doc.filter(pass_1);
+    doc.filter(filter::text_normalize);
+    assert_eq!(25893, doc.to_string().len(), "{}",
+               doc.to_string());
 }
 
 #[test]
@@ -203,17 +213,15 @@ fn test_empty_inline() {
     doc.filter(filter::text_normalize);
 
     assert_eq!(
-        "<div>text 2 3 <br>end</div>",
+        "<div>text 2 3<br>end</div>",
         doc.to_string()
     );
 
     // Currently node count is only ensured by cloning
-    //let doc = doc.deep_clone(doc.root_element().unwrap());
-    //debug!("the doc nodes:\n{:?}", doc);
-    //assert_eq!(9, doc.nodes.len() - 2);
+    let doc = doc.deep_clone(doc.root_element().unwrap());
+    debug!("the doc nodes:\n{:?}", doc);
+    assert_eq!(4, doc.nodes.len() - 2);
 }
-
-
 
 #[test]
 fn test_xmp() {
@@ -648,10 +656,13 @@ fn test_documento_utf8_meta() {
     let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
     doc.filter(chain_filters!(
         filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
-        filter::text_normalize
     ));
+    doc.filter(filter::text_normalize);
+
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!("¿De donde eres tú?", body.text().unwrap().as_ref().trim());
@@ -665,10 +676,13 @@ fn test_iro0094_shiftjis_meta() {
     let mut doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
     doc.filter(chain_filters!(
         filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
-        filter::text_normalize
     ));
+    doc.filter(filter::text_normalize);
+
     let root = doc.root_element_ref().expect("root");
     let _body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::SHIFT_JIS);
@@ -683,10 +697,13 @@ fn test_matsunami_eucjp_meta() {
     let mut doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
     doc.filter(chain_filters!(
         filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
-        filter::text_normalize
     ));
+    doc.filter(filter::text_normalize);
+
     let root = doc.root_element_ref().expect("root");
     let _body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::EUC_JP);
@@ -701,10 +718,13 @@ fn test_russez_windows1251_meta() {
     let mut doc = html::parse_buffered(eh.clone(), &mut reader).unwrap();
     doc.filter(chain_filters!(
         filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
-        filter::text_normalize
     ));
+    doc.filter(filter::text_normalize);
+
     let root = doc.root_element_ref().expect("root");
     let body = root.find_child(|n| n.is_elem(t::BODY)).expect("body");
     assert_eq!(eh.borrow().top().as_ref().unwrap(), &enc::WINDOWS_1251);
