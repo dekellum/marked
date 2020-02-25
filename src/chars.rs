@@ -54,8 +54,8 @@ pub(crate) fn replace_chars(
     }
 }
 
-// Compare CharClass to flags and return bit-1 (Control or Zero-width) or bit-2
-// (WhiteSpace).
+// Compare CharClass to flags and return bit-1 (control or zero-width) or bit-2
+// (whitespace).
 fn replace_mask(c: char, ws: bool, ctrl: bool) -> u8 {
     use CharClass::*;
     match char_class(c) {
@@ -72,6 +72,11 @@ enum CharClass {
     WhiteSpace,
     ZeroSpace,
     Control,
+}
+
+/// True if all contained characters are classfied as whitespace or controls.
+pub(crate) fn is_all_ctrl_ws(st: &StrTendril) -> bool {
+    st.as_ref().chars().all(|c| char_class(c) != CharClass::Unclassified)
 }
 
 // Return CharClass for a char
@@ -145,6 +150,7 @@ mod tests {
         assert_clean("",  "" );
         assert_clean("",  "\u{2060}" );
         assert_clean(" ", " ");
+        assert_clean(" ", "\t \r\n");
 
         assert_clean("x",   "x"   );
         assert_clean(" x ", " x  ");
@@ -196,9 +202,35 @@ mod tests {
         assert_clean_trim("aa b c", "\t aa \t b c");
     }
 
+    #[test]
+    fn replace_trim_left() {
+        assert_clean_trim_l("", "");
+        assert_clean_trim_l(" ", " ");
+        assert_clean_trim_l(" ", "\t \r\n");
+    }
+
+    #[test]
+    fn replace_trim_right() {
+        assert_clean_trim_r("", "");
+        assert_clean_trim_r("", " ");
+        assert_clean_trim_r("", "\t \r\n");
+    }
+
     fn assert_clean_trim(exp: &str, src: &str) {
         let mut st = src.to_tendril();
         replace_chars(&mut st, true, true, true, true);
+        assert_eq!(exp, st.as_ref());
+    }
+
+    fn assert_clean_trim_l(exp: &str, src: &str) {
+        let mut st = src.to_tendril();
+        replace_chars(&mut st, true, true, true, false);
+        assert_eq!(exp, st.as_ref());
+    }
+
+    fn assert_clean_trim_r(exp: &str, src: &str) {
+        let mut st = src.to_tendril();
+        replace_chars(&mut st, true, true, false, true);
         assert_eq!(exp, st.as_ref());
     }
 
