@@ -106,10 +106,12 @@ fn b30_text_nomalize_content(b: &mut Bencher) {
             filter::detach_banned_elements,
             filter::retain_basic_attributes,
             filter::xmp_to_pre,
-            filter::text_normalize
         ));
+        // As second pass to avoid normalizing text dropped in 1st pass:
+        doc.filter(filter::text_normalize);
+
         let out = doc.document_node_ref().text().unwrap();
-        assert_eq!(out.len32(), 3699, "txt: {}", out.as_ref());
+        assert_eq!(out.len32(), 3700, "txt: {}", out.as_ref());
     });
 }
 
@@ -119,17 +121,22 @@ fn b31_text_nomalize_content_identity(b: &mut Bencher) {
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
-    let filters = chain_filters!(
+    doc.filter(chain_filters!(
         filter::detach_banned_elements,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
-        filter::text_normalize
-    );
-    doc.filter(filters);
+    ));
+    doc.filter(filter::text_normalize);
+
     b.iter(|| {
-        doc.filter(filters);
+        doc.filter(chain_filters!(
+            filter::detach_banned_elements,
+            filter::retain_basic_attributes,
+            filter::xmp_to_pre,
+            filter::text_normalize,
+        ));
         let out = doc.document_node_ref().text().unwrap();
-        assert_eq!(out.len32(), 3699, "txt: {}", out.as_ref());
+        assert_eq!(out.len32(), 3700, "txt: {}", out.as_ref());
     });
 }
 

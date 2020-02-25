@@ -60,13 +60,18 @@ pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
 /// assumes, without knowledge of any potential unconventinal external styling,
 /// that leading and trailing whitespace may be removed at block element
 /// boundaries.
+///
+/// Because this filter works on text nodes, depth first, it is likely better
+/// to apply this filter in a second pass, _after_ filters like
+/// [`detach_banned_elements`] are applied in a first pass, to avoid the cost
+/// of normalizing text in banned/unknown elements which will be detached.
 pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
     if let NodeData::Text(ref mut t) = node.data {
         let parent = node.parent.unwrap();
         let parent_is_block = is_block(&doc[parent]);
         let in_pre = doc
             .node_and_ancestors(parent)
-            .find(|id| is_preform_node(&doc[*id]))
+            .find(|&id| is_preform_node(&doc[id]))
             .is_some();
         let trim_l = parent_is_block &&
             (node.prev_sibling.is_none() ||

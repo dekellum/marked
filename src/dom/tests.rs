@@ -150,8 +150,8 @@ fn test_filter_chain_large_sample() {
         filter::detach_banned_elements,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
-        filter::text_normalize
     ));
+    doc.filter(filter::text_normalize);
 
     assert_eq!(29209, doc.to_string().len());
 }
