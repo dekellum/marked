@@ -148,12 +148,13 @@ fn test_filter_chain_large_sample() {
     let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
     doc.filter(chain_filters!(
         filter::detach_banned_elements,
+        filter::detach_empty_inline,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
     ));
     doc.filter(filter::text_normalize);
 
-    assert_eq!(29209, doc.to_string().len());
+    assert_eq!(28793, doc.to_string().len());
 }
 
 #[test]
@@ -184,6 +185,35 @@ r####"
         doc.to_string()
     );
 }
+
+#[test]
+fn test_empty_inline() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        "<div>text<i> </i> 2 <i></i> 3 <i> <br> </i> end</div>"
+            .as_bytes()
+    );
+
+    assert_eq!(
+        "<div>text<i> </i> 2 <i></i> 3 <i> <br> </i> end</div>",
+        doc.to_string()
+    );
+
+    doc.filter(filter::detach_empty_inline);
+    doc.filter(filter::text_normalize);
+
+    assert_eq!(
+        "<div>text 2 3 <br>end</div>",
+        doc.to_string()
+    );
+
+    // Currently node count is only ensured by cloning
+    //let doc = doc.deep_clone(doc.root_element().unwrap());
+    //debug!("the doc nodes:\n{:?}", doc);
+    //assert_eq!(9, doc.nodes.len() - 2);
+}
+
+
 
 #[test]
 fn test_xmp() {

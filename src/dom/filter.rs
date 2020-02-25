@@ -1,8 +1,10 @@
 //! Mutating visitor support for `Document`.
 
+use std::iter;
+
 use log::debug;
 
-use crate::chars::replace_chars;
+use crate::chars::{is_all_ctrl_ws, replace_chars};
 use crate::dom::{
     html::{t, TAG_META},
     Document, Element, Node, NodeData, NodeId
@@ -39,6 +41,43 @@ pub fn detach_banned_elements(_d: &Document, node: &mut Node) -> Action {
     Action::Continue
 }
 
+/// Detach any effectively pointless inline elements, which contain only logical
+/// whitespace.
+///
+/// Logical whitespace is defined as all Unicode whitespace or control chars in
+/// child text, or the `<br>` element. Non-text oriented inline elements like
+/// `<img>` and `<video>` and other multi-media are excluded from
+/// consideration.
+pub fn detach_empty_inline(doc: &Document, node: &mut Node) -> Action {
+    if is_inline(node) && !is_multi_media(node) {
+        let mut children = iter::successors(
+            node.first_child,
+            move |&id| doc[id].next_sibling);
+        if children.all(|id| is_logical_ws(&doc[id])) {
+            return Action::Fold;
+        }
+    }
+    Action::Continue
+}
+
+pub fn detach_comments(_d: &Document, node: &mut Node) -> Action {
+    if let NodeData::Comment(_) = node.data {
+        Action::Detach
+    } else {
+        Action::Continue
+    }
+}
+
+
+pub fn detach_pis(_d: &Document, node: &mut Node) -> Action {
+    if let NodeData::ProcessingInstruction {..} = node.data {
+        Action::Detach
+    } else {
+        Action::Continue
+    }
+}
+
+
 /// Filter out attributes that are not included in the "basic" set
 /// [`TagMeta`](crate::html::TagMeta) for each element.
 pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
@@ -71,16 +110,24 @@ pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
         let parent_is_block = is_block(&doc[parent]);
         let in_pre = doc
             .node_and_ancestors(parent)
-            .find(|&id| is_preform_node(&doc[id]))
-            .is_some();
-        let trim_l = parent_is_block &&
-            (node.prev_sibling.is_none() ||
-             is_block(&doc[node.prev_sibling.unwrap()]));
-        let trim_r = parent_is_block &&
-            (node.next_sibling.is_none() ||
-             is_block(&doc[node.next_sibling.unwrap()]));
+            .any(|id| is_preform_node(&doc[id]));
+
+        // Trim left side if left is a block boundary or text element with
+        // a terminal space (already normalized):
+        let node_l = node.prev_sibling.and_then(|id| Some(&doc[id]));
+        let trim_l = (parent_is_block && node_l.is_none()) ||
+            node_l.map_or(false, is_block) ||
+            node_l.map_or(false, is_text_with_space);
+
+        let node_r = node.next_sibling.and_then(|id| Some(&doc[id]));
+        let trim_r = (parent_is_block && node_r.is_none()) ||
+            node_r.map_or(false, is_block);
 
         replace_chars(t, !in_pre, true, trim_l, trim_r);
+
+        if t.is_empty() {
+            return Action::Detach;
+        }
     }
     Action::Continue
 }
@@ -113,12 +160,53 @@ fn is_block(node: &Node) -> bool {
     false
 }
 
+fn is_text_with_space(node: &Node) -> bool {
+    if let Some(st) = node.as_text() {
+        let s = &st[..];
+        let sb = s.as_bytes();
+        *sb.last().expect("not empty") == 0x20
+    } else {
+        false
+    }
+}
+
+// Note this isn't an exact negation of `is_block`: it still returns false for
+// unknown elements.
+fn is_inline(node: &Node) -> bool {
+    if let Some(elm) = node.as_element() {
+        if let Some(tmeta) = TAG_META.get(&elm.name.local) {
+            return tmeta.is_inline();
+        }
+    }
+    false
+}
+
 fn is_preformatted(e: &Element) -> bool {
     e.is_elem(t::PRE) || e.is_elem(t::XMP) || e.is_elem(t::PLAINTEXT)
 }
 
 fn is_preform_node(n: &Node) -> bool {
     n.is_elem(t::PRE) || n.is_elem(t::XMP) || n.is_elem(t::PLAINTEXT)
+}
+
+fn is_logical_ws(n: &Node) -> bool {
+    if let Some(t) = n.as_text() {
+        is_all_ctrl_ws(t)
+    } else {
+        n.is_elem(t::BR)
+    }
+}
+
+fn is_multi_media(n: &Node) -> bool {
+    n.is_elem(t::AUDIO) ||
+        n.is_elem(t::EMBED) ||
+        n.is_elem(t::IFRAME) ||
+        n.is_elem(t::IMG) ||
+        n.is_elem(t::METER) ||
+        n.is_elem(t::OBJECT) ||
+        n.is_elem(t::PICTURE) ||
+        n.is_elem(t::PROGRESS) ||
+        n.is_elem(t::VIDEO)
 }
 
 /// Mutating filter methods.
