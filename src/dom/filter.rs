@@ -1,13 +1,15 @@
 //! Mutating visitor support for `Document`.
 
 use std::iter;
+use std::cell::RefCell;
+use std::mem;
 
 use log::debug;
 
 use crate::chars::{is_all_ctrl_ws, replace_chars};
 use crate::dom::{
     html::{t, TAG_META},
-    Document, Element, Node, NodeData, NodeId
+    Document, Element, Node, NodeData, NodeId, StrTendril
 };
 
 /// An instruction returned by the `Fn` closure used by [`Document::filter`].
@@ -100,39 +102,43 @@ pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
 /// that leading and trailing whitespace may be removed at block element
 /// boundaries.
 ///
-/// Because this filter works on text nodes, depth first, it _must not be
-/// combined with other filters that detach elements_ such as
-/// [`detach_banned_elements`], etc. _Doing so might lead to loss of text!_
-/// Instead, run this filter in a subequent pass, on its own or with other
-/// non-detaching filters.
+/// Because this filter works on text nodes, depth first, results are better
+/// (more whitespace removed, stable/idempotent) to apply it in its own
+/// `Document::filter` pass, _after_ any filters that detach elements, such as
+/// [`detach_banned_elements`] are separately run.
 pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
-    if let NodeData::Text(ref mut t) = node.data {
-        let node_l = node.prev_sibling.map(|id| &doc[id]);
+    thread_local! {
+        static MERGE_Q: RefCell<Vec<StrTendril>> = RefCell::new(Vec::new())
+    };
 
-        // Merge Strategy: We only have mutable access to the current node, so
-        // we merge by copying text node(s) from our immediate right (following
-        // siblings). To avoid duplication, if we find any text node to our
-        // immediate left (previous), then we assume this node has been copied
-        // already and detach.  While this is workable, it does make this
-        // filter susceptible to loosing text if combined with other filters
-        // that detach. The reason is that the detach may occur where the copy
-        // didn't, due to previously intervening nodes.
-        if node_l.map_or(false, |n| n.as_text().is_some()) {
+    if let NodeData::Text(ref mut t) = node.data {
+
+        // If the immediately folowing sibbling is also text, then add our
+        // tendril to the merge queue and detach.
+        let node_r = node.next_sibling.map(|id| &doc[id]);
+        if node_r.and_then(Node::as_text).is_some() {
+            MERGE_Q.with(|q| {
+                q.borrow_mut().push(mem::replace(t, StrTendril::new()))
+            });
             return Action::Detach;
         }
 
-        let following = iter::successors(
-            node.next_sibling,
-            move |&id| doc[id].next_sibling);
-        let mut node_r = None;
-        for idr in following {
-            if let Some(rt) = doc[idr].as_text() {
-                t.push_tendril(rt);
-            } else {
-                node_r = Some(&doc[idr]);
-                break;
+        // Otherwise combine any text in the queue.
+        MERGE_Q.with(|q| {
+            let mut qv = q.borrow_mut();
+            if qv.len() > 0 {
+                let mut qv = qv.drain(..);
+                let mut buff = qv.next().unwrap();
+                for nt in qv {
+                    buff.push_tendril(&nt);
+                }
+
+                buff.push_tendril(t);
+                *t = buff;
             }
-        }
+        });
+
+        let node_l = node.prev_sibling.map(|id| &doc[id]);
 
         let parent = node.parent.unwrap();
         let parent_is_block = is_block(&doc[parent]);

@@ -131,9 +131,8 @@ fn test_filter_chain() {
         other_filter,
         strike_remove_filter,
         |_d: &Document, _n: &mut Node| { Action::Continue }, // in place noop
+        filter::text_normalize, // best not used liked this
     ));
-
-    doc.filter(filter::text_normalize);
 
     assert_eq!(
         "<div>foo baz</div>",
@@ -209,7 +208,20 @@ fn test_empty_inline() {
         doc.to_string()
     );
 
-    doc.filter(filter::detach_empty_inline);
+    doc.filter(chain_filters!(
+        filter::detach_empty_inline,
+        filter::text_normalize
+    ));
+
+    // Its not recomended to combine text_normalize as above, but make sure it
+    // just leaves some whitespace.
+
+    assert_eq!(
+        "<div>text  2  3 <br>  end</div>",
+        doc.to_string()
+    );
+
+    // Now normalize properly:
     doc.filter(filter::text_normalize);
 
     assert_eq!(
