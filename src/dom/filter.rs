@@ -42,14 +42,14 @@ pub fn detach_banned_elements(_d: &Document, node: &mut Node) -> Action {
     Action::Continue
 }
 
-/// Detach any effectively pointless inline elements, which contain only logical
+/// Fold meaningless inline elements, which are empty or contain only logical
 /// whitespace.
 ///
 /// Logical whitespace is defined as all Unicode whitespace or control chars in
 /// child text, or the `<br>` element. Non-text oriented inline elements like
 /// `<img>` and `<video>` and other multi-media are excluded from
 /// consideration.
-pub fn detach_empty_inline(doc: &Document, node: &mut Node) -> Action {
+pub fn fold_empty_inline(doc: &Document, node: &mut Node) -> Action {
     if is_inline(node) && !is_multi_media(node) {
         let mut children = iter::successors(
             node.first_child,
@@ -103,17 +103,16 @@ pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
 ///
 /// Because this filter works on text nodes, depth first, results are better if
 /// applied in its own `Document::filter` pass, _after_ any pass containing
-/// filters that detach or fold elements, such as
-/// [`detach_banned_elements`]. Otherwise the filter may not be able to merge
-/// text node's which become siblings in the process, resulting in additional
-/// whitespace.
+/// filters that detach or fold elements, such as [`detach_banned_elements`] or
+/// [`fold_empty_inline`]. Otherwise the filter may not be able to merge text
+/// node's which become siblings too late in the process, resulting in
+/// additional unnecessary whitespace.
 pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
     thread_local! {
         static MERGE_Q: RefCell<StrTendril> = RefCell::new(StrTendril::new())
     };
 
     if let NodeData::Text(ref mut t) = node.data {
-
         // If the immediately folowing sibbling is also Text, then push this
         // tendril to the merge queue and detach.
         let node_r = node.next_sibling.map(|id| &doc[id]);

@@ -150,7 +150,7 @@ fn test_filter_chain_large_sample() {
         filter::detach_banned_elements,
         filter::detach_comments,
         filter::detach_pis,
-        filter::detach_empty_inline,
+        filter::fold_empty_inline,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
     );
@@ -209,7 +209,7 @@ fn test_empty_inline() {
     );
 
     doc.filter(chain_filters!(
-        filter::detach_empty_inline,
+        filter::fold_empty_inline,
         filter::text_normalize
     ));
 

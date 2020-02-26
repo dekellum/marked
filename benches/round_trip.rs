@@ -104,7 +104,7 @@ fn b30_text_nomalize_content(b: &mut Bencher) {
         let mut doc = doc.deep_clone(doc.root_element().unwrap());
         doc.filter(chain_filters!(
             filter::detach_banned_elements,
-            filter::detach_empty_inline,
+            filter::fold_empty_inline,
             filter::detach_comments,
             filter::detach_pis,
             filter::retain_basic_attributes,
@@ -125,7 +125,7 @@ fn b31_text_nomalize_content_identity(b: &mut Bencher) {
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
     doc.filter(chain_filters!(
         filter::detach_banned_elements,
-        filter::detach_empty_inline,
+        filter::fold_empty_inline,
         filter::detach_comments,
         filter::detach_pis,
         filter::retain_basic_attributes,
@@ -136,7 +136,7 @@ fn b31_text_nomalize_content_identity(b: &mut Bencher) {
     b.iter(|| {
         doc.filter(chain_filters!(
             filter::detach_banned_elements,
-            filter::detach_empty_inline,
+            filter::fold_empty_inline,
             filter::detach_comments,
             filter::detach_pis,
             filter::retain_basic_attributes,
