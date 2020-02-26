@@ -25,7 +25,7 @@ pub enum Action {
     Detach,
 }
 
-/// Remove known banned-elements
+/// Detach known banned elements
 /// [`TagMeta::is_banned`](crate::html::TagMeta::is_banned) and any elements
 /// which are unknown.
 pub fn detach_banned_elements(_d: &Document, node: &mut Node) -> Action {
