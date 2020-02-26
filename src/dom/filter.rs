@@ -2,7 +2,6 @@
 
 use std::iter;
 use std::cell::RefCell;
-use std::mem;
 
 use log::debug;
 
@@ -18,7 +17,7 @@ pub enum Action {
     /// Continue filtering, without further changes to this `Node`.
     Continue,
 
-    /// Replace this `Node` with its children. Equivalent to `Remove` if
+    /// Replace this `Node` with its children. Equivalent to `Detach` if
     /// returned for a `Node` with no children.
     Fold,
 
@@ -102,39 +101,36 @@ pub fn retain_basic_attributes(_d: &Document, node: &mut Node) -> Action {
 /// that leading and trailing whitespace may be removed at block element
 /// boundaries.
 ///
-/// Because this filter works on text nodes, depth first, results are better
-/// (more whitespace removed, stable/idempotent) to apply it in its own
-/// `Document::filter` pass, _after_ any filters that detach elements, such as
-/// [`detach_banned_elements`] are separately run.
+/// Because this filter works on text nodes, depth first, results are better if
+/// applied in its own `Document::filter` pass, _after_ any pass containing
+/// filters that detach or fold elements, such as
+/// [`detach_banned_elements`]. Otherwise the filter may not be able to merge
+/// text node's which become siblings in the process, resulting in additional
+/// whitespace.
 pub fn text_normalize(doc: &Document, node: &mut Node) -> Action {
     thread_local! {
-        static MERGE_Q: RefCell<Vec<StrTendril>> = RefCell::new(Vec::new())
+        static MERGE_Q: RefCell<StrTendril> = RefCell::new(StrTendril::new())
     };
 
     if let NodeData::Text(ref mut t) = node.data {
 
-        // If the immediately folowing sibbling is also text, then add our
+        // If the immediately folowing sibbling is also Text, then push this
         // tendril to the merge queue and detach.
         let node_r = node.next_sibling.map(|id| &doc[id]);
         if node_r.and_then(Node::as_text).is_some() {
             MERGE_Q.with(|q| {
-                q.borrow_mut().push(mem::replace(t, StrTendril::new()))
+                q.borrow_mut().push_tendril(t)
             });
             return Action::Detach;
         }
 
-        // Otherwise combine any text in the queue.
+        // Otherwise add this tendril to anything in the queue, consuming it.
         MERGE_Q.with(|q| {
-            let mut qv = q.borrow_mut();
-            if qv.len() > 0 {
-                let mut qv = qv.drain(..);
-                let mut buff = qv.next().unwrap();
-                for nt in qv {
-                    buff.push_tendril(&nt);
-                }
-
-                buff.push_tendril(t);
-                *t = buff;
+            let mut qt = q.borrow_mut();
+            if qt.len() > 0 {
+                qt.push_tendril(t);
+                drop(qt);
+                *t = q.replace(StrTendril::new());
             }
         });
 
