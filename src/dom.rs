@@ -465,6 +465,65 @@ impl Node {
     }
 }
 
+// FIXME: Possibly `Node` should impl Deref<NodeData> to solve repetition?
+
+impl NodeData {
+    /// Return `Element` is this is an element.
+    pub fn as_element(&self) -> Option<&Element> {
+        match self {
+            NodeData::Elem(ref data) => Some(data),
+            _ => None,
+        }
+    }
+
+    /// Return mutable `Element` reference if this is an element.
+    pub fn as_element_mut(&mut self) -> Option<&mut Element> {
+        match self {
+            NodeData::Elem(ref mut data) => Some(data),
+            _ => None,
+        }
+    }
+
+    /// Return text (char data) if this is a text node.
+    pub fn as_text(&self) -> Option<&StrTendril> {
+        match self {
+            NodeData::Text(ref t) => Some(t),
+            _ => None,
+        }
+    }
+
+    /// Return mutable text (char data) reference if this is a text node.
+    pub fn as_text_mut(&mut self) -> Option<&mut StrTendril> {
+        match self {
+            NodeData::Text(ref mut t) => Some(t),
+            _ => None,
+        }
+    }
+
+    /// Return attribute value by given local attribute name, if this is an
+    /// element with that attribute present.
+    pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+        where LN: Into<LocalName>
+    {
+        if let Some(edata) = self.as_element() {
+            edata.attr(lname)
+        } else {
+            None
+        }
+    }
+
+    /// Return true if this Node is an element with the given local name.
+    pub fn is_elem<LN>(&self, lname: LN) -> bool
+        where LN: Into<LocalName>
+    {
+        if let Some(edata) = self.as_element() {
+            edata.is_elem(lname)
+        } else {
+            false
+        }
+    }
+}
+
 impl Clone for Node {
     fn clone(&self) -> Self {
         Node::new(self.data.clone())

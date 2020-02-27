@@ -2,7 +2,7 @@ use std::fs::File;
 use std::{io, io::Read};
 
 use crate::{
-    Attribute, Document, Element, Node, QualName, StrTendril,
+    Attribute, Document, Element, Node, NodeId, QualName, StrTendril,
     dom::NodeData,
     filter, filter::Action,
     html, html::{a, t, TAG_META},
@@ -73,12 +73,24 @@ fn mixed_text_no_root() {
     );
 }
 
-fn strike_fold_filter(_d: &Document, node: &mut Node) -> Action {
-    if node.is_elem(t::STRIKE) { Action::Fold } else { Action::Continue }
+fn strike_fold_filter(_d: &Document, _id: NodeId, data: &mut NodeData)
+    -> Action
+{
+    if data.is_elem(t::STRIKE) {
+        Action::Fold
+    } else {
+        Action::Continue
+    }
 }
 
-fn strike_remove_filter(_d: &Document, node: &mut Node) -> Action {
-    if node.is_elem(t::STRIKE) { Action::Detach } else { Action::Continue }
+fn strike_remove_filter(_d: &Document, _id: NodeId, data: &mut NodeData)
+    -> Action
+{
+    if data.is_elem(t::STRIKE) {
+        Action::Detach
+    } else {
+        Action::Continue
+    }
 }
 
 #[test]
@@ -123,14 +135,19 @@ fn test_filter_chain() {
     );
 
     // just to confirm that closures also work in chain
-    let other_filter = |_d: &Document, n: &mut Node| {
-        if n.is_elem(t::META) { Action::Detach } else { Action::Continue }
+    let other_filter = |_d: &Document, _id: NodeId, data: &mut NodeData| {
+        if data.is_elem(t::META) {
+            Action::Detach
+        } else {
+            Action::Continue
+        }
     };
 
     doc.filter(chain_filters!(
         other_filter,
         strike_remove_filter,
-        |_d: &Document, _n: &mut Node| { Action::Continue }, // in place noop
+        // in place noop
+        |_d: &Document, _id: NodeId, _nd: &mut NodeData| { Action::Continue },
         filter::text_normalize, // best not used liked this
     ));
 
