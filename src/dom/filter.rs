@@ -138,11 +138,8 @@ pub fn text_normalize(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
         let in_pre = parent.node_and_ancestors().any(|a| is_preform_node(&a));
 
         let node_l = pos.prev_sibling();
-        let trim_l = (parent_is_block && node_l.is_none()) ||
-            node_l.map_or(false, |n| is_block(&n));
-
-        let trim_r = (parent_is_block && node_r.is_none()) ||
-            node_r.map_or(false, |n| is_block(&n));
+        let trim_l = node_l.map_or(parent_is_block, |n| is_block(&n));
+        let trim_r = node_r.map_or(parent_is_block, |n| is_block(&n));
 
         replace_chars(t, !in_pre, true, trim_l, trim_r);
 
