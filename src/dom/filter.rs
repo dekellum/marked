@@ -232,26 +232,43 @@ impl Document {
     /// Perform a depth-first (e.g. children before parent nodes) walk from the
     /// specified node ID, allowing the provided function to make changes to
     /// each `Node`.
-    pub fn filter_at<F>(&mut self, id: NodeId, f: &mut F) -> Action
+    #[inline]
+    pub fn filter_at<F>(&mut self, id: NodeId, f: &mut F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
+        match self.depth_first(id, f) {
+            Action::Continue => {},
+            Action::Fold => {
+                self.fold(id);
+                // next child set above, these children already walked
+            }
+            Action::Detach => {
+                self.detach(id);
+            }
+        }
+    }
+
+    /// Perform a depth-first (e.g. children before parent nodes) walk from the
+    /// specified node ID, allowing the provided function to make changes to
+    /// each `Node`.
+    fn depth_first<F>(&mut self, id: NodeId, f: &mut F) -> Action
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        // Children first, recursively:
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
             next_child = self[child].next_sibling;
-            match self.filter_at(child, f) {
-                Action::Continue => {},
-                Action::Fold => {
-                    self.fold(child);
-                    // next child set above, these children already walked
-                }
-                Action::Detach => {
-                    self.detach(child);
-                }
-            }
+            self.filter_at(child, f);
         }
 
+        // We need to replace node.data with a placeholder (Hole) to appease
+        // the borrow checker. Otherwise there would be an aliasing problem
+        // where the Document (&self) reference could see the same NodeData
+        // passed as &mut.
         let mut ndata = std::mem::replace(&mut self[id].data, NodeData::Hole);
         let res = f(NodeRef::new(self, id), &mut ndata);
+        // We only need to replace the mutated node.data if the action is to
+        // continue, as other cases result in the entire node be detached.
         if res == Action::Continue {
             self[id].data = ndata;
         }
