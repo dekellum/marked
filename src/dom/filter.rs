@@ -130,7 +130,7 @@ pub fn text_normalize(doc: &Document, id: NodeId, data: &mut NodeData)
         // If the immediately folowing sibbling is also Text, then push this
         // tendril to the merge queue and detach.
         let node_r = node.next_sibling.map(|id| &doc[id]);
-        if node_r.and_then(Node::as_text).is_some() {
+        if node_r.and_then(|n| n.as_text()).is_some() {
             MERGE_Q.with(|q| {
                 q.borrow_mut().push_tendril(t)
             });
