@@ -27,9 +27,7 @@ pub enum Action {
 /// Detach known banned elements
 /// [`TagMeta::is_banned`](crate::html::TagMeta::is_banned) and any elements
 /// which are unknown.
-pub fn detach_banned_elements(_d: &Document, _id: NodeId, data: &mut NodeData)
-    -> Action
-{
+pub fn detach_banned_elements(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(ref mut elm) = data.as_element_mut() {
         if let Some(tmeta) = TAG_META.get(&elm.name.local) {
             if tmeta.is_banned() {
@@ -50,10 +48,7 @@ pub fn detach_banned_elements(_d: &Document, _id: NodeId, data: &mut NodeData)
 /// child text, or the `<br>` element. Non-text oriented inline elements like
 /// `<img>` and `<video>` and other multi-media are excluded from
 /// consideration.
-pub fn fold_empty_inline(doc: &Document, id: NodeId, data: &mut NodeData)
-    -> Action
-{
-    let pos = NodeRef::new(doc, id);
+pub fn fold_empty_inline(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
     if  is_inline(&data) &&
         !is_multi_media(&data) &&
         pos.children().all(|c| is_logical_ws(&c))
@@ -65,9 +60,7 @@ pub fn fold_empty_inline(doc: &Document, id: NodeId, data: &mut NodeData)
 }
 
 /// Detach any comment nodes.
-pub fn detach_comments(_d: &Document, _id: NodeId, data: &mut NodeData)
-    -> Action
-{
+pub fn detach_comments(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let NodeData::Comment(_) = data {
         Action::Detach
     } else {
@@ -76,9 +69,7 @@ pub fn detach_comments(_d: &Document, _id: NodeId, data: &mut NodeData)
 }
 
 /// Detach any processing instruction nodes.
-pub fn detach_pis(_d: &Document, _id: NodeId, data: &mut NodeData)
-    -> Action
-{
+pub fn detach_pis(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let NodeData::ProcessingInstruction {..} = data {
         Action::Detach
     } else {
@@ -88,7 +79,7 @@ pub fn detach_pis(_d: &Document, _id: NodeId, data: &mut NodeData)
 
 /// Filter out attributes that are not included in the "basic" set
 /// [`TagMeta`](crate::html::TagMeta) for each element.
-pub fn retain_basic_attributes(_d: &Document, _id: NodeId, data: &mut NodeData)
+pub fn retain_basic_attributes(_p: NodeRef<'_>, data: &mut NodeData)
     -> Action
 {
     if let Some(ref mut elm) = data.as_element_mut() {
@@ -116,16 +107,12 @@ pub fn retain_basic_attributes(_d: &Document, _id: NodeId, data: &mut NodeData)
 /// [`fold_empty_inline`]. Otherwise the filter may not be able to merge text
 /// node's which become siblings too late in the process, resulting in
 /// additional unnecessary whitespace.
-pub fn text_normalize(doc: &Document, id: NodeId, data: &mut NodeData)
-    -> Action
-{
+pub fn text_normalize(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
     thread_local! {
         static MERGE_Q: RefCell<StrTendril> = RefCell::new(StrTendril::new())
     };
 
     if let Some(t) = data.as_text_mut() {
-        let pos = NodeRef::new(doc, id);
-
         // If the immediately following sibling is also text, then push this
         // tendril to the merge queue and detach.
         let node_r = pos.next_sibling();
@@ -176,9 +163,7 @@ pub fn text_normalize(doc: &Document, id: NodeId, data: &mut NodeData)
 /// the wild.  After the HTML parse where special internal markup rules are
 /// applied, these are roughly equivelent to `<pre>`, and its safer if
 /// converted.
-pub fn xmp_to_pre(_doc: &Document, _id: NodeId, data: &mut NodeData)
-    -> Action
-{
+pub fn xmp_to_pre(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(elm) = data.as_element_mut() {
         if is_preformatted(elm) {
             elm.name.local = t::PRE;
@@ -242,7 +227,7 @@ impl Document {
     /// entire document, from the document root node, allowing the provided
     /// function to make changes to each `Node`.
     pub fn filter<F>(&mut self, mut f: F)
-        where F: Fn(&Document, NodeId, &mut NodeData) -> Action
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
         self.filter_at(Document::DOCUMENT_NODE_ID, &mut f);
     }
@@ -251,7 +236,7 @@ impl Document {
     /// specified node ID, allowing the provided function to make changes to
     /// each `Node`.
     pub fn filter_at<F>(&mut self, id: NodeId, f: &mut F) -> Action
-        where F: Fn(&Document, NodeId, &mut NodeData) -> Action
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
@@ -269,7 +254,7 @@ impl Document {
         }
 
         let mut ndata = std::mem::replace(&mut self[id].data, NodeData::Hole);
-        let res = f(self, id, &mut ndata);
+        let res = f(NodeRef::new(self, id), &mut ndata);
         if res == Action::Continue {
             self[id].data = ndata;
         }
@@ -283,16 +268,16 @@ impl Document {
 #[macro_export]
 macro_rules! chain_filters {
     ($solo:expr $(,)?) => (
-        |doc: & $crate::Document, id: $crate::NodeId, data: &mut $crate::NodeData| {
-            $solo(doc, id, data)
+        |pos: $crate::NodeRef<'_>, data: &mut $crate::NodeData| {
+            $solo(pos, data)
         }
     );
     ($first:expr $(, $subs:expr)+ $(,)?) => (
-        |doc: & $crate::Document, id: $crate::NodeId, data: &mut $crate::NodeData| {
-            let mut action: $crate::filter::Action = $first(doc, id, data);
+        |pos: $crate::NodeRef<'_>, data: &mut $crate::NodeData| {
+            let mut action: $crate::filter::Action = $first(pos, data);
         $(
             if action == $crate::filter::Action::Continue {
-                action = $subs(doc, id, data);
+                action = $subs(pos, data);
             }
         )*
             action
