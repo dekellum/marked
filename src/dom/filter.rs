@@ -1,6 +1,5 @@
 //! Mutating visitor support for `Document`.
 
-use std::iter;
 use std::cell::RefCell;
 
 use log::debug;
@@ -8,7 +7,7 @@ use log::debug;
 use crate::chars::{is_all_ctrl_ws, replace_chars};
 use crate::dom::{
     html::{t, TAG_META},
-    Document, Element, Node, NodeData, NodeId, StrTendril
+    Document, Element, Node, NodeData, NodeId, NodeRef, StrTendril
 };
 
 /// An instruction returned by the `Fn` closure used by [`Document::filter`].
@@ -54,15 +53,15 @@ pub fn detach_banned_elements(_d: &Document, _id: NodeId, data: &mut NodeData)
 pub fn fold_empty_inline(doc: &Document, id: NodeId, data: &mut NodeData)
     -> Action
 {
-    if is_inline(&data) && !is_multi_media(&data) {
-        let mut children = iter::successors(
-            doc[id].first_child,
-            move |&id| doc[id].next_sibling);
-        if children.all(|id| is_logical_ws(&doc[id])) {
-            return Action::Fold;
-        }
+    let pos = NodeRef::new(doc, id);
+    if  is_inline(&data) &&
+        !is_multi_media(&data) &&
+        pos.children().all(|c| is_logical_ws(&c))
+    {
+        Action::Fold
+    } else {
+        Action::Continue
     }
-    Action::Continue
 }
 
 /// Detach any comment nodes.
@@ -125,12 +124,12 @@ pub fn text_normalize(doc: &Document, id: NodeId, data: &mut NodeData)
     };
 
     if let Some(t) = data.as_text_mut() {
-        let node = &doc[id];
+        let pos = NodeRef::new(doc, id);
 
-        // If the immediately folowing sibbling is also Text, then push this
+        // If the immediately following sibling is also text, then push this
         // tendril to the merge queue and detach.
-        let node_r = node.next_sibling.map(|id| &doc[id]);
-        if node_r.and_then(|n| n.as_text()).is_some() {
+        let node_r = pos.next_sibling();
+        if node_r.map_or(false, |n| n.as_text().is_some()) {
             MERGE_Q.with(|q| {
                 q.borrow_mut().push_tendril(t)
             });
@@ -147,19 +146,16 @@ pub fn text_normalize(doc: &Document, id: NodeId, data: &mut NodeData)
             }
         });
 
-        let node_l = node.prev_sibling.map(|id| &doc[id]);
+        let parent = pos.parent().unwrap();
+        let parent_is_block = is_block(&parent);
+        let in_pre = parent.node_and_ancestors().any(|a| is_preform_node(&a));
 
-        let parent = node.parent.unwrap();
-        let parent_is_block = is_block(&doc[parent]);
-        let in_pre = doc
-            .node_and_ancestors(parent)
-            .any(|id| is_preform_node(&doc[id]));
-
+        let node_l = pos.prev_sibling();
         let trim_l = (parent_is_block && node_l.is_none()) ||
-            node_l.map_or(false, is_block);
+            node_l.map_or(false, |n| is_block(&n));
 
         let trim_r = (parent_is_block && node_r.is_none()) ||
-            node_r.map_or(false, is_block);
+            node_r.map_or(false, |n| is_block(&n));
 
         replace_chars(t, !in_pre, true, trim_l, trim_r);
 

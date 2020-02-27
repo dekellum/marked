@@ -95,6 +95,16 @@ impl<'a> NodeRef<'a> {
         self.for_some_node(self.parent)
     }
 
+    /// Return any previous (left) sibling node or None.
+    pub fn prev_sibling(&'a self) -> Option<NodeRef<'a>> {
+        self.for_some_node(self.prev_sibling)
+    }
+
+    /// Return any subsequent next (right) sibling node or None.
+    pub fn next_sibling(&'a self) -> Option<NodeRef<'a>> {
+        self.for_some_node(self.next_sibling)
+    }
+
     /// Return all decendent text content (character data) of this node.
     ///
     /// If this is a Text node, return that text.  If this is an
