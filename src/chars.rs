@@ -27,7 +27,7 @@ pub(crate) fn replace_chars(
         if rmask > 0 {
             if replacing == 0 {
                 if ost.is_none() {
-                    ost = Some(StrTendril::with_capacity(st.len32()));
+                    ost = Some(StrTendril::new());
                 }
                 ost.as_mut().unwrap().push_slice(&ins[last..i]);
             }
