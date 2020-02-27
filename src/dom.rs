@@ -66,7 +66,8 @@ pub struct Node {
 }
 
 #[derive(Clone, Debug)]
-enum NodeData {
+pub enum NodeData {
+    Hole,
     Document,
     Doctype {
         name: StrTendril,
@@ -99,7 +100,7 @@ impl Document {
     /// Construct a new `Document` with the single empty document node.
     pub fn new() -> Self {
         Document { nodes: vec![
-            Node::new(NodeData::Document), // dummy padding, index 0
+            Node::new(NodeData::Hole),     // padding, index 0
             Node::new(NodeData::Document)  // the real root, index 1
         ]}
     }
@@ -126,6 +127,9 @@ impl Document {
                 | NodeData::ProcessingInstruction { .. } => {}
                 NodeData::Document => {
                     panic!("Document child of Document");
+                }
+                NodeData::Hole => {
+                    panic!("Hole in Document");
                 }
                 NodeData::Text(_) => {
                     root = None;

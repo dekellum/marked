@@ -51,6 +51,10 @@ impl<'a> Serialize for NodeRef<'a> {
                 Ok(())
             }
 
+            (_, &NodeData::Hole) => {
+                panic!("Hole in Document")
+            }
+
             (_, &NodeData::Document) => {
                 for child in self.children() {
                     Serialize::serialize(&child, serializer, IncludeNode)?;
