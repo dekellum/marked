@@ -29,8 +29,7 @@ use tendril::{fmt as form, Tendril};
 
 use crate::{
     Attribute, Decoder, Document, Element, EncodingHint,
-    Node, NodeId, SharedEncodingHint,
-    dom::NodeData,
+    Node, NodeData, NodeId, SharedEncodingHint,
     BOM_CONF, HTML_META_CONF, INITIAL_BUFFER_SIZE,
 };
 

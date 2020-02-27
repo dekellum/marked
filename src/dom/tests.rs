@@ -2,8 +2,8 @@ use std::fs::File;
 use std::{io, io::Read};
 
 use crate::{
-    Attribute, Document, Element, Node, NodeId, QualName, StrTendril,
-    dom::NodeData,
+    Attribute, Document, Element, Node, NodeData, NodeId,
+    QualName, StrTendril,
     filter, filter::Action,
     html, html::{a, t, TAG_META},
     xml,

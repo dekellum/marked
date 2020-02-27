@@ -55,7 +55,8 @@ pub struct Document {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct NodeId(NonZeroU32);
 
-/// A typed node (e.g. text, element, etc.) within a `Document`.
+/// A typed node (e.g. text, element, etc.) within a `Document` including
+/// identifiers to parent, siblings and children.
 #[derive(Debug)]
 pub struct Node {
     parent: Option<NodeId>,
@@ -66,18 +67,33 @@ pub struct Node {
     data: NodeData,
 }
 
+/// The node type and associated data.
 #[derive(Clone, Debug)]
 pub enum NodeData {
+    /// A place holder value. Used temporarily while filtering and for nodes
+    /// that have been removed.
     Hole,
+
+    /// The document node which contains all other nodes.
     Document,
+
+    /// The document type definition.
     Doctype {
         name: StrTendril,
         _public_id: StrTendril,
         _system_id: StrTendril,
     },
+
+    /// Character data content.
     Text(StrTendril),
+
+    /// A comment.
     Comment(StrTendril),
+
+    /// An element.
     Elem(Element),
+
+    /// A processing instruction node.
     ProcessingInstruction {
         target: StrTendril,
         data: StrTendril,
