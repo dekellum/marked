@@ -118,7 +118,7 @@ impl Document {
     pub fn new() -> Self {
         Document { nodes: vec![
             Node::new(NodeData::Hole),     // padding, index 0
-            Node::new(NodeData::Document)  // the real root, index 1
+            Node::new(NodeData::Document)  // Index 1: DOCUMENT_NODE_ID
         ]}
     }
 
@@ -332,7 +332,7 @@ impl Document {
         }
     }
 
-    /// Replace the given node with its children.
+    // Replace the given node with its children.
     fn fold(&mut self, id: NodeId) {
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
