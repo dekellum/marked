@@ -244,9 +244,9 @@ impl Document {
     /// current node being visited, and `pos` gives a read-only cursor-like
     /// view to the remainder of the `Document`, currently at the same
     /// position. Note that to avoid aliasing issues, the `NodeData` is
-    /// actually copied out of the `Document` and replaced with a
+    /// actually moved out of the `Document` and replaced with a
     /// `NodeData::Hole` value which could be observed via `pos`. The
-    /// potentially modified `NodeData` is copied back to the `Document` if the
+    /// potentially modified `NodeData` is moved back to the `Document` if the
     /// function returns `Action::Continue`. The function may also modify the
     /// `Document` by returning other [`Action`] values.
     ///
