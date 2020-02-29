@@ -7,7 +7,7 @@ use log::debug;
 use crate::chars::{is_all_ctrl_ws, replace_chars};
 use crate::dom::{
     html::{t, TAG_META},
-    Document, Element, Node, NodeData, NodeId, NodeRef, StrTendril
+    Document, Element, NodeData, NodeId, NodeRef, StrTendril
 };
 
 /// An instruction returned by the `Fn` closure used by [`Document::filter`].
@@ -170,9 +170,9 @@ pub fn detach_banned_elements(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
 /// `<img>` and `<video>` and other multi-media are excluded from
 /// consideration.
 pub fn fold_empty_inline(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
-    if  is_inline(&data) &&
-        !is_multi_media(&data) &&
-        pos.children().all(|c| is_logical_ws(&c))
+    if  is_inline(data) &&
+        !is_multi_media(data) &&
+        pos.children().all(is_logical_ws)
     {
         Action::Fold
     } else {
@@ -255,12 +255,12 @@ pub fn text_normalize(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
         });
 
         let parent = pos.parent().unwrap();
-        let parent_is_block = is_block(&parent);
-        let in_pre = parent.node_and_ancestors().any(|a| is_preform_node(&a));
+        let parent_is_block = is_block(parent);
+        let in_pre = parent.node_and_ancestors().any(is_preform_node);
 
         let node_l = pos.prev_sibling();
-        let trim_l = node_l.map_or(parent_is_block, |n| is_block(&n));
-        let trim_r = node_r.map_or(parent_is_block, |n| is_block(&n));
+        let trim_l = node_l.map_or(parent_is_block, is_block);
+        let trim_r = node_r.map_or(parent_is_block, is_block);
 
         replace_chars(t, !in_pre, true, trim_l, trim_r);
 
@@ -290,7 +290,7 @@ pub fn xmp_to_pre(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     Action::Continue
 }
 
-fn is_block(node: &Node) -> bool {
+fn is_block(node: NodeRef<'_>) -> bool {
     if let Some(elm) = node.as_element() {
         if let Some(tmeta) = TAG_META.get(&elm.name.local) {
             return !tmeta.is_inline();
@@ -314,11 +314,11 @@ fn is_preformatted(e: &Element) -> bool {
     e.is_elem(t::PRE) || e.is_elem(t::XMP) || e.is_elem(t::PLAINTEXT)
 }
 
-fn is_preform_node(n: &Node) -> bool {
+fn is_preform_node(n: NodeRef<'_>) -> bool {
     n.is_elem(t::PRE) || n.is_elem(t::XMP) || n.is_elem(t::PLAINTEXT)
 }
 
-fn is_logical_ws(n: &Node) -> bool {
+fn is_logical_ws(n: NodeRef<'_>) -> bool {
     if let Some(t) = n.as_text() {
         is_all_ctrl_ws(t)
     } else {
