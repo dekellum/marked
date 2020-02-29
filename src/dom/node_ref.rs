@@ -14,12 +14,13 @@ pub struct NodeRef<'a>{
 }
 
 impl<'a> NodeRef<'a> {
+    /// Constructor.
     #[inline]
     pub fn new(doc: &'a Document, id: NodeId) -> Self {
         NodeRef { doc, id }
     }
 
-    /// Return the associated `NodeId`
+    /// Return the associated `NodeId`.
     pub fn id(&self) -> NodeId {
         self.id
     }

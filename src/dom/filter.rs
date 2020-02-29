@@ -38,7 +38,7 @@ impl Document {
     }
 
     /// Perform a depth-first (e.g. children before parent nodes) walk from the
-    /// specified `NodeId`, applying the provided function.
+    /// specified node ID, applying the provided function.
     ///
     /// The `Fn` can be a closure or free-function in the form:
     ///
@@ -47,9 +47,9 @@ impl Document {
     /// ```
     ///
     /// Where `data` provides read-write access to the the `NodeData` of the
-    /// current node being visited, and `pos` gives a read-only cursor-like
-    /// view to the remainder of the `Document`, currently at the same
-    /// position. Note that to avoid aliasing issues, the `NodeData` is
+    /// current node being visited, and `pos` gives a read-only view to the
+    /// remainder of the `Document`, e.g. parent, children, and siblings of the
+    /// current node. Note that to avoid aliasing issues, the `NodeData` is
     /// actually moved out of the `Document` and replaced with a
     /// `NodeData::Hole` value which could be observed via `pos`. The
     /// potentially modified `NodeData` is moved back to the `Document` if the
