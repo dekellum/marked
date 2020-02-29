@@ -178,18 +178,25 @@ impl Document {
         NodeId(unsafe { NonZeroU32::new_unchecked(next_index) })
     }
 
-    fn detach(&mut self, node: NodeId) {
+    /// Detach the specified node ID.
+    ///
+    /// Panics if called with the synthetic DOCUMENT_NODE_ID.
+    /// Detaching the root element results in an empty document with no root
+    /// element.
+    ///
+    /// Detach just removes references from other nodes. To free up the memory
+    /// associated with the node and its children, use [`Document::deep_clone`]
+    /// and drop the original `Document`.
+    pub fn detach(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
             "Can't detach the synthetic document node");
 
         let (parent, prev_sibling, next_sibling) = {
-            let node = &mut self[node];
-            (
-                node.parent.take(),
-                node.prev_sibling.take(),
-                node.next_sibling.take(),
-            )
+            let node = &mut self[id];
+            (node.parent.take(),
+             node.prev_sibling.take(),
+             node.next_sibling.take())
         };
 
         if let Some(next_sibling) = next_sibling {
@@ -284,29 +291,29 @@ impl Document {
     /// Return an iterator over this node's direct children.
     ///
     /// Will be empty if the node can not or does not have children.
-    pub fn children<'a>(&'a self, node: NodeId)
+    pub fn children<'a>(&'a self, id: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
         iter::successors(
-            self[node].first_child,
-            move |&node| self[node].next_sibling
+            self[id].first_child,
+            move |&id| self[id].next_sibling
         )
     }
 
     /// Return an iterator over the specified node and all its following,
     /// direct siblings, within the same parent.
-    pub fn node_and_following_siblings<'a>(&'a self, node: NodeId)
+    pub fn node_and_following_siblings<'a>(&'a self, id: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
-        iter::successors(Some(node), move |&node| self[node].next_sibling)
+        iter::successors(Some(id), move |&id| self[id].next_sibling)
     }
 
     /// Return an iterator over the specified node and all its ancestors,
     /// terminating at the document node.
-    pub fn node_and_ancestors<'a>(&'a self, node: NodeId)
+    pub fn node_and_ancestors<'a>(&'a self, id: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
-        iter::successors(Some(node), move |&node| self[node].parent)
+        iter::successors(Some(id), move |&id| self[id].parent)
     }
 
     /// Return an iterator over all nodes, starting with the document node, and
@@ -314,13 +321,13 @@ impl Document {
     pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
         iter::successors(
             Some(Document::DOCUMENT_NODE_ID),
-            move |&node| self.next_in_tree_order(node)
+            move |&id| self.next_in_tree_order(id)
         )
     }
 
-    fn next_in_tree_order(&self, node: NodeId) -> Option<NodeId> {
-        self[node].first_child.or_else(|| {
-            self.node_and_ancestors(node)
+    fn next_in_tree_order(&self, id: NodeId) -> Option<NodeId> {
+        self[id].first_child.or_else(|| {
+            self.node_and_ancestors(id)
                 .find_map(|ancestor| self[ancestor].next_sibling)
         })
     }
@@ -340,8 +347,18 @@ impl Document {
         }
     }
 
-    // Replace the given node with its children.
-    fn fold(&mut self, id: NodeId) {
+    /// Replace the specified node ID with its children.
+    ///
+    /// Panics if called with the synthetic DOCUMENT_NODE_ID. Folding the root
+    /// element may result in a `Document` with no single root element, or
+    /// which is otherwise invalid based on its _doctype_, e.g. the HTML or XML
+    /// specifications.
+    ///
+    /// After repositioning children the specified node is detached, which only
+    /// removes references. To free up the memory associated with the node, use
+    /// [`Document::deep_clone`] and drop the original `Document`. For a
+    /// node with no children, fold is equivalent to [`Document::detach`].
+    pub fn fold(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
             "Can't fold the synthetic document node");

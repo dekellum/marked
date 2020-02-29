@@ -82,6 +82,30 @@ fn strike_remove_filter(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
 }
 
 #[test]
+fn test_detach_root() {
+    ensure_logger();
+    let mut doc = html::parse_utf8(
+        "<html>text</html>"
+            .as_bytes()
+    );
+    doc.detach(doc.root_element_ref().unwrap().id());
+    assert!(doc.root_element_ref().is_none());
+    assert_eq!("", doc.to_string());
+}
+
+#[test]
+fn test_detach_root_doctype() {
+    ensure_logger();
+    let mut doc = html::parse_utf8(
+        "<!DOCTYPE html><html>text</html>"
+            .as_bytes()
+    );
+    doc.detach(doc.root_element_ref().unwrap().id());
+    assert!(doc.root_element_ref().is_none());
+    assert_eq!("<!DOCTYPE html>", doc.to_string());
+}
+
+#[test]
 fn test_fold_filter() {
     ensure_logger();
     let mut doc = html::parse_utf8(

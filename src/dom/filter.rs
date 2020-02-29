@@ -16,12 +16,12 @@ pub enum Action {
     /// Continue filtering, without further changes to this `Node`.
     Continue,
 
+    /// Detach this `Node`, and any children, from the tree.
+    Detach,
+
     /// Replace this `Node` with its children. Equivalent to `Detach` if
     /// returned for a `Node` with no children.
     Fold,
-
-    /// Detach this `Node`, and any children, from the tree.
-    Detach,
 }
 
 /// Detach known banned elements
@@ -97,7 +97,7 @@ pub fn retain_basic_attributes(_p: NodeRef<'_>, data: &mut NodeData)
 ///
 /// The filter is aware of whitespace significance rules in HTML `<pre>` (or
 /// similar tag) blocks as well as block vs inline elements in general. It
-/// assumes, without knowledge of any potential unconventinal external styling,
+/// assumes, without knowledge of any potential unconventional external styling,
 /// that leading and trailing whitespace may be removed at block element
 /// boundaries.
 ///
@@ -158,7 +158,7 @@ pub fn text_normalize(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
 /// The `<xmp>`, `<listing>` and `<plaintext>` tags are deprecated in later
 /// HTML versions and are XML/XHTML incompatible, but can still can be found in
 /// the wild.  After the HTML parse where special internal markup rules are
-/// applied, these are roughly equivelent to `<pre>`, and its safer if
+/// applied, these are roughly equivalent to `<pre>`, and its safer if
 /// converted.
 pub fn xmp_to_pre(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(elm) = data.as_element_mut() {
