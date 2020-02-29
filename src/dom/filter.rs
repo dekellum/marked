@@ -24,6 +24,121 @@ pub enum Action {
     Fold,
 }
 
+/// Mutating filter methods.
+impl Document {
+    /// Perform a depth-first (e.g. children before parent nodes) walk of the
+    /// entire `Document`, including synthetic document node, applying the
+    /// provided function.
+    ///
+    /// See [`Document::filter_at`] for additional details.
+    pub fn filter<F>(&mut self, mut f: F)
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        self.filter_at(Document::DOCUMENT_NODE_ID, &mut f);
+    }
+
+    /// Perform a depth-first (e.g. children before parent nodes) walk from the
+    /// specified `NodeId`, applying the provided function.
+    ///
+    /// The `Fn` can be a closure or free-function in the form:
+    ///
+    /// ```norun
+    /// fn a_filter_fn(pos: NodeRef<'_>, data: &mut NodeData) -> Action;
+    /// ```
+    ///
+    /// Where `data` provides read-write access to the the `NodeData` of the
+    /// current node being visited, and `pos` gives a read-only cursor-like
+    /// view to the remainder of the `Document`, currently at the same
+    /// position. Note that to avoid aliasing issues, the `NodeData` is
+    /// actually moved out of the `Document` and replaced with a
+    /// `NodeData::Hole` value which could be observed via `pos`. The
+    /// potentially modified `NodeData` is moved back to the `Document` if the
+    /// function returns `Action::Continue`. The function may also modify the
+    /// `Document` by returning other [`Action`] values.
+    ///
+    /// For convenience and efficiency, multiple filter functions can be
+    /// combined via the [`chain_filters`] macro and run in one pass.
+    ///
+    /// Note that to free up all memory associated with filtered `Node`s that
+    /// have been detached, use [`Document::deep_clone`] and drop the original
+    /// `Document.`.
+    pub fn filter_at<F>(&mut self, id: NodeId, f: &mut F)
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        match self.depth_first(id, f) {
+            Action::Continue => {},
+            Action::Fold => {
+                self.fold(id);
+            }
+            Action::Detach => {
+                self.detach(id);
+            }
+        }
+    }
+
+    #[inline]
+    fn depth_first<F>(&mut self, id: NodeId, f: &mut F) -> Action
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        // Children first, recursively:
+        let mut next_child = self[id].first_child;
+        while let Some(child) = next_child {
+            next_child = self[child].next_sibling; // set before possible loss:
+            self.filter_at(child, f);
+        }
+
+        // We need to replace node.data with a placeholder (Hole) to appease
+        // the borrow checker. Otherwise there would be an aliasing problem
+        // where the Document (&self) reference could see the same NodeData
+        // passed as &mut.
+        let mut ndata = std::mem::replace(&mut self[id].data, NodeData::Hole);
+        let res = f(NodeRef::new(self, id), &mut ndata);
+        // We only need to reset the potentially mutated node.data if the
+        // action is to continue, as all other cases result in the node
+        // being detached.
+        if res == Action::Continue {
+            let node = &mut self[id];
+            match ndata {
+                NodeData::Document | NodeData::Elem(_) => {}
+                NodeData::Hole => {
+                    debug_assert!(false, "Filter changed to {:?}", ndata);
+                }
+                _ => {
+                    debug_assert!(
+                        node.first_child.is_none() && node.last_child.is_none(),
+                        "Filter changed node {:?} with children to {:?}",
+                        id, ndata);
+                }
+            }
+            node.data = ndata;
+        }
+        res
+    }
+}
+
+/// Compose a new filter closure, by chaining a list of 1 to many closures or
+/// function paths. Each is executed in order, while the returned action remains
+/// `Action::Continue`, or otherwise terminated early.
+#[macro_export]
+macro_rules! chain_filters {
+    ($solo:expr $(,)?) => (
+        |pos: $crate::NodeRef<'_>, data: &mut $crate::NodeData| {
+            $solo(pos, data)
+        }
+    );
+    ($first:expr $(, $subs:expr)+ $(,)?) => (
+        |pos: $crate::NodeRef<'_>, data: &mut $crate::NodeData| {
+            let mut action: $crate::filter::Action = $first(pos, data);
+        $(
+            if action == $crate::filter::Action::Continue {
+                action = $subs(pos, data);
+            }
+        )*
+            action
+        }
+    );
+}
+
 /// Detach known banned elements
 /// [`TagMeta::is_banned`](crate::html::TagMeta::is_banned) and any elements
 /// which are unknown.
@@ -216,119 +331,4 @@ fn is_multi_media(n: &NodeData) -> bool {
         n.is_elem(t::PROGRESS) ||
         n.is_elem(t::SVG) ||
         n.is_elem(t::VIDEO)
-}
-
-/// Mutating filter methods.
-impl Document {
-    /// Perform a depth-first (e.g. children before parent nodes) walk of the
-    /// entire `Document`, including synthetic document node, applying the
-    /// provided function.
-    ///
-    /// See [`Document::filter_at`] for additional details.
-    pub fn filter<F>(&mut self, mut f: F)
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
-    {
-        self.filter_at(Document::DOCUMENT_NODE_ID, &mut f);
-    }
-
-    /// Perform a depth-first (e.g. children before parent nodes) walk from the
-    /// specified `NodeId`, applying the provided function.
-    ///
-    /// The `Fn` can be a closure or free-function in the form:
-    ///
-    /// ```norun
-    /// fn a_filter_fn(pos: NodeRef<'_>, data: &mut NodeData) -> Action;
-    /// ```
-    ///
-    /// Where `data` provides read-write access to the the `NodeData` of the
-    /// current node being visited, and `pos` gives a read-only cursor-like
-    /// view to the remainder of the `Document`, currently at the same
-    /// position. Note that to avoid aliasing issues, the `NodeData` is
-    /// actually moved out of the `Document` and replaced with a
-    /// `NodeData::Hole` value which could be observed via `pos`. The
-    /// potentially modified `NodeData` is moved back to the `Document` if the
-    /// function returns `Action::Continue`. The function may also modify the
-    /// `Document` by returning other [`Action`] values.
-    ///
-    /// For convenience and efficiency, multiple filter functions can be
-    /// combined via the [`chain_filters`] macro and run in one pass.
-    ///
-    /// Note that to free up all memory associated with filtered `Node`s that
-    /// have been detached, use [`Document::deep_clone`] and drop the original
-    /// `Document.`.
-    pub fn filter_at<F>(&mut self, id: NodeId, f: &mut F)
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
-    {
-        match self.depth_first(id, f) {
-            Action::Continue => {},
-            Action::Fold => {
-                self.fold(id);
-            }
-            Action::Detach => {
-                self.detach(id);
-            }
-        }
-    }
-
-    #[inline]
-    fn depth_first<F>(&mut self, id: NodeId, f: &mut F) -> Action
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
-    {
-        // Children first, recursively:
-        let mut next_child = self[id].first_child;
-        while let Some(child) = next_child {
-            next_child = self[child].next_sibling; // set before possible loss:
-            self.filter_at(child, f);
-        }
-
-        // We need to replace node.data with a placeholder (Hole) to appease
-        // the borrow checker. Otherwise there would be an aliasing problem
-        // where the Document (&self) reference could see the same NodeData
-        // passed as &mut.
-        let mut ndata = std::mem::replace(&mut self[id].data, NodeData::Hole);
-        let res = f(NodeRef::new(self, id), &mut ndata);
-        // We only need to reset the potentially mutated node.data if the
-        // action is to continue, as all other cases result in the node
-        // being detached.
-        if res == Action::Continue {
-            let node = &mut self[id];
-            match ndata {
-                NodeData::Document | NodeData::Elem(_) => {}
-                NodeData::Hole => {
-                    debug_assert!(false, "Filter changed to {:?}", ndata);
-                }
-                _ => {
-                    debug_assert!(
-                        node.first_child.is_none() && node.last_child.is_none(),
-                        "Filter changed node {:?} with children to {:?}",
-                        id, ndata);
-                }
-            }
-            node.data = ndata;
-        }
-        res
-    }
-}
-
-/// Compose a new filter closure, by chaining a list of 1 to many closures or
-/// function paths. Each is executed in order, while the returned action remains
-/// `Action::Continue`, or otherwise terminated early.
-#[macro_export]
-macro_rules! chain_filters {
-    ($solo:expr $(,)?) => (
-        |pos: $crate::NodeRef<'_>, data: &mut $crate::NodeData| {
-            $solo(pos, data)
-        }
-    );
-    ($first:expr $(, $subs:expr)+ $(,)?) => (
-        |pos: $crate::NodeRef<'_>, data: &mut $crate::NodeData| {
-            let mut action: $crate::filter::Action = $first(pos, data);
-        $(
-            if action == $crate::filter::Action::Continue {
-                action = $subs(pos, data);
-            }
-        )*
-            action
-        }
-    );
 }
