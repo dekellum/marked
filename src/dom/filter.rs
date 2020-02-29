@@ -34,7 +34,7 @@ impl Document {
     pub fn filter<F>(&mut self, mut f: F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        self.filter_at(Document::DOCUMENT_NODE_ID, &mut f);
+        self.filter_at_ref(Document::DOCUMENT_NODE_ID, &mut f);
     }
 
     /// Perform a depth-first (e.g. children before parent nodes) walk from the
@@ -62,7 +62,13 @@ impl Document {
     /// Note that to free up all memory associated with filtered `Node`s that
     /// have been detached, use [`Document::deep_clone`] and drop the original
     /// `Document.`.
-    pub fn filter_at<F>(&mut self, id: NodeId, f: &mut F)
+    pub fn filter_at<F>(&mut self, id: NodeId, mut f: F)
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        self.filter_at_ref(id, &mut f)
+    }
+
+    fn filter_at_ref<F>(&mut self, id: NodeId, f: &mut F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
         match self.depth_first(id, f) {
@@ -84,7 +90,7 @@ impl Document {
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
             next_child = self[child].next_sibling; // set before possible loss:
-            self.filter_at(child, f);
+            self.filter_at_ref(child, f);
         }
 
         // We need to replace node.data with a placeholder (Hole) to appease
