@@ -143,10 +143,14 @@ impl Document {
                 | NodeData::Comment(_)
                 | NodeData::ProcessingInstruction { .. } => {}
                 NodeData::Document => {
-                    panic!("Document child of Document");
+                    debug_assert!(false, "Document child of Document");
+                    root = None;
+                    break;
                 }
                 NodeData::Hole => {
-                    panic!("Hole in Document");
+                    debug_assert!(false, "Hole in Document");
+                    root = None;
+                    break;
                 }
                 NodeData::Text(_) => {
                     root = None;
@@ -175,6 +179,10 @@ impl Document {
     }
 
     fn detach(&mut self, node: NodeId) {
+        assert!(
+            id != Document::DOCUMENT_NODE_ID,
+            "Can't detach the synthetic document node");
+
         let (parent, prev_sibling, next_sibling) = {
             let node = &mut self[node];
             (
@@ -334,6 +342,10 @@ impl Document {
 
     // Replace the given node with its children.
     fn fold(&mut self, id: NodeId) {
+        assert!(
+            id != Document::DOCUMENT_NODE_ID,
+            "Can't fold the synthetic document node");
+
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
             debug_assert_eq!(self[child].parent, Some(id));

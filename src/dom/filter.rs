@@ -291,7 +291,20 @@ impl Document {
         // action is to continue, as all other cases result in the node
         // being detached.
         if res == Action::Continue {
-            self[id].data = ndata;
+            let node = &mut self[id];
+            match ndata {
+                NodeData::Document | NodeData::Elem(_) => {}
+                NodeData::Hole => {
+                    debug_assert!(false, "Filter changed to {:?}", ndata);
+                }
+                _ => {
+                    debug_assert!(
+                        node.first_child.is_none() && node.last_child.is_none(),
+                        "Filter changed node {:?} with children to {:?}",
+                        id, ndata);
+                }
+            }
+            node.data = ndata;
         }
         res
     }
