@@ -102,11 +102,14 @@ fn b30_text_nomalize_content(b: &mut Bencher) {
     let doc = parse_buffered(eh, &mut fin).expect("parse");
     b.iter(|| {
         let mut doc = doc.deep_clone(doc.root_element().unwrap());
-        doc.filter(chain_filters!(
+        doc.filter_breadth(chain_filters!(
             filter::detach_banned_elements,
-            filter::fold_empty_inline,
             filter::detach_comments,
             filter::detach_pis,
+        ));
+
+        doc.filter(chain_filters!(
+            filter::fold_empty_inline,
             filter::retain_basic_attributes,
             filter::xmp_to_pre,
         ));

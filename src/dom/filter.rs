@@ -37,6 +37,13 @@ impl Document {
         self.filter_at_ref(Document::DOCUMENT_NODE_ID, true, &mut f);
     }
 
+
+    pub fn filter_breadth<F>(&mut self, mut f: F)
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        self.filter_at_ref(Document::DOCUMENT_NODE_ID, false, &mut f);
+    }
+
     /// Perform a depth-first (e.g. children before parent nodes) walk from the
     /// specified node ID, applying the provided function.
     ///
@@ -82,7 +89,6 @@ impl Document {
         }
     }
 
-    #[inline]
     fn walk<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F) -> Action
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {

@@ -171,10 +171,14 @@ fn test_filter_chain_large_sample() {
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut reader = sample_file("github-dekellum.html");
     let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
-    let pass_1 = chain_filters!(
+    let pass_0 = chain_filters!(
         filter::detach_banned_elements,
         filter::detach_comments,
         filter::detach_pis,
+    );
+    doc.filter_breadth(pass_0);
+
+    let pass_1 = chain_filters!(
         filter::fold_empty_inline,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
