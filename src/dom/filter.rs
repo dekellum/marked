@@ -34,7 +34,7 @@ impl Document {
     pub fn filter<F>(&mut self, mut f: F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        self.filter_at_ref(Document::DOCUMENT_NODE_ID, &mut f);
+        self.filter_at_ref(Document::DOCUMENT_NODE_ID, true, &mut f);
     }
 
     /// Perform a depth-first (e.g. children before parent nodes) walk from the
@@ -65,13 +65,13 @@ impl Document {
     pub fn filter_at<F>(&mut self, id: NodeId, mut f: F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        self.filter_at_ref(id, &mut f)
+        self.filter_at_ref(id, true, &mut f)
     }
 
-    fn filter_at_ref<F>(&mut self, id: NodeId, f: &mut F)
+    fn filter_at_ref<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        match self.depth_first(id, f) {
+        match self.walk(id, depth_first, f) {
             Action::Continue => {},
             Action::Fold => {
                 self.fold(id);
@@ -83,16 +83,33 @@ impl Document {
     }
 
     #[inline]
-    fn depth_first<F>(&mut self, id: NodeId, f: &mut F) -> Action
+    fn walk<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F) -> Action
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
+        if !depth_first {
+            let res = self.filter_node(id, f);
+            if res != Action::Continue {
+                return res;
+            }
+        }
+
         // Children first, recursively:
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
             next_child = self[child].next_sibling; // set before possible loss:
-            self.filter_at_ref(child, f);
+            self.filter_at_ref(child, depth_first, f);
         }
 
+        if depth_first {
+            self.filter_node(id, f)
+        } else {
+            Action::Continue
+        }
+    }
+
+    fn filter_node<F>(&mut self, id: NodeId, f: &mut F) -> Action
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
         // We need to replace node.data with a placeholder (Hole) to appease
         // the borrow checker. Otherwise there would be an aliasing problem
         // where the Document (&self) reference could see the same NodeData
