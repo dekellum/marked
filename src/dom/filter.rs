@@ -146,7 +146,7 @@ macro_rules! chain_filters {
 }
 
 /// Detach known banned elements
-/// [`TagMeta::is_banned`](crate::html::TagMeta::is_banned) and any elements
+/// ([`TagMeta::is_banned`](crate::html::TagMeta::is_banned)) and any elements
 /// which are unknown.
 pub fn detach_banned_elements(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(ref mut elm) = data.as_element_mut() {
