@@ -5,120 +5,118 @@ extern crate test; // Still required, see rust-lang/rust#55133
 
 use std::default::Default;
 use std::io;
+use std::io::Read;
 use std::fs::File;
 
 use test::Bencher;
 
-use encoding_rs as enc;
-use html5ever::{ns, namespace_url};
-
 use marked;
-use marked::Attribute;
-use marked::QualName;
-use marked::EncodingHint;
 use marked::NodeData;
 use marked::NodeRef;
 use marked::chain_filters;
 use marked::filter;
 use marked::filter::Action;
-use marked::html::parse_buffered;
-use marked::html::{TAG_META, a, t};
+use marked::html::parse_utf8_fragment;
+use marked::html::{a, t};
 
+// Filter elements based on default Ammonia::Builder::tags settings
+pub fn default_tag_filter(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
+    if let Some(ref elm) = data.as_element() {
+        match elm.name.local {
+
+            // The default Ammonia::Builder::tags whitelist should be kept
+            t::A | t::ABBR | t::ACRONYM | t::AREA | t::ARTICLE | t::ASIDE |
+            t::B | t::BDI | t::BDO | t::BLOCKQUOTE | t::BR | t::CAPTION |
+            t::CENTER | t::CITE | t::CODE | t::COL | t::COLGROUP | t::DATA |
+            t::DD | t::DEL | t::DETAILS | t::DFN | t::DIV | t::DL | t::DT |
+            t::EM | t::FIGCAPTION | t::FIGURE | t::FOOTER |
+            t::H1 | t::H2 | t::H3 | t::H4 | t::H5 | t::H6 |
+            t::HEADER | t::HGROUP | t::HR | t::I | t::IMG | t::INS | t::KBD |
+            t::LI | t::MAP | t::MARK | t::NAV | t::OL | t::P | t::PRE | t::Q |
+            t::RP | t::RT | t::RTC | t::RUBY | t::S | t::SAMP | t::SMALL |
+            t::SPAN | t::STRIKE | t::STRONG | t::SUB | t::SUMMARY | t::SUP |
+            t::TABLE | t::TBODY | t::TD | t::TH | t::THEAD | t::TIME | t::TR |
+            t::TT | t::U | t::UL | t::VAR | t::WBR
+                => Action::Continue,
+
+            // * Ammonia::Builder::clean_content_tags default: STYLE and
+            //   SCRIPT (despite rustdoc)
+            // * DOMs like *5ever rcdom have specific handling for TEMPLATE,
+            //   separating it from tree
+            t::STYLE | t::SCRIPT | t::TEMPLATE => Action::Detach,
+
+            // Fold all else.
+            _ => Action::Fold,
+        }
+    } else {
+        Action::Continue
+    }
+}
+
+// Set the `<a>` `rel` attribute based on default Ammonia::Builder::link_rel
 fn link_rel(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(elm) = data.as_element_mut() {
         if elm.is_elem(t::A) {
-            let mut found = false;
-            for a in elm.attrs.iter_mut() {
-                if a.name.local == a::REL {
-                    // FIXME: Delete here so we can always add at end of attributes?
-                    a.value = "noopener noreferrer".into();
-                    found = true;
-                }
-            }
-            if !found {
-                elm.attrs.push(Attribute {
-                    name: QualName::new(None, ns!(), a::REL),
-                    value: "noopener noreferrer".into()
-                });
-            }
+            // Ensure one rel attribute at end by removing first
+            elm.remove_attr(a::REL);
+            elm.set_attr(a::REL, "noopener noreferrer");
         }
     }
     Action::Continue
-}
-
-fn detach_no_content_elements(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
-    if data.is_elem(t::STYLE) || data.is_elem(t::SCRIPT) {
-        Action::Detach
-    } else {
-        Action::Continue
-    }
-}
-
-/// Fold known banned elements
-/// ([`TagMeta::is_banned`](crate::html::TagMeta::is_banned)) and any elements
-/// which are unknown. This is more similar to what Ammonia does.
-pub fn fold_banned_elements(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
-    if let Some(ref mut elm) = data.as_element_mut() {
-        if let Some(tmeta) = TAG_META.get(&elm.name.local) {
-            if tmeta.is_banned() {
-                return Action::Fold;
-            }
-        } else {
-            return Action::Fold;
-        }
-    }
-    Action::Continue
-}
-
-/// More items folded by Ammonium defaults, which is more fragment oriented.
-fn fold_other(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
-    if  data.is_elem(t::FORM) ||
-        data.is_elem(t::HEAD) ||
-        data.is_elem(t::LINK) ||
-        data.is_elem(t::META) ||
-        data.is_elem(t::SVG)  ||
-        data.is_elem(t::TITLE)
-    {
-        Action::Fold
-    } else {
-        Action::Continue
-    }
 }
 
 #[bench]
-fn b40_marked_clean_reader(b: &mut Bencher) {
+fn b40_marked_parse_only(b: &mut Bencher) {
+
+    let mut frag = String::new();
+    sample_file("github-dekellum-frag.html")
+        .expect("sample_file")
+        .read_to_string(&mut frag)
+        .expect("read_to_string");
+    let frag = frag.trim();
     b.iter(|| {
-        let mut fin = sample_file("github-dekellum.html")
-            .expect("sample_file");
-        let eh = EncodingHint::shared_default(enc::UTF_8);
-        let mut doc = parse_buffered(eh, &mut fin).expect("parse");
+        parse_utf8_fragment(frag.as_bytes());
+    });
+}
+
+
+#[bench]
+fn b41_marked_clean(b: &mut Bencher) {
+
+    let mut frag = String::new();
+    sample_file("github-dekellum-frag.html")
+        .expect("sample_file")
+        .read_to_string(&mut frag)
+        .expect("read_to_string");
+    let frag = frag.trim();
+    b.iter(|| {
+        let mut doc = parse_utf8_fragment(frag.as_bytes());
         doc.filter(chain_filters!(
-            detach_no_content_elements,
-            //filter::fold_empty_inline,
+            default_tag_filter,
             filter::detach_comments,
             filter::detach_pis,
-            fold_banned_elements,
-            fold_other,
             filter::retain_basic_attributes,
-            filter::xmp_to_pre,
             link_rel
         ));
-        //doc.filter(filter::text_normalize); // Always use new pass.
 
         let out = doc.to_string();
-        assert_eq!(out.len(), 52493, "[[[{}]]]", out);
+        assert_eq!(out.len(), 52062, "[[[{}]]]", out);
     });
 }
 
 #[bench]
-fn b41_ammonia_clean_reader(b: &mut Bencher) {
+fn b42_ammonia_clean(b: &mut Bencher) {
+    let mut frag = String::new();
+    sample_file("github-dekellum-frag.html")
+        .expect("sample_file")
+        .read_to_string(&mut frag)
+        .expect("read_to_string");
+    let frag = frag.trim();
     let amm = ammonia::Builder::default();
     b.iter(|| {
-        let fin = sample_file("github-dekellum.html")
-            .expect("sample_file");
-        let doc = amm.clean_from_reader(fin).unwrap();
+        let doc = amm.clean(&frag);
         let out = doc.to_string();
-        assert_eq!(out.len(), 52329);
+        assert_eq!(out.len(), 52062, "[[[{}]]]", out);
     });
 }
 
