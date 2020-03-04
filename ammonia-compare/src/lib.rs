@@ -1,5 +1,6 @@
 #![warn(rust_2018_idioms)]
 #![feature(test)]
+#![cfg(test)]
 
 extern crate test; // Still required, see rust-lang/rust#55133
 
@@ -79,7 +80,6 @@ fn b40_marked_parse_only(b: &mut Bencher) {
     });
 }
 
-
 #[bench]
 fn b41_marked_clean(b: &mut Bencher) {
 
@@ -95,6 +95,8 @@ fn b41_marked_clean(b: &mut Bencher) {
             default_tag_filter,
             filter::detach_comments,
             filter::detach_pis,
+            /// This is sufficient for this sample (with the workaround for REL
+            /// above) but isn't the exact same config as Ammonia defaults:
             filter::retain_basic_attributes,
             link_rel
         ));

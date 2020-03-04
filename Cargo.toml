@@ -20,8 +20,6 @@ lazy_static     = { version=">=1.3.0, <2" }
 [dev-dependencies]
 rand            = { version=">=0.7.0, <0.8" }
 markup5ever_rcdom = { git="https://github.com/dekellum/html5ever", branch="rcdom" }
-ammonia         = { version=">=3.0.0, <3.1" }
-# FIXME: Can't have optional dev-dependency; workaround move to its own project?
 
 [profile.release]
 lto = "thin"
