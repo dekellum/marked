@@ -52,6 +52,42 @@ fn one_element() {
 }
 
 #[test]
+fn element_attrs() {
+    ensure_logger();
+    let mut el = Element::new(t::A);
+    assert!(el.set_attr("href", "/where").is_none());
+    assert_eq!("/where", el.set_attr("href", "/other").unwrap().as_ref());
+    assert_eq!("/other", el.remove_attr(a::HREF).unwrap().as_ref());
+}
+
+#[test]
+fn element_attrs_dups() {
+    ensure_logger();
+    let mut el = Element::new(t::A);
+    // Manually, for duplicates:
+    el.attrs = vec![
+        Attribute {
+            name: QualName::new(None, ns!(), a::REL),
+            value: "nofollow".into()
+        },
+        Attribute {
+            name: QualName::new(None, ns!(), a::HREF),
+            value: "/some".into()
+        },
+        Attribute {
+            name: QualName::new(None, ns!(), a::REL),
+            value: "noreferrer".into()
+        },
+    ];
+    assert_eq!(3, el.attrs.len());
+    assert_eq!("/some", el.set_attr("href", "/other").unwrap().as_ref());
+    assert_eq!(3, el.attrs.len());
+    assert_eq!("noreferrer", el.set_attr(a::REL, "external").unwrap().as_ref());
+    assert_eq!(2, el.attrs.len());
+    assert_eq!("external", el.attr("rel").unwrap().as_ref());
+}
+
+#[test]
 fn mixed_text_no_root() {
     ensure_logger();
     let mut doc = Document::new();
@@ -392,7 +428,7 @@ fn test_empty_tag() {
 }
 
 #[test]
-fn test_attrs() {
+fn test_parsed_attrs() {
     ensure_logger();
     let mut doc = html::parse_utf8_fragment(
         r##"<a rel="nofollow" href=".." rel="noindex">link</a>"##.as_bytes()
