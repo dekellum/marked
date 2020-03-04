@@ -472,7 +472,6 @@ fn test_parsed_attrs() {
     );
 }
 
-
 #[test]
 fn test_shallow_fragment() {
     ensure_logger();
