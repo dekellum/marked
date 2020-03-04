@@ -445,8 +445,8 @@ impl Element {
     ///
     /// This removes _all_ instances of attributes with the given local name
     /// and returns the value of the _last_ such attribute. Parsers may allow
-    /// same named attributes or multiples might be introduced via subsequent
-    /// user mutations.
+    /// same named attributes or multiples might be introduced via manual
+    /// mutations.
     pub fn remove_attr<LN>(&mut self, lname: LN) -> Option<StrTendril>
         where LN: Into<LocalName>
     {
@@ -471,7 +471,7 @@ impl Element {
     /// end, use [`Element::remove_attr`] first.  In the case where multiple
     /// existing instances of the attribute are found, the _last_ value is
     /// returned.  Parsers may allow same named attributes or multiples might be
-    /// introduced via subsequent user mutations.
+    /// introduced via manual mutations.
     pub fn set_attr<LN, V>(&mut self, lname: LN, value: V) -> Option<StrTendril>
         where LN: Into<LocalName>, V: Into<StrTendril>
     {
