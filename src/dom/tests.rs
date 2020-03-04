@@ -43,10 +43,7 @@ fn empty_document() {
 fn one_element() {
     ensure_logger();
     let mut doc = Document::new();
-    let element = Node::new_element(
-        QualName::new(None, ns!(), "one".into()),
-        vec![]
-    );
+    let element = Node::new_elem(Element::new("one"));
     let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
 
     assert!(doc.root_element_ref().is_some(), "pushed root Element");
@@ -55,13 +52,46 @@ fn one_element() {
 }
 
 #[test]
+fn element_attrs() {
+    ensure_logger();
+    let mut el = Element::new(t::A);
+    assert!(el.set_attr("href", "/where").is_none());
+    assert_eq!("/where", el.set_attr("href", "/other").unwrap().as_ref());
+    assert_eq!("/other", el.remove_attr(a::HREF).unwrap().as_ref());
+}
+
+#[test]
+fn element_attrs_dups() {
+    ensure_logger();
+    let mut el = Element::new(t::A);
+    // Manually, for duplicates:
+    el.attrs = vec![
+        Attribute {
+            name: QualName::new(None, ns!(), a::REL),
+            value: "nofollow".into()
+        },
+        Attribute {
+            name: QualName::new(None, ns!(), a::HREF),
+            value: "/some".into()
+        },
+        Attribute {
+            name: QualName::new(None, ns!(), a::REL),
+            value: "noreferrer".into()
+        },
+    ];
+    assert_eq!(3, el.attrs.len());
+    assert_eq!("/some", el.set_attr("href", "/other").unwrap().as_ref());
+    assert_eq!(3, el.attrs.len());
+    assert_eq!("noreferrer", el.set_attr(a::REL, "external").unwrap().as_ref());
+    assert_eq!(2, el.attrs.len());
+    assert_eq!("external", el.attr("rel").unwrap().as_ref());
+}
+
+#[test]
 fn mixed_text_no_root() {
     ensure_logger();
     let mut doc = Document::new();
-    let element = Node::new_element(
-        QualName::new(None, ns!(), "one".into()),
-        vec![]
-    );
+    let element = Node::new_elem(Element::new("one"));
     let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
     doc.append_child(id, Node::new_text("bar"));
     doc.insert_before_sibling(id, Node::new_text("foo"));
@@ -395,6 +425,51 @@ fn test_empty_tag() {
     let doc = doc.deep_clone(doc.root_element().unwrap());
     debug!("the doc nodes:\n{:?}", doc);
     assert_eq!(4, doc.nodes.len() - 2);
+}
+
+#[test]
+fn test_parsed_attrs() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        r##"<a rel="nofollow" href=".." rel="noindex">link</a>"##.as_bytes()
+    );
+    // *5ever won't duplicate attributes:
+    assert_eq!(
+        r##"<div><a rel="nofollow" href="..">link</a></div>"##,
+        doc.to_string()
+    );
+    let root = doc.root_element_ref().expect("root");
+    let aid = root.find(|n| n.is_elem(t::A)).expect("find <a>").id();
+
+    doc[aid]
+        .as_element_mut()
+        .unwrap()
+        .set_attr(a::REL, "reset");
+
+    assert_eq!(
+        r##"<div><a rel="reset" href="..">link</a></div>"##,
+        doc.to_string()
+    );
+
+    doc[aid]
+        .as_element_mut()
+        .unwrap()
+        .remove_attr(a::REL);
+
+    assert_eq!(
+        r##"<div><a href="..">link</a></div>"##,
+        doc.to_string()
+    );
+
+    doc[aid]
+        .as_element_mut()
+        .unwrap()
+        .set_attr(a::REL, "replace");
+
+    assert_eq!(
+        r##"<div><a href=".." rel="replace">link</a></div>"##,
+        doc.to_string()
+    );
 }
 
 #[test]

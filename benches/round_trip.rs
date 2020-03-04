@@ -95,7 +95,7 @@ fn b20_text_content(b: &mut Bencher) {
 }
 
 #[bench]
-fn b30_text_nomalize_content(b: &mut Bencher) {
+fn b30_text_normalize_content(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html")
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
@@ -118,7 +118,7 @@ fn b30_text_nomalize_content(b: &mut Bencher) {
 }
 
 #[bench]
-fn b31_text_nomalize_content_identity(b: &mut Bencher) {
+fn b31_text_normalize_content_identity(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html")
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);

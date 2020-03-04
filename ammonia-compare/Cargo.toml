@@ -1,0 +1,13 @@
+[package]
+name = "ammonia-compare"
+publish = false
+version = "0.0.1"
+authors = ["David Kellum <dek-oss@gravitext.com>"]
+edition = "2018"
+
+[lib]
+doctest = false
+
+[dependencies]
+marked = { path=".." }
+ammonia = { version=">=3.0.0, <3.1" }
