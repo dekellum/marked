@@ -403,6 +403,16 @@ impl std::ops::IndexMut<NodeId> for Document {
 }
 
 impl Element {
+    /// Construct new element by local name, with no attributes.
+    pub fn new<LN>(lname: LN) -> Element
+        where LN: Into<LocalName>
+    {
+        Element {
+            name: QualName::new(None, ns!(), lname.into()),
+            attrs: Vec::new()
+        }
+    }
+
     /// Return true if this element has the given local name.
     pub fn is_elem<LN>(&self, lname: LN) -> bool
         where LN: Into<LocalName>
@@ -499,9 +509,9 @@ impl Element {
 }
 
 impl Node {
-    /// Construct a new element node by name and attributes.
-    pub fn new_element(name: QualName, attrs: Vec<Attribute>) -> Node {
-        Node::new(NodeData::Elem(Element { name, attrs }))
+    /// Construct a new element node.
+    pub fn new_elem(element: Element) -> Node {
+        Node::new(NodeData::Elem(element))
     }
 
     /// Construct a new text node.

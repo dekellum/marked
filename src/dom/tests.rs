@@ -43,10 +43,7 @@ fn empty_document() {
 fn one_element() {
     ensure_logger();
     let mut doc = Document::new();
-    let element = Node::new_element(
-        QualName::new(None, ns!(), "one".into()),
-        vec![]
-    );
+    let element = Node::new_elem(Element::new("one"));
     let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
 
     assert!(doc.root_element_ref().is_some(), "pushed root Element");
@@ -58,10 +55,7 @@ fn one_element() {
 fn mixed_text_no_root() {
     ensure_logger();
     let mut doc = Document::new();
-    let element = Node::new_element(
-        QualName::new(None, ns!(), "one".into()),
-        vec![]
-    );
+    let element = Node::new_elem(Element::new("one"));
     let id = doc.append_child(Document::DOCUMENT_NODE_ID, element);
     doc.append_child(id, Node::new_text("bar"));
     doc.insert_before_sibling(id, Node::new_text("foo"));
