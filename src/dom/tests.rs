@@ -398,6 +398,52 @@ fn test_empty_tag() {
 }
 
 #[test]
+fn test_attrs() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        r##"<a rel="nofollow" href=".." rel="noindex">link</a>"##.as_bytes()
+    );
+    // *5ever won't duplicate attributes:
+    assert_eq!(
+        r##"<div><a rel="nofollow" href="..">link</a></div>"##,
+        doc.to_string()
+    );
+    let root = doc.root_element_ref().expect("root");
+    let aid = root.find(|n| n.is_elem(t::A)).expect("find <a>").id();
+
+    doc[aid]
+        .as_element_mut()
+        .unwrap()
+        .set_attr(a::REL, "reset");
+
+    assert_eq!(
+        r##"<div><a rel="reset" href="..">link</a></div>"##,
+        doc.to_string()
+    );
+
+    doc[aid]
+        .as_element_mut()
+        .unwrap()
+        .remove_attr(a::REL);
+
+    assert_eq!(
+        r##"<div><a href="..">link</a></div>"##,
+        doc.to_string()
+    );
+
+    doc[aid]
+        .as_element_mut()
+        .unwrap()
+        .set_attr(a::REL, "replace");
+
+    assert_eq!(
+        r##"<div><a href=".." rel="replace">link</a></div>"##,
+        doc.to_string()
+    );
+}
+
+
+#[test]
 fn test_shallow_fragment() {
     ensure_logger();
     let doc = html::parse_utf8_fragment(
