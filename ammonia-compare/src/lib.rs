@@ -92,8 +92,8 @@ fn b41_marked_clean(b: &mut Bencher) {
             default_tag_filter,
             filter::detach_comments,
             filter::detach_pis,
-            /// This is sufficient for this sample (with the workaround for REL
-            /// above) but isn't the exact same config as Ammonia defaults:
+            // This is sufficient for this sample (with the workaround for REL
+            // above) but isn't the exact same config as Ammonia defaults:
             filter::retain_basic_attributes,
             link_rel
         ));
