@@ -89,10 +89,7 @@ pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
     // Otherwise change the "html" root to a div. This is what we asked for,
     // but didn't get, from parse_fragment above.
     let root = doc[root_id].as_element_mut().unwrap();
-    *root = Element {
-        name: QualName::new(None, ns::HTML, t::DIV),
-        attrs: vec![]
-    };
+    *root = Element::new(t::DIV);
     debug_assert!(doc.root_element().is_some());
     doc
 }

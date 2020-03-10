@@ -74,7 +74,7 @@ enum CharClass {
     Control,
 }
 
-/// True if all contained characters are classfied as whitespace or controls.
+/// True if all contained characters are classified as whitespace or controls.
 pub(crate) fn is_all_ctrl_ws(st: &StrTendril) -> bool {
     st.as_ref().chars().all(|c| char_class(c) != CharClass::Unclassified)
 }
@@ -102,7 +102,7 @@ fn char_class(c: char) -> CharClass {
         // Not white, rendered with a line:
         // '\u{1680}'           => Un-         // OGHAM SPACE MARK
 
-        // Effects subsequent characters in mongolion:
+        // Effects subsequent characters in Mongolian:
         // '\u{180E}'           => Un-         // MONGOLIAN VOWEL SEPARATOR
 
         '\u{2000}'..='\u{200A}' => WhiteSpace, // EN QUAD..HAIR SPACE

@@ -12,6 +12,7 @@
 use std::convert::TryInto;
 use std::fmt;
 use std::iter;
+use std::mem;
 use std::num::NonZeroU32;
 use std::ops::{Deref, DerefMut};
 
@@ -402,15 +403,14 @@ impl std::ops::IndexMut<NodeId> for Document {
 }
 
 impl Element {
-    /// Return attribute value by local attribute name, if present.
-    pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+    /// Construct new element by local name, with no attributes.
+    pub fn new<LN>(lname: LN) -> Element
         where LN: Into<LocalName>
     {
-        let lname = lname.into();
-        self.attrs
-            .iter()
-            .find(|attr| attr.name.local == lname)
-            .map(|attr| &attr.value)
+        Element {
+            name: QualName::new(None, ns!(), lname.into()),
+            attrs: Vec::new()
+        }
     }
 
     /// Return true if this element has the given local name.
@@ -429,12 +429,89 @@ impl Element {
             None
         }
     }
+
+    /// Return attribute value by local name, if present.
+    pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
+        where LN: Into<LocalName>
+    {
+        let lname = lname.into();
+        self.attrs
+            .iter()
+            .find(|attr| attr.name.local == lname)
+            .map(|attr| &attr.value)
+    }
+
+    /// Remove attribute by local name, returning any value found.
+    ///
+    /// This removes _all_ instances of attributes with the given local name
+    /// and returns the value of the _last_ such attribute. Parsers may allow
+    /// same named attributes or multiples might be introduced via manual
+    /// mutations.
+    pub fn remove_attr<LN>(&mut self, lname: LN) -> Option<StrTendril>
+        where LN: Into<LocalName>
+    {
+        let mut found = None;
+        let mut i = 0;
+        let lname = lname.into();
+        while i < self.attrs.len() {
+            if self.attrs[i].name.local == lname {
+                found = Some(self.attrs.remove(i).value);
+            } else {
+                i += 1;
+            }
+        }
+        found
+    }
+
+    /// Set attribute by local name, returning any prior value found.
+    ///
+    /// This replaces the value of the first attribute with the given local
+    /// name and removes any other instances.  If no existing attribute is
+    /// found, the attribute is added to the end. To guarantee placement at the
+    /// end, use [`Element::remove_attr`] first.  In the case where multiple
+    /// existing instances of the attribute are found, the _last_ value is
+    /// returned.  Parsers may allow same named attributes or multiples might be
+    /// introduced via manual mutations.
+    pub fn set_attr<LN, V>(&mut self, lname: LN, value: V) -> Option<StrTendril>
+        where LN: Into<LocalName>, V: Into<StrTendril>
+    {
+        let mut found = None;
+        let mut i = 0;
+        let lname = lname.into();
+
+        // Need to Option::take value below to appease borrow checking and
+        // avoid a clone.
+        let mut value = Some(value.into());
+
+        while i < self.attrs.len() {
+            if self.attrs[i].name.local == lname {
+                if found.is_none() {
+                    found = Some(mem::replace(
+                        &mut self.attrs[i].value,
+                        value.take().unwrap(),
+                    ));
+                    i += 1;
+                } else {
+                    found = Some(self.attrs.remove(i).value);
+                };
+            } else {
+                i += 1;
+            }
+        }
+        if found.is_none() {
+            self.attrs.push(Attribute {
+                name: QualName::new(None, ns!(), lname),
+                value: value.take().unwrap()
+            });
+        }
+        found
+    }
 }
 
 impl Node {
-    /// Construct a new element node by name and attributes.
-    pub fn new_element(name: QualName, attrs: Vec<Attribute>) -> Node {
-        Node::new(NodeData::Elem(Element { name, attrs }))
+    /// Construct a new element node.
+    pub fn new_elem(element: Element) -> Node {
+        Node::new(NodeData::Elem(element))
     }
 
     /// Construct a new text node.
