@@ -11,14 +11,11 @@ use std::fs::File;
 
 use test::Bencher;
 
-use marked;
-use marked::NodeData;
-use marked::NodeRef;
-use marked::chain_filters;
-use marked::filter;
-use marked::filter::Action;
-use marked::html::parse_utf8_fragment;
-use marked::html::{a, t};
+use marked::{
+    chain_filters, filter, filter::Action,
+    html::{a, t, parse_utf8_fragment},
+    NodeData, NodeRef
+};
 
 // Filter elements based on default Ammonia::Builder::tags settings
 pub fn default_tag_filter(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
