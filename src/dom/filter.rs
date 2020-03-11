@@ -72,13 +72,15 @@ impl Document {
     pub fn filter_at<F>(&mut self, id: NodeId, mut f: F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        self.filter_at_ref(id, true, &mut f)
+        self.filter_at_ref(id, true, &mut f);
     }
 
     fn filter_at_ref<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F)
+        -> Action
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        match self.walk(id, depth_first, f) {
+        let res = self.walk(id, depth_first, f);
+        match res {
             Action::Continue => {},
             Action::Fold => {
                 self.fold(id);
@@ -87,6 +89,7 @@ impl Document {
                 self.detach(id);
             }
         }
+        res
     }
 
     fn walk<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F) -> Action
@@ -102,8 +105,13 @@ impl Document {
         // Children first, recursively:
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
-            next_child = self[child].next_sibling; // set before possible loss:
-            self.filter_at_ref(child, depth_first, f);
+            // set before possible loss by filter action
+            let fchild = self[child].first_child;
+            next_child = self[child].next_sibling;
+            let res = self.filter_at_ref(child, depth_first, f);
+            if !depth_first && res == Action::Fold {
+                next_child = fchild;
+            }
         }
 
         if depth_first {

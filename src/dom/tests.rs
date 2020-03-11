@@ -139,7 +139,7 @@ fn test_detach_root_doctype() {
 fn test_fold_filter() {
     ensure_logger();
     let mut doc = html::parse_utf8(
-        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
+        "<div>foo <strike><i><strike>bar</strike></i>s</strike> baz</div>"
             .as_bytes()
     );
     doc.filter(strike_fold_filter);
@@ -150,6 +150,23 @@ fn test_fold_filter() {
         doc.to_string()
     );
 }
+
+#[test]
+fn test_fold_filter_breadth() {
+    ensure_logger();
+    let mut doc = html::parse_utf8(
+        "<div>foo <strike><i><strike>bar</strike></i>s</strike> baz</div>"
+            .as_bytes()
+    );
+    doc.filter_breadth(strike_fold_filter);
+    assert_eq!(
+        "<html><head></head><body>\
+         <div>foo <i>bar</i>s baz</div>\
+         </body></html>",
+        doc.to_string()
+    );
+}
+
 
 #[test]
 fn test_remove_filter() {
