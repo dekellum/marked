@@ -102,14 +102,15 @@ fn b30_text_normalize_content(b: &mut Bencher) {
     let doc = parse_buffered(eh, &mut fin).expect("parse");
     b.iter(|| {
         let mut doc = doc.deep_clone(doc.root_element().unwrap());
-        doc.filter(chain_filters!(
+        doc.filter_breadth(chain_filters!(
             filter::detach_banned_elements,
-            filter::fold_empty_inline,
             filter::detach_comments,
             filter::detach_pis,
             filter::retain_basic_attributes,
             filter::xmp_to_pre,
         ));
+
+        doc.filter(filter::fold_empty_inline);
         doc.filter(filter::text_normalize); // Always use new pass.
 
         let out = doc.document_node_ref().text().unwrap();

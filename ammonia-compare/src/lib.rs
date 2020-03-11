@@ -17,11 +17,27 @@ use marked::{
     NodeData, NodeRef
 };
 
-// Filter elements based on default Ammonia::Builder::tags settings
-pub fn default_tag_filter(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
+// Detach tags for which content should not be retained
+//
+// This includes:
+// * The Ammonia::Builder::clean_content_tags default: STYLE and
+//   SCRIPT, despite conflicting rustdoc.
+// * DOMs like *5ever rcdom have specific handling for TEMPLATE,
+//   so we detach that as well.
+pub fn detach_clean_content_tags(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(ref elm) = data.as_element() {
         match elm.name.local {
+            t::STYLE | t::SCRIPT | t::TEMPLATE => return Action::Detach,
+            _ => ()
+        }
+    }
+    Action::Continue
+}
 
+// Fold elements that are not in the default Ammonia::Builder::tags whitelist.
+pub fn fold_non_whitelist_tags(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
+    if let Some(ref elm) = data.as_element() {
+        match elm.name.local {
             // The default Ammonia::Builder::tags whitelist should be kept
             t::A | t::ABBR | t::ACRONYM | t::AREA | t::ARTICLE | t::ASIDE |
             t::B | t::BDI | t::BDO | t::BLOCKQUOTE | t::BR | t::CAPTION |
@@ -35,23 +51,17 @@ pub fn default_tag_filter(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
             t::SPAN | t::STRIKE | t::STRONG | t::SUB | t::SUMMARY | t::SUP |
             t::TABLE | t::TBODY | t::TD | t::TH | t::THEAD | t::TIME | t::TR |
             t::TT | t::U | t::UL | t::VAR | t::WBR
-                => Action::Continue,
-
-            // * Ammonia::Builder::clean_content_tags default: STYLE and
-            //   SCRIPT (despite rustdoc)
-            // * DOMs like *5ever rcdom have specific handling for TEMPLATE,
-            //   separating it from tree
-            t::STYLE | t::SCRIPT | t::TEMPLATE => Action::Detach,
-
-            // Fold all else.
-            _ => Action::Fold,
+                => (),
+            _   => return Action::Fold,
         }
-    } else {
-        Action::Continue
     }
+    Action::Continue
 }
 
 // Set the `<a>` `rel` attribute based on default Ammonia::Builder::link_rel
+//
+// Ammonia removes the rel attribute before adding this at end of attributes,
+// so do the same here.
 fn link_rel(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(elm) = data.as_element_mut() {
         if elm.is_elem(t::A) {
@@ -88,18 +98,19 @@ fn b41_marked_clean(b: &mut Bencher) {
     let frag = frag.trim();
     b.iter(|| {
         let mut doc = parse_utf8_fragment(frag.as_bytes());
-        doc.filter(chain_filters!(
-            default_tag_filter,
+        doc.filter_breadth(chain_filters!(
+            detach_clean_content_tags,
             filter::detach_comments,
             filter::detach_pis,
-            // This is sufficient for this sample (with the workaround for REL
-            // above) but isn't the exact same config as Ammonia defaults:
+            fold_non_whitelist_tags,
+            // This is sufficient for this sample (with link_rel) but isn't the
+            // exact same config as Ammonia defaults:
             filter::retain_basic_attributes,
             link_rel
         ));
 
         let out = doc.to_string();
-        assert_eq!(out.len(), 52062, "[[[{}]]]", out);
+        assert_eq!(out.len(), 52062, /*"[[[{}]]]", out*/);
     });
 }
 
@@ -115,7 +126,7 @@ fn b42_ammonia_clean(b: &mut Bencher) {
     b.iter(|| {
         let doc = amm.clean(&frag);
         let out = doc.to_string();
-        assert_eq!(out.len(), 52062, "[[[{}]]]", out);
+        assert_eq!(out.len(), 52062, /*"[[[{}]]]", out*/);
     });
 }
 

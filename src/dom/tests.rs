@@ -139,10 +139,30 @@ fn test_detach_root_doctype() {
 fn test_fold_filter() {
     ensure_logger();
     let mut doc = html::parse_utf8(
-        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
+        "<div>foo <strike><strike>\
+         <strike/><i>bar</i><strike>s</strike>\
+         </strike></strike> baz</div>"
             .as_bytes()
     );
     doc.filter(strike_fold_filter);
+    assert_eq!(
+        "<html><head></head><body>\
+         <div>foo <i>bar</i>s baz</div>\
+         </body></html>",
+        doc.to_string()
+    );
+}
+
+#[test]
+fn test_fold_filter_breadth() {
+    ensure_logger();
+    let mut doc = html::parse_utf8(
+        "<div>foo <strike><strike>\
+         <strike/><i>bar</i><strike>s</strike>\
+         </strike></strike> baz</div>"
+            .as_bytes()
+    );
+    doc.filter_breadth(strike_fold_filter);
     assert_eq!(
         "<html><head></head><body>\
          <div>foo <i>bar</i>s baz</div>\
@@ -160,6 +180,23 @@ fn test_remove_filter() {
     );
     // Non-useful chain but confirms it works on one!
     doc.filter(chain_filters!(strike_remove_filter));
+    assert_eq!(
+        "<html><head></head><body>\
+         <div>foo  baz</div>\
+         </body></html>",
+        doc.to_string()
+    );
+}
+
+#[test]
+fn test_remove_filter_breadth() {
+    ensure_logger();
+    let mut doc = html::parse_utf8(
+        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
+            .as_bytes()
+    );
+    // Non-useful chain but confirms it works on one!
+    doc.filter_breadth(chain_filters!(strike_remove_filter));
     assert_eq!(
         "<html><head></head><body>\
          <div>foo  baz</div>\
@@ -201,10 +238,14 @@ fn test_filter_chain_large_sample() {
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut reader = sample_file("github-dekellum.html");
     let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
-    let pass_1 = chain_filters!(
+    let pass_0 = chain_filters!(
         filter::detach_banned_elements,
         filter::detach_comments,
         filter::detach_pis,
+    );
+    doc.filter_breadth(pass_0);
+
+    let pass_1 = chain_filters!(
         filter::fold_empty_inline,
         filter::retain_basic_attributes,
         filter::xmp_to_pre,
@@ -219,6 +260,31 @@ fn test_filter_chain_large_sample() {
     doc.filter(filter::text_normalize);
     assert_eq!(25893, doc.to_string().len(), "{}",
                doc.to_string());
+}
+
+#[test]
+fn test_filter_chain_large_sample_breadth() {
+    ensure_logger();
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut reader = sample_file("github-dekellum.html");
+    let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
+    let pass_0 = chain_filters!(
+        filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+    );
+    doc.filter_breadth(pass_0);
+    doc.filter(filter::fold_empty_inline);
+    doc.filter(filter::text_normalize);
+    assert_eq!(25893, doc.to_string().len(), /*"{}", doc.to_string()*/);
+
+    // Make sure filtering is stable/idempotent
+    doc.filter_breadth(pass_0);
+    doc.filter(filter::fold_empty_inline);
+    doc.filter(filter::text_normalize);
+    assert_eq!(25893, doc.to_string().len(), /*"{}", doc.to_string()*/);
 }
 
 #[test]

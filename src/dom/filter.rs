@@ -26,7 +26,7 @@ pub enum Action {
 
 /// Mutating filter methods.
 impl Document {
-    /// Perform a depth-first (e.g. children before parent nodes) walk of the
+    /// Perform a depth-first (children before parent nodes) walk of the
     /// entire `Document`, including synthetic document node, applying the
     /// provided function.
     ///
@@ -37,10 +37,34 @@ impl Document {
         self.filter_at_ref(Document::DOCUMENT_NODE_ID, true, &mut f);
     }
 
-    /// Perform a depth-first (e.g. children before parent nodes) walk from the
+    /// Perform a breadth-first (children after parent nodes) walk of the
+    /// entire `Document`, including synthetic document node, applying the
+    /// provided function.
+    ///
+    /// See [`Document::filter_at`] for additional details.
+    pub fn filter_breadth<F>(&mut self, mut f: F)
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        self.filter_at_ref(Document::DOCUMENT_NODE_ID, false, &mut f);
+    }
+
+    /// Perform a depth-first (children before parent nodes) walk from the
     /// specified node ID, applying the provided function.
     ///
-    /// The `Fn` can be a closure or free-function in the form:
+    /// ### Traversal order
+    ///
+    /// This variant performs a depth-first (children before parent nodes) tree
+    /// walk, but there is also [`Document::filter_at_breadth`], a
+    /// breadth-first (parent before children) variant. Filter functions such
+    /// as [`detach_banned_elements`] may perform better breadth-first (but are
+    /// _compatible_ with both traversal orders). Other functions such as
+    /// [`fold_empty_inline`] and [`text_normalize`] will only yield complete
+    /// results when run depth-first. See individual functions for
+    /// compatibility with traversal orders.
+    ///
+    /// ### Filter functions
+    ///
+    /// The `f` parameter can be a closure or free-function in the form:
     ///
     /// ```norun
     /// fn a_filter_fn(pos: NodeRef<'_>, data: &mut NodeData) -> Action;
@@ -65,13 +89,30 @@ impl Document {
     pub fn filter_at<F>(&mut self, id: NodeId, mut f: F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        self.filter_at_ref(id, true, &mut f)
+        self.filter_at_ref(id, true, &mut f);
+    }
+
+    /// Perform a breadth-first (children after parent nodes) walk from the
+    /// specified node ID, applying the provided function.
+    ///
+    /// See [`Document::filter_at`] for additional details.
+    pub fn filter_at_breadth<F>(&mut self, id: NodeId, mut f: F)
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        self.filter_at_ref(id, false, &mut f);
     }
 
     fn filter_at_ref<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F)
+        -> Action
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        match self.walk(id, depth_first, f) {
+        let res = if depth_first {
+            self.walk_depth(id, f)
+        } else {
+            self.walk_breadth(id, f)
+        };
+
+        match res {
             Action::Continue => {},
             Action::Fold => {
                 self.fold(id);
@@ -80,31 +121,51 @@ impl Document {
                 self.detach(id);
             }
         }
+        res
     }
 
-    #[inline]
-    fn walk<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F) -> Action
+    fn walk_depth<F>(&mut self, id: NodeId, f: &mut F) -> Action
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        if !depth_first {
-            let res = self.filter_node(id, f);
-            if res != Action::Continue {
-                return res;
+        // Children first, recursively
+        let mut next_child = self[id].first_child;
+        while let Some(child) = next_child {
+            // set before possible loss by filter action
+            next_child = self[child].next_sibling;
+            self.filter_at_ref(child, true, f);
+        }
+
+        self.filter_node(id, f)
+    }
+
+    fn walk_breadth<F>(&mut self, id: NodeId, f: &mut F) -> Action
+        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    {
+        let res = self.filter_node(id, f);
+        if res != Action::Continue {
+            return res;
+        }
+
+        // Children after, recursively
+        let mut next_child = self[id].first_child;
+        while let Some(child) = next_child {
+            // set before possible loss by filter action
+            next_child = self[child].next_sibling;
+            let prev = self[child].prev_sibling;
+            let parent = self[child].parent;
+
+            let res = self.filter_at_ref(child, false, f);
+
+            if res == Action::Fold {
+                if let Some(p) = prev {
+                    next_child = self[p].next_sibling;
+                } else if let Some(p) = parent {
+                    next_child = self[p].first_child;
+                }
             }
         }
 
-        // Children first, recursively:
-        let mut next_child = self[id].first_child;
-        while let Some(child) = next_child {
-            next_child = self[child].next_sibling; // set before possible loss:
-            self.filter_at_ref(child, depth_first, f);
-        }
-
-        if depth_first {
-            self.filter_node(id, f)
-        } else {
-            Action::Continue
-        }
+        Action::Continue
     }
 
     fn filter_node<F>(&mut self, id: NodeId, f: &mut F) -> Action
@@ -165,6 +226,9 @@ macro_rules! chain_filters {
 /// Detach known banned elements
 /// ([`TagMeta::is_banned`](crate::html::TagMeta::is_banned)) and any elements
 /// which are unknown.
+///
+/// Compatible with depth or breadth-first filtering, but more efficiently
+/// executed breadth-first.
 pub fn detach_banned_elements(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(ref mut elm) = data.as_element_mut() {
         if let Some(tmeta) = TAG_META.get(&elm.name.local) {
@@ -186,6 +250,8 @@ pub fn detach_banned_elements(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
 /// child text, or the `<br>` element. Non-text oriented inline elements like
 /// `<img>` and `<video>` and other multi-media are excluded from
 /// consideration.
+///
+/// Should be run depth-first for complete filtering.
 pub fn fold_empty_inline(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
     if  is_inline(data) &&
         !is_multi_media(data) &&
@@ -198,6 +264,8 @@ pub fn fold_empty_inline(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
 }
 
 /// Detach any comment nodes.
+///
+/// Compatible with depth or breadth-first filtering.
 pub fn detach_comments(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let NodeData::Comment(_) = data {
         Action::Detach
@@ -207,6 +275,8 @@ pub fn detach_comments(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
 }
 
 /// Detach any processing instruction nodes.
+///
+/// Compatible with depth or breadth-first filtering.
 pub fn detach_pis(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let NodeData::ProcessingInstruction {..} = data {
         Action::Detach
@@ -217,6 +287,8 @@ pub fn detach_pis(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
 
 /// Filter out attributes that are not included in the "basic" set
 /// [`TagMeta`](crate::html::TagMeta) for each element.
+///
+/// Compatible with depth or breadth-first filtering.
 pub fn retain_basic_attributes(_p: NodeRef<'_>, data: &mut NodeData)
     -> Action
 {
@@ -239,12 +311,12 @@ pub fn retain_basic_attributes(_p: NodeRef<'_>, data: &mut NodeData)
 /// that leading and trailing whitespace may be removed at block element
 /// boundaries.
 ///
-/// Because this filter works on text nodes, depth first, results are better if
-/// applied in its own `Document::filter` pass, _after_ any pass containing
-/// filters that detach or fold elements, such as [`detach_banned_elements`] or
-/// [`fold_empty_inline`]. Otherwise the filter may not be able to merge text
-/// node's which become siblings too late in the process, resulting in
-/// additional unnecessary whitespace.
+/// Because this filter works on text nodes, results are better if applied in
+/// its own `Document::filter` pass, depth first, and _after_ any pass
+/// containing filters that detach or fold elements, such as
+/// [`detach_banned_elements`] or [`fold_empty_inline`]. Otherwise the filter
+/// may not be able to merge text node's which become siblings too late in the
+/// process, resulting in additional unnecessary whitespace.
 pub fn text_normalize(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
     thread_local! {
         static MERGE_Q: RefCell<StrTendril> = RefCell::new(StrTendril::new())
