@@ -606,6 +606,8 @@ impl NodeData {
     }
 }
 
+/// Clone `Node` by cloning its `NodeData`, but not sibling/parent/children
+/// indexes (which are left `None`).
 impl Clone for Node {
     fn clone(&self) -> Self {
         Node::new(self.data.clone())
