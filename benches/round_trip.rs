@@ -106,13 +106,11 @@ fn b30_text_normalize_content(b: &mut Bencher) {
             filter::detach_banned_elements,
             filter::detach_comments,
             filter::detach_pis,
-        ));
-
-        doc.filter(chain_filters!(
-            filter::fold_empty_inline,
             filter::retain_basic_attributes,
             filter::xmp_to_pre,
         ));
+
+        doc.filter(filter::fold_empty_inline);
         doc.filter(filter::text_normalize); // Always use new pass.
 
         let out = doc.document_node_ref().text().unwrap();

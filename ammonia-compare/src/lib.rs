@@ -102,9 +102,6 @@ fn b41_marked_clean(b: &mut Bencher) {
             detach_clean_content_tags,
             filter::detach_comments,
             filter::detach_pis,
-        ));
-
-        doc.filter(chain_filters!(
             fold_non_whitelist_tags,
             // This is sufficient for this sample (with link_rel) but isn't the
             // exact same config as Ammonia defaults:
@@ -113,7 +110,7 @@ fn b41_marked_clean(b: &mut Bencher) {
         ));
 
         let out = doc.to_string();
-        assert_eq!(out.len(), 52062, "[[[{}]]]", out);
+        assert_eq!(out.len(), 52062, /*"[[[{}]]]", out*/);
     });
 }
 
@@ -129,7 +126,7 @@ fn b42_ammonia_clean(b: &mut Bencher) {
     b.iter(|| {
         let doc = amm.clean(&frag);
         let out = doc.to_string();
-        assert_eq!(out.len(), 52062, "[[[{}]]]", out);
+        assert_eq!(out.len(), 52062, /*"[[[{}]]]", out*/);
     });
 }
 
