@@ -134,6 +134,7 @@ dependencies = [
  "clap",
  "encoding_rs",
  "html5ever",
+ "log",
  "marked",
 ]
 
