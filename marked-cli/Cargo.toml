@@ -1,0 +1,19 @@
+[package]
+name = "marked-cli"
+version = "0.1.0"
+authors = ["David Kellum <dek-oss@gravitext.com>"]
+edition = "2018"
+
+[dependencies]
+marked          = { version=">=0.1.0, <0.2.0" }
+html5ever       = { version=">=0.25.1, <2.0" }
+encoding_rs     = { version=">=0.8.13, <2.0" }
+clap            = { version=">=2.33.0, <2.34", default-features=false, features=["wrap_help"] }
+
+[[bin]]
+name = "marked"
+path = "src/main.rs"
+doctest = false
+bench = false
+doc = false
+test = false

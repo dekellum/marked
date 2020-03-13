@@ -10,8 +10,7 @@ use html5ever::tree_builder::TreeBuilderOpts;
 use marked::EncodingHint;
 use marked::html::parse_buffered;
 
-mod logger;
-use logger::setup_logger;
+use marked::logger::setup_logger;
 
 fn main() {
     setup_logger(1).unwrap();

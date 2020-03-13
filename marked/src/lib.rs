@@ -44,5 +44,5 @@ pub use dom::{
 
 pub use dom::filter;
 
-#[cfg(test)]
-mod logger;
+#[doc(hideen)]
+pub mod logger;
