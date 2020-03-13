@@ -8,15 +8,15 @@ class Generator
 
   attr_reader :tags, :attributes
 
-  BASEDIR = File.dirname( __FILE__ )
+  BASEDIR = File.dirname(__FILE__)
 
-  OUT_FILE  = File.join( BASEDIR, '../src/dom/html/meta.rs' )
+  OUT_FILE  = File.join(BASEDIR, '../src/dom/html/meta.rs')
 
-  def run( out_file = OUT_FILE )
+  def run(out_file = OUT_FILE)
     parse_tags
     parse_attributes
     map_basic_attributes
-    generate( out_file )
+    generate(out_file)
   end
 
   FLAGS = {
@@ -25,12 +25,13 @@ class Generator
     'I' => 'inline',
     'M' => 'meta',
     'B' => 'banned',
-    'U' => 'undefined'}
+    'U' => 'undefined'
+  }
 
   def parse_tags
     @tags = []
 
-    open( File.join( BASEDIR, 'tags' ), 'r' ) do |fin|
+    open(File.join(BASEDIR, 'tags'), 'r') do |fin|
       fin.each do |line|
         case line
         when /^\s*#/, /^\s*$/
@@ -39,9 +40,9 @@ class Generator
           r = line.split(',').map { |c| c.strip }
           r = r.compact.reject { |c| c.empty? }
           flags = r[1].split(' ').map { |f| FLAGS[f] }.compact
-          @tags << OpenStruct.new( :name => r[0],
+          @tags << OpenStruct.new(:name => r[0],
                                    :flags => flags,
-                                   :desc => r[2] )
+                                   :desc => r[2])
         else
           raise "Parse ERROR: line [#{line}]"
         end
@@ -57,15 +58,15 @@ class Generator
     @attributes = []
     tagsets = {}
 
-    open( File.join( BASEDIR, 'attributes' ), 'r' ) do |fin|
+    open(File.join(BASEDIR, 'attributes'), 'r') do |fin|
       fin.each do |line|
         case line
         when /^\s*#/, /^\s*$/
           # ignore comment, empty lines
         when /^\s*([A-Z]+)\s*::\s*ALL\s+except:(.*)$/
           sname = $1
-          except = $2.split( ' ' ).compact.reject { |t| t.empty? }
-          tset = @tags.reject { |t| except.include?( t.name ) }
+          except = $2.split(' ').compact.reject { |t| t.empty? }
+          tset = @tags.reject { |t| except.include?(t.name) }
           tset.map! { |t| t.name }
           tagsets[sname] = tset
         when /^\s*[^\s,]+\s*,/
@@ -81,10 +82,10 @@ class Generator
           btags = r[1].split(' ').compact.reject { |t| t.empty? || t =~ /^\*/ }
           btags = btags.map { |t| tagsets[ t ] || t }.flatten
 
-          @attributes << OpenStruct.new( :name => r[0],
+          @attributes << OpenStruct.new(:name => r[0],
                                          :basic_tags => btags,
                                          :flags => flags,
-                                         :desc => r[2] )
+                                         :desc => r[2])
         else
           raise "Parse ERROR: line [#{line}]"
         end
@@ -100,23 +101,23 @@ class Generator
   def map_basic_attributes
     @tags.each do |tag|
       tag.basic_atts =
-        @attributes.select { |attr| attr.basic_tags.include?( tag.name ) }
+        @attributes.select { |attr| attr.basic_tags.include?(tag.name) }
     end
   end
 
-  def twidth( val, extra = 0 )
-    val + ( ' ' * ( @tag_max_len - val.length + extra )  )
+  def twidth(val, extra = 0)
+    val + (' ' * (@tag_max_len - val.length + extra))
   end
 
-  def awidth( val, extra = 0 )
-    val + ( ' ' * ( @attr_max_len - val.length + extra )  )
+  def awidth(val, extra = 0)
+    val + (' ' * (@attr_max_len - val.length + extra))
   end
 
-  def const( val )
-    val.gsub( /\-/, '_' )
+  def const(val)
+    val.gsub(/\-/, '_')
   end
 
-  def clone_if( o, val )
+  def clone_if(o, val)
     if o.flags.include?('undefined')
       "#{val}.clone()"
     else
@@ -124,30 +125,30 @@ class Generator
     end
   end
 
-  def tags_with( flag )
+  def tags_with(flag)
     @tags
       .select {|t| t.flags.include?(flag) }
       .map { |t| t.name }
       .join(' ')
   end
 
-  def map_flags( tag )
+  def map_flags(tag)
     tag.flags
       .reject { |f| f == "undefined" }
       .map { |f| "is_#{f}: true" }
   end
 
-  def generate( out_file )
-    erb_file = File.join( BASEDIR, 'meta.rs.erb' )
-    template = ERB.new( IO.read( erb_file ), nil, '%' )
+  def generate(out_file)
+    erb_file = File.join(BASEDIR, 'meta.rs.erb')
+    template = ERB.new(IO.read(erb_file), nil, '%')
 
-    open( out_file, 'w' ) do |fout|
-      fout << template.result( binding )
+    open(out_file, 'w') do |fout|
+      fout << template.result(binding)
     end
   end
 
 end
 
 if $0 == __FILE__
-  Generator.new.run( *ARGV )
+  Generator.new.run(*ARGV)
 end
