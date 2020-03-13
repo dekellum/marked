@@ -20,7 +20,7 @@ use clap::{
     Arg, App, AppSettings, SubCommand,
 };
 
-use log::error;
+use log::{debug, error};
 
 // Conveniently compact type alias for dyn Trait `std::error::Error`.
 type Flaw = Box<dyn StdError + Send + Sync + 'static>;
@@ -59,9 +59,15 @@ fn run() -> Result<(), Flaw> {
         .args(&[
             Arg::with_name("output")
                 .short("o")
-                //.long("output")
+                .long("output")
                 .number_of_values(1)
                 .help("Output to specified file (default: STDOUT)"),
+            Arg::with_name("encoding")
+                .short("e")
+                .long("encoding")
+                .number_of_values(1)
+                .multiple(true)
+                .help("Hint at input encoding label (default: UTF-8)"),
             Arg::with_name("file")
                 .required(false)
                 .value_name("INPUT-FILE")
@@ -92,8 +98,9 @@ fn run() -> Result<(), Flaw> {
             ..Default::default()
         },
         ..Default::default()
-    }; // FIXME: allow passing to parse_buffered?
-     */
+    };
+    // FIXME: allow passing to parse_buffered?
+    */
 
     let scname = m.subcommand_name().unwrap(); // required
     if scname != "html" {
@@ -102,6 +109,14 @@ fn run() -> Result<(), Flaw> {
     let subm = m.subcommand_matches(scname).unwrap();
 
     let eh = EncodingHint::shared_default(enc::UTF_8);
+
+    if let Some(vals) = subm.values_of("encoding") {
+        for enc in vals {
+            eh.borrow_mut().add_label_hint(&enc, 0.11);
+        }
+        debug!("encoding hint {:?}", eh.borrow());
+    }
+
     let fin = subm.value_of("file");
     let mut input: Box<dyn io::Read> = if let Some(fin) = fin {
         Box::new(File::open(fin)?)
@@ -111,18 +126,16 @@ fn run() -> Result<(), Flaw> {
 
     let doc = parse_buffered(eh, &mut input)?;
 
-    // check dom.errors?
+    // FIXME: check dom.errors?
 
-    let mut output: Box<dyn io::Write> =
-        if let Some(fout) = subm.value_of("output")
-    {
+    let fout = subm.value_of("output");
+    let mut output: Box<dyn io::Write> = if let Some(fout) = fout {
         if Some(fout) != fin {
             Box::new(File::create(fout)?)
         } else {
             quit!(
                 "input {} same as output {} not supported",
-                fin.unwrap(), fout
-            );
+                fin.unwrap(), fout);
         }
     } else {
         Box::new(io::stdout())
