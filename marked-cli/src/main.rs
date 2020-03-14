@@ -7,8 +7,6 @@ use std::process;
 use std::fs::File;
 
 use encoding_rs as enc;
-// use html5ever::driver::ParseOpts;
-// use html5ever::tree_builder::TreeBuilderOpts;
 
 use marked::{
     chain_filters,
@@ -102,17 +100,6 @@ fn run() -> Result<(), Flaw> {
     let mtch = app.get_matches();
     setup_logger(mtch.occurrences_of("debug") as u32)?;
 
-    /*
-    let _opts = ParseOpts {
-        tree_builder: TreeBuilderOpts {
-            drop_doctype: true,
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-    // FIXME: allow passing to parse_buffered?
-    */
-
     let scname = mtch.subcommand_name().unwrap(); // required
     if scname != "html" {
         quit!("only html (command) processing is supported")
@@ -137,7 +124,7 @@ fn run() -> Result<(), Flaw> {
 
     let mut doc = parse_buffered(eh, &mut input)?;
 
-    // FIXME: report errors?
+    // FIXME: report non-fatal errors?
 
     if mtch.is_present("filter-banned") {
         doc.filter_breadth(chain_filters!(
