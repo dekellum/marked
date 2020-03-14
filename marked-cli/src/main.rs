@@ -99,8 +99,8 @@ fn run() -> Result<(), Flaw> {
              .global(true))
         .subcommand(html);
 
-    let m = app.get_matches();
-    setup_logger(m.occurrences_of("debug") as u32)?;
+    let mtch = app.get_matches();
+    setup_logger(mtch.occurrences_of("debug") as u32)?;
 
     /*
     let _opts = ParseOpts {
@@ -113,22 +113,22 @@ fn run() -> Result<(), Flaw> {
     // FIXME: allow passing to parse_buffered?
     */
 
-    let scname = m.subcommand_name().unwrap(); // required
+    let scname = mtch.subcommand_name().unwrap(); // required
     if scname != "html" {
         quit!("only html (command) processing is supported")
     }
-    let subm = m.subcommand_matches(scname).unwrap();
+    let mtch = mtch.subcommand_matches(scname).unwrap();
 
     let eh = EncodingHint::shared_default(enc::UTF_8);
 
-    if let Some(vals) = subm.values_of("encoding") {
+    if let Some(vals) = mtch.values_of("encoding") {
         for enc in vals {
             eh.borrow_mut().add_label_hint(&enc, 0.11);
         }
         debug!("encoding hint {:?}", eh.borrow());
     }
 
-    let fin = subm.value_of("file");
+    let fin = mtch.value_of("file");
     let mut input: Box<dyn io::Read> = if let Some(fin) = fin {
         Box::new(File::open(fin)?)
     } else {
@@ -139,7 +139,7 @@ fn run() -> Result<(), Flaw> {
 
     // FIXME: report errors?
 
-    if subm.is_present("filter-banned") {
+    if mtch.is_present("filter-banned") {
         doc.filter_breadth(chain_filters!(
             filter::detach_banned_elements,
             filter::detach_comments,
@@ -149,12 +149,12 @@ fn run() -> Result<(), Flaw> {
         ));
     }
 
-    if subm.is_present("text-normalize") {
+    if mtch.is_present("text-normalize") {
         doc.filter(filter::fold_empty_inline);
         doc.filter(filter::text_normalize); // Always use new pass.
     }
 
-    let fout = subm.value_of("output");
+    let fout = mtch.value_of("output");
     let mut output: Box<dyn io::Write> = if let Some(fout) = fout {
         if Some(fout) != fin {
             Box::new(File::create(fout)?)
