@@ -10,10 +10,13 @@ use encoding_rs as enc;
 // use html5ever::driver::ParseOpts;
 // use html5ever::tree_builder::TreeBuilderOpts;
 
-use marked::EncodingHint;
-use marked::html::parse_buffered;
-
-use marked::logger::setup_logger;
+use marked::{
+    chain_filters,
+    filter,
+    html::parse_buffered,
+    logger::setup_logger,
+    EncodingHint,
+};
 
 use clap::{
     crate_version,
@@ -68,6 +71,14 @@ fn run() -> Result<(), Flaw> {
                 .number_of_values(1)
                 .multiple(true)
                 .help("Hint at input encoding label (default: UTF-8)"),
+            Arg::with_name("filter-banned")
+                .short("f")
+                .long("filter-banned")
+                .help("Filter banned tags and attributes"),
+            Arg::with_name("text-normalize")
+                .short("t")
+                .long("text-normalize")
+                .help("Aggressively normalize document text"),
             Arg::with_name("file")
                 .required(false)
                 .value_name("INPUT-FILE")
@@ -124,9 +135,24 @@ fn run() -> Result<(), Flaw> {
         Box::new(io::stdin())
     };
 
-    let doc = parse_buffered(eh, &mut input)?;
+    let mut doc = parse_buffered(eh, &mut input)?;
 
-    // FIXME: check dom.errors?
+    // FIXME: report errors?
+
+    if subm.is_present("filter-banned") {
+        doc.filter_breadth(chain_filters!(
+            filter::detach_banned_elements,
+            filter::detach_comments,
+            filter::detach_pis,
+            filter::retain_basic_attributes,
+            filter::xmp_to_pre,
+        ));
+    }
+
+    if subm.is_present("text-normalize") {
+        doc.filter(filter::fold_empty_inline);
+        doc.filter(filter::text_normalize); // Always use new pass.
+    }
 
     let fout = subm.value_of("output");
     let mut output: Box<dyn io::Write> = if let Some(fout) = fout {
