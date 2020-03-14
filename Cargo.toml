@@ -1,5 +1,6 @@
 [workspace]
 members = [ "marked", "marked-cli" ]
+exclude = [ "ammonia-compare" ]
 
 [patch.crates-io]
 "marked" = { path = "marked" }
