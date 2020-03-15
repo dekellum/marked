@@ -6,8 +6,7 @@
 
 Parsing, filtering, selecting and serializing HTML/XML markup.
 
-See the above linked rustdoc or the project workspace root [../README] for an
-overview.
+See the above linked rustdoc or the project [../README] for a feature overview.
 
 ## Minimum supported rust version
 

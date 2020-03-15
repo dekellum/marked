@@ -1,3 +1,9 @@
+//! Parsing, filtering, selecting and serializing HTML/XML markup.
+//!
+//! See the project [../README] for a feature overview.
+//!
+//! [../README]: https://github.com/dekellum/marked#readme
+
 #![warn(rust_2018_idioms)]
 
 #[macro_use] extern crate html5ever;
