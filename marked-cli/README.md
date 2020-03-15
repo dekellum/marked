@@ -1,10 +1,9 @@
-# marked
+# marked-cli
 
-[![Rustdoc](https://docs.rs/marked/badge.svg)](https://docs.rs/marked)
-[![Change Log](https://img.shields.io/crates/v/marked.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/master/marked/CHANGELOG.md)
-[![Crates.io](https://img.shields.io/crates/v/marked.svg?maxAge=3600)](https://crates.io/crates/marked)
+[![Change Log](https://img.shields.io/crates/v/marked-cli.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/master/marked-cli/CHANGELOG.md)
+[![Crates.io](https://img.shields.io/crates/v/marked.svg?maxAge=3600)](https://crates.io/crates/marked-cli)
 
-Parsing, filtering, selecting and serializing HTML/XML markup.
+A command line tool for HTML/XML markup I/O processing.
 
 ## Minimum supported rust version
 

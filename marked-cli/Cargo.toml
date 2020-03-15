@@ -2,6 +2,14 @@
 name = "marked-cli"
 version = "0.1.0"
 authors = ["David Kellum <dek-oss@gravitext.com>"]
+license       = "MIT/Apache-2.0"
+description   = "Command line tool for markup I/O processing"
+repository    = "https://github.com/dekellum/marked"
+readme        = "README.md"
+keywords      = ["html", "sanitization"]
+categories    = ["web-programming", "text-processing"]
+build         = "build.rs"
+
 edition = "2018"
 
 [dependencies]
