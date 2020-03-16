@@ -71,7 +71,7 @@ See `marked::html::t` (tags) and `marked::html::a` (attributes) modules.
 
 Bulk modifications to the DOM is easily and efficiently achieved with mutating
 filter functions/closures and a tree walker (depth or breadth-first)
-implementation in _marked_. This style of intervace is sometimes called the
+implementation in _marked_. This style of interface is sometimes called the
 "visitor pattern". See `Document::filter_at` for details.  The crate also
 includes the following built-in filters (a partial list):
 
