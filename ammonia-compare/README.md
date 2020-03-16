@@ -18,7 +18,7 @@ This project is dual licensed under either of following:
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in _marked_ (ammonia-compare) by you, as defined by the Apache
+for inclusion in _märkəd_ (ammonia-compare) by you, as defined by the Apache
 License, shall be dual licensed as above, without any additional terms or
 conditions.
 

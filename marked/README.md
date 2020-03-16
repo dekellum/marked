@@ -7,7 +7,8 @@
 
 Parsing, filtering, selecting and serializing HTML/XML markup.
 
-See the above linked rustdoc or the project [../README] for a feature overview.
+See the above linked rustdoc or The Märkəd Project [../README] for a feature
+overview.
 
 ## Minimum supported rust version
 
@@ -29,7 +30,7 @@ This project is dual licensed under either of following:
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in _marked_ by you, as defined by the Apache License, shall be
+for inclusion in _märkəd_ by you, as defined by the Apache License, shall be
 dual licensed as above, without any additional terms or conditions.
 
 [../README]: https://github.com/dekellum/marked#readme

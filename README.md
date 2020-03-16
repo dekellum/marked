@@ -1,4 +1,4 @@
-# The Marked Project
+# The Märkəd Project
 
 [![deps status](https://deps.rs/repo/github/dekellum/marked/status.svg)](https://deps.rs/repo/github/dekellum/marked)
 [![Travis CI Build](https://travis-ci.org/dekellum/marked.svg?branch=master)](https://travis-ci.org/dekellum/marked)
@@ -122,7 +122,7 @@ This project is dual licensed under either of following:
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the _marked_ project by you, as defined by the Apache License,
+for inclusion in the _märkəd_ project by you, as defined by the Apache License,
 shall be dual licensed as above, without any additional terms or conditions.
 
 [github hosted]: https://github.com/dekellum/marked
