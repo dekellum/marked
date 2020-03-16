@@ -2,6 +2,7 @@
 
 [![Change Log](https://img.shields.io/crates/v/marked-cli.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/master/marked-cli/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/marked.svg?maxAge=3600)](https://crates.io/crates/marked-cli)
+[![Travis CI Build](https://travis-ci.org/dekellum/marked.svg?branch=master)](https://travis-ci.org/dekellum/marked)
 
 A command line tool for HTML/XML markup I/O processing, using the _[marked]_ library crate.
 

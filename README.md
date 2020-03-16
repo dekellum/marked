@@ -1,6 +1,7 @@
 # The Marked Project
 
 [![deps status](https://deps.rs/repo/github/dekellum/marked/status.svg)](https://deps.rs/repo/github/dekellum/marked)
+[![Travis CI Build](https://travis-ci.org/dekellum/marked.svg?branch=master)](https://travis-ci.org/dekellum/marked)
 
 A rust language project for parsing, filtering, selecting and serializing HTML
 and XML mark-up.

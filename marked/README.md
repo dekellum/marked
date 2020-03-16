@@ -3,6 +3,7 @@
 [![Rustdoc](https://docs.rs/marked/badge.svg)](https://docs.rs/marked)
 [![Change Log](https://img.shields.io/crates/v/marked.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/master/marked/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/marked.svg?maxAge=3600)](https://crates.io/crates/marked)
+[![Travis CI Build](https://travis-ci.org/dekellum/marked.svg?branch=master)](https://travis-ci.org/dekellum/marked)
 
 Parsing, filtering, selecting and serializing HTML/XML markup.
 
