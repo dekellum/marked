@@ -12,20 +12,21 @@ CHANGELOG(s) under this ([github hosted]) source tree and cargo workspace.
 
 Currently implemented features:
 
-### A vector-allocated, indexed DOM-like tree structure
+### A vector-allocated, indexed, DOM-like tree structure
 
-_Marked_ includes a DOM-like tree structure suitable for HTML and XML. This was
-forked from the _[victor]_ project (same author as _html5ever_) and further
-optimized.  It is implemented as a (std) `Vec` of `Node` types, which reference
-parent, siblings and children via (std) `NonZeroU32` indexes for space
-efficiency.
+The `marked::Document` is a DOM-like tree structure suitable for HTML and
+XML. This was forked from the _[victor]_ project (same author as _html5ever_)
+and further optimized.  It is implemented as a (std) `Vec` of `Node` types,
+which references parent, siblings and children via (std) `NonZeroU32` indexes
+for space efficiency.
 
 ### _html5ever_ integration
 
 Including HTML5 document and fragment parsing and HTML5 serialization (mark-up
-output). With the `marked::Document` (DOM), parsing and serialization
-is measurably faster (see benchmarks in source tree) than the `RcDom`
-previously included with *html5ever* associated crates.
+output). With the `marked::Document` (DOM), parsing and serialization is
+measurably faster (see benchmarks in source tree) than the `RcDom` previously
+included with *html5ever* associated crates, and mutating the `Document` is
+more straightforward, via a mutable reference.
 
 ### Legacy character encoding support
 
@@ -82,7 +83,7 @@ the following built-in filters (partial list):
 An unreleased example and benchmark of _ammonia_ crate equivalent filtering
 (for hygiene and safety) is included in the source tree ([./ammonia-compare])
 
-## Future Roadmap
+## Roadmap
 
 Features incomplete or unstarted which may be included in this project in the
 future (PRs welcome):
