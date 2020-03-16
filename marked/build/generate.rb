@@ -40,9 +40,11 @@ class Generator
           r = line.split(',').map { |c| c.strip }
           r = r.compact.reject { |c| c.empty? }
           flags = r[1].split(' ').map { |f| FLAGS[f] }.compact
-          @tags << OpenStruct.new(:name => r[0],
-                                   :flags => flags,
-                                   :desc => r[2])
+          @tags << OpenStruct.new(
+            :name => r[0],
+            :flags => flags,
+            :desc => r[2]
+          )
         else
           raise "Parse ERROR: line [#{line}]"
         end
@@ -82,10 +84,12 @@ class Generator
           btags = r[1].split(' ').compact.reject { |t| t.empty? || t =~ /^\*/ }
           btags = btags.map { |t| tagsets[ t ] || t }.flatten
 
-          @attributes << OpenStruct.new(:name => r[0],
-                                         :basic_tags => btags,
-                                         :flags => flags,
-                                         :desc => r[2])
+          @attributes << OpenStruct.new(
+            :name => r[0],
+            :basic_tags => btags,
+            :flags => flags,
+            :desc => r[2]
+          )
         else
           raise "Parse ERROR: line [#{line}]"
         end
