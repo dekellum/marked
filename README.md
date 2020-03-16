@@ -29,6 +29,11 @@ measurably faster (see benchmarks in source tree) than the `RcDom` previously
 included with *html5ever* associated crates, and mutating the `Document` is
 more straightforward, via a mutable reference.
 
+### _xml-rs_ integration
+
+Strict, UTF-8 XML parsing to `marked::Document` is currently supported by
+integration of the _[xml-rs]_ crate.
+
 ### Legacy character encoding support
 
 An estimated 5% of the web remains in encodings other than UTF-8. That is too
@@ -89,7 +94,7 @@ An unreleased example and benchmark of _ammonia_ crate equivalent filtering
 Features incomplete or unstarted which may be included in this project in the
 future (PRs welcome):
 
-* Complete (faster, more correct) strict-mode XML parsing
+* Complete (faster, more correct, legacy encodings) strict-mode XML parsing
 
 * Lenient-mode XML parsing
 
@@ -125,5 +130,6 @@ shall be dual licensed as above, without any additional terms or conditions.
 [./ammonia-compare]: https://github.com/dekellum/marked/tree/master/ammonia-compare
 [victor]: https://github.com/SimonSapin/victor
 [chardet]: https://crates.io/crates/chardet
+[xml-rs]: https://crates.io/crates/xml-rs
 [LICENSE-APACHE]: https://github.com/dekellum/marked/tree/master/LICENSE-APACHE
 [LICENSE-MIT]: https://github.com/dekellum/marked/tree/master/LICENSE-MIT
