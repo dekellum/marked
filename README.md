@@ -69,10 +69,11 @@ See `marked::html::t` (tags) and `marked::html::a` (attributes) modules.
 
 ### Tree walking filters API
 
-Bulk modifications to the DOM is easily achieved with a mutating filter
-functions/closures and a tree walker (depth or breadth-first)
-implementation. See `Document::filter_at` for details.  The crate also includes
-the following built-in filters (partial list):
+Bulk modifications to the DOM is easily and efficiently achieved with mutating
+filter functions/closures and a tree walker (depth or breadth-first)
+implementation in _marked_. This style of intervace is sometimes called the
+"visitor pattern". See `Document::filter_at` for details.  The crate also
+includes the following built-in filters (a partial list):
 
 `detach_banned_element`
 : `Detach` known banned (via metadata) and unknown elements
@@ -86,8 +87,9 @@ the following built-in filters (partial list):
 `text_normalize`
 : Normalize text nodes by merging, replacing control characters and minimizing white-space.
 
-An unreleased example and benchmark of _ammonia_ crate equivalent filtering
-(for hygiene and safety) is included in the source tree ([./ammonia-compare])
+An unreleased example, compatibility test and benchmark of _ammonia_ crate
+equivalent filtering (for hygiene and safety) is included in the source tree
+([./ammonia-compare])
 
 ## Roadmap
 
