@@ -23,7 +23,7 @@ matrix:
       env: WITH_LOCK=true
     - rust: 1.38.0
     - rust: 1.38.0
-      os: osx
+      os: windows
       env: WITH_LOCK=true
     - rust: stable
       env: WITH_LOCK=true
