@@ -36,8 +36,8 @@ integration of the _[xml-rs]_ crate.
 
 ### Legacy character encoding support
 
-An estimated 5% of the web remains in encodings other than UTF-8. That is too
-common to be treated as as an error. Via `marked::html::parse_buffered`:
+An estimated 5% of the web remains in encodings other than UTF-8; too common to
+be treated as an error. Via `marked::html::parse_buffered`:
 
 * Decoding via _encoding_rs_ which implements _[The Encoding Standard]_ including
   alternative names (labels) for supported encodings.
