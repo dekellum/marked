@@ -13,11 +13,11 @@ build         = "build.rs"
 edition = "2018"
 
 [dependencies]
-marked          = { version=">=0.1.0, <0.2.0" }
-html5ever       = { version=">=0.25.1, <2.0" }
-encoding_rs     = { version=">=0.8.13, <2.0" }
+marked          = { version=">=0.1.0,  <0.2.0" }
+html5ever       = { version=">=0.25.1, <0.26" }
+encoding_rs     = { version=">=0.8.13, <0.9" }
 clap            = { version=">=2.33.0, <2.34", default-features=false, features=["wrap_help"] }
-log             = { version=">=0.4.4, <0.4.9", features = ["std"] }
+log             = { version=">=0.4.4,  <0.4.9", features = ["std"] }
 
 [[bin]]
 name = "marked"

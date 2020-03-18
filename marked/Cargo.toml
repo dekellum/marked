@@ -15,14 +15,14 @@ build         = "build.rs"
 doctest = false
 
 [dependencies]
-html5ever       = { version=">=0.25.1, <2.0" }
-tendril         = { version=">=0.4.1,  <2.0", features=["encoding_rs"] }
-encoding_rs     = { version=">=0.8.13, <2.0" }
-xml-rs          = { version=">=0.8, <2.0", package="xml-rs" }
-string_cache    = { version=">=0.8.0, <0.9" }
+html5ever       = { version=">=0.25.1, <0.26" }
+tendril         = { version=">=0.4.1,  <0.5", features=["encoding_rs"] }
+encoding_rs     = { version=">=0.8.13, <0.9" }
+xml-rs          = { version=">=0.8,    <0.9", package="xml-rs" }
+string_cache    = { version=">=0.8.0,  <0.9" }
 mime            = { version=">=0.3.14, <0.4" }
-log             = { version=">=0.4.4, <0.4.9", features = ["std"] }
-lazy_static     = { version=">=1.3.0, <2" }
+log             = { version=">=0.4.4,  <0.4.9", features = ["std"] }
+lazy_static     = { version=">=1.3.0,  <1.5" }
 
 [dev-dependencies]
 rand            = { version=">=0.7.0, <0.8" }
