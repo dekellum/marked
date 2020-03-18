@@ -23,11 +23,11 @@ use smallvec::SmallVec;
 #[cfg(target_pointer_width = "64")]
 fn size_of() {
     use std::mem::size_of;
-    assert_eq!(size_of::<Node>(), 104);
-    assert_eq!(size_of::<NodeData>(), 80);
-    assert_eq!(size_of::<Element>(), 72);
+    assert_eq!(size_of::<Node>(), 112);
+    assert_eq!(size_of::<NodeData>(), 88);
+    assert_eq!(size_of::<Element>(), 80);
     assert_eq!(size_of::<Attribute>(), 40);
-    assert_eq!(size_of::<SmallVec<MyAttribute>>(), 48);
+    assert_eq!(size_of::<SmallVec<MyAttribute>>(), 56);
     assert_eq!(size_of::<QualName>(), 24);
     assert_eq!(size_of::<StrTendril>(), 16);
 }
