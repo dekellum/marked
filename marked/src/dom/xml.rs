@@ -16,7 +16,7 @@ use xml_rs::reader::XmlEvent;
 use xml_rs::attribute::OwnedAttribute;
 
 use crate::dom::{
-    Attribute, Document, Element, Node, NodeData, QualName, StrTendril
+    Document, Element, MyAttribute, Node, NodeData, QualName, StrTendril
 };
 
 /// Parse XML document from UTF-8 bytes in RAM.
@@ -33,10 +33,10 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                     name: convert_name(name),
                     attrs: attributes
                         .into_iter()
-                        .map(|OwnedAttribute { name, value }| Attribute {
-                            name: convert_name(name),
-                            value: value.into()
-                        })
+                        .map(|OwnedAttribute { name, value }| MyAttribute::new(
+                            convert_name(name),
+                            value.into()
+                        ))
                         .collect()
                 })));
                 document.append(current, id);

@@ -48,7 +48,7 @@ pub use dom::{
     Attribute, LocalName, Namespace, QualName, StrTendril,
 };
 
-pub(crate) use dom::NewAttribute;
+pub(crate) use dom::MyAttribute;
 
 pub use dom::filter;
 

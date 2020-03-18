@@ -2,7 +2,7 @@ use std::fs::File;
 use std::{io, io::Read};
 
 use crate::{
-    Attribute, Document, Element, Node, NodeData, NewAttribute, NodeRef, 
+    Attribute, Document, Element, Node, NodeData, MyAttribute, NodeRef,
     QualName, StrTendril,
     filter, filter::Action,
     html, html::{a, t, TAG_META},
@@ -23,11 +23,11 @@ use smallvec::SmallVec;
 #[cfg(target_pointer_width = "64")]
 fn size_of() {
     use std::mem::size_of;
-    assert_eq!(size_of::<Node>(), 80);
-    assert_eq!(size_of::<NodeData>(), 56);
-    assert_eq!(size_of::<Element>(), 48);
+    assert_eq!(size_of::<Node>(), 104);
+    assert_eq!(size_of::<NodeData>(), 80);
+    assert_eq!(size_of::<Element>(), 72);
     assert_eq!(size_of::<Attribute>(), 40);
-    assert_eq!(size_of::<Vec<Attribute>>(), 24);
+    assert_eq!(size_of::<SmallVec<MyAttribute>>(), 48);
     assert_eq!(size_of::<QualName>(), 24);
     assert_eq!(size_of::<StrTendril>(), 16);
 }
@@ -66,19 +66,20 @@ fn element_attrs_dups() {
     ensure_logger();
     let mut el = Element::new(t::A);
     // Manually, for duplicates:
-    el.attrs = SmallVec::<NewAttribute>::with_capacity(3);
-    el.attrs.push(NewAttribute(Attribute {
-        name: QualName::new(None, ns!(), a::REL),
-        value: "nofollow".into()
-    }));
-    el.attrs.push(NewAttribute(Attribute {
-        name: QualName::new(None, ns!(), a::HREF),
-        value: "/some".into()
-    }));
-    el.attrs.push(NewAttribute(Attribute {
-        name: QualName::new(None, ns!(), a::REL),
-        value: "noreferrer".into()
-    }));
+    let mut a = SmallVec::<MyAttribute>::with_capacity(3);
+    a.push(MyAttribute::new(
+        QualName::new(None, ns!(), a::REL),
+        "nofollow".into()
+    ));
+    a.push(MyAttribute::new(
+        QualName::new(None, ns!(), a::HREF),
+        "/some".into()
+    ));
+    a.push(MyAttribute::new(
+        QualName::new(None, ns!(), a::REL),
+        "noreferrer".into()
+    ));
+    el.attrs = a;
     assert_eq!(3, el.attrs.len());
     assert_eq!("/some", el.set_attr("href", "/other").unwrap().as_ref());
     assert_eq!(3, el.attrs.len());

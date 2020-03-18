@@ -38,7 +38,7 @@ impl<'a> Serialize for NodeRef<'a> {
                 if *scope == IncludeNode {
                     serializer.start_elem(
                         edata.name.clone(),
-                        edata.attrs.iter().map(|a| (&a.name, a.value.as_ref()))
+                        edata.attrs.iter().map(|a| (&a.0.name, a.0.value.as_ref()))
                     )?;
                 }
                 for child in self.children() {
