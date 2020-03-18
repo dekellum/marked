@@ -22,6 +22,8 @@ pub use html5ever::{Attribute, LocalName, Namespace, QualName};
 #[doc(no_inline)]
 pub use tendril::StrTendril;
 
+use smallvec::SmallVec;
+
 // custom ordering of these effects rustdoc for Document, etc.
 
 mod node_ref;
@@ -105,7 +107,25 @@ pub enum NodeData {
 #[derive(Clone, Debug)]
 pub struct Element {
     pub name: QualName,
-    pub attrs: Vec<Attribute>,
+    pub attrs: SmallVec<NewAttribute>,
+}
+
+
+#[derive(Clone, Debug)]
+pub(crate) struct NewAttribute(Attribute);
+
+unsafe impl smallvec::Array for NewAttribute {
+    type Item = NewAttribute;
+    fn size() -> usize {
+        1
+    }
+}
+
+unsafe impl smallvec::Array for NodeId {
+    type Item = NodeId;
+    fn size() -> usize {
+        1
+    }
 }
 
 /// Core implementation.
@@ -614,7 +634,7 @@ impl Clone for Node {
     }
 }
 
-fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
+fn push_if(stack: &mut SmallVec<NodeId>, id: Option<NodeId>) {
     if let Some(id) = id {
         stack.push(id);
     }

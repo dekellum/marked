@@ -2,7 +2,7 @@ use std::fs::File;
 use std::{io, io::Read};
 
 use crate::{
-    Attribute, Document, Element, Node, NodeData, NodeRef,
+    Attribute, Document, Element, Node, NodeData, NewAttribute, NodeRef, 
     QualName, StrTendril,
     filter, filter::Action,
     html, html::{a, t, TAG_META},
@@ -17,6 +17,7 @@ use crate::decode::EncodingHint;
 use encoding_rs as enc;
 use log::debug;
 use rand::Rng;
+use smallvec::SmallVec;
 
 #[test]
 #[cfg(target_pointer_width = "64")]
@@ -65,20 +66,19 @@ fn element_attrs_dups() {
     ensure_logger();
     let mut el = Element::new(t::A);
     // Manually, for duplicates:
-    el.attrs = vec![
-        Attribute {
-            name: QualName::new(None, ns!(), a::REL),
-            value: "nofollow".into()
-        },
-        Attribute {
-            name: QualName::new(None, ns!(), a::HREF),
-            value: "/some".into()
-        },
-        Attribute {
-            name: QualName::new(None, ns!(), a::REL),
-            value: "noreferrer".into()
-        },
-    ];
+    el.attrs = SmallVec::<NewAttribute>::with_capacity(3);
+    el.attrs.push(NewAttribute(Attribute {
+        name: QualName::new(None, ns!(), a::REL),
+        value: "nofollow".into()
+    }));
+    el.attrs.push(NewAttribute(Attribute {
+        name: QualName::new(None, ns!(), a::HREF),
+        value: "/some".into()
+    }));
+    el.attrs.push(NewAttribute(Attribute {
+        name: QualName::new(None, ns!(), a::REL),
+        value: "noreferrer".into()
+    }));
     assert_eq!(3, el.attrs.len());
     assert_eq!("/some", el.set_attr("href", "/other").unwrap().as_ref());
     assert_eq!(3, el.attrs.len());
