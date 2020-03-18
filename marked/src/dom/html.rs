@@ -25,11 +25,12 @@ use html5ever::interface::tree_builder::{
 };
 use html5ever::tendril::{StrTendril, TendrilSink};
 use log::{debug, info, trace};
+use smallvec::SmallVec;
 use tendril::{fmt as form, Tendril};
 
 use crate::{
     Attribute, Decoder, Document, Element, EncodingHint,
-    Node, NodeData, NodeId, SharedEncodingHint,
+    MyAttribute, Node, NodeData, NodeId, SharedEncodingHint,
     BOM_CONF, HTML_META_CONF, INITIAL_BUFFER_SIZE,
 };
 
@@ -379,6 +380,11 @@ impl TreeSink for Sink {
         _flags: ElementFlags)
         -> NodeId
     {
+        let attrs: SmallVec<_> = attrs
+            .into_iter()
+            .map(|a| MyAttribute::new(a.name, a.value))
+            .collect();
+
         self.new_node(NodeData::Elem(Element { name, attrs }))
     }
 
@@ -460,7 +466,8 @@ impl TreeSink for Sink {
         element.attrs.extend(
             attrs
                 .into_iter()
-                .filter(|attr| !existing_names.contains(&attr.name)),
+                .filter(|attr| !existing_names.contains(&attr.name))
+                .map(|a| MyAttribute::new(a.name, a.value)),
         );
     }
 

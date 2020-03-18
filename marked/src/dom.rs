@@ -22,6 +22,8 @@ pub use html5ever::{Attribute, LocalName, Namespace, QualName};
 #[doc(no_inline)]
 pub use tendril::StrTendril;
 
+use smallvec::SmallVec;
+
 // custom ordering of these effects rustdoc for Document, etc.
 
 mod node_ref;
@@ -105,7 +107,40 @@ pub enum NodeData {
 #[derive(Clone, Debug)]
 pub struct Element {
     pub name: QualName,
-    pub attrs: Vec<Attribute>,
+    pub attrs: SmallVec<MyAttribute>,
+}
+
+/// New type Attribute with `SmallVec` compatibility.
+#[derive(Clone, Debug)]
+pub struct MyAttribute(Attribute);
+
+impl MyAttribute {
+    /// Construct.
+    fn new(name: QualName, value: StrTendril) -> MyAttribute {
+        MyAttribute(Attribute { name, value })
+    }
+}
+
+impl Deref for MyAttribute {
+    type Target = Attribute;
+
+    fn deref(&self) -> &Attribute {
+        &self.0
+    }
+}
+
+unsafe impl smallvec::Array for MyAttribute {
+    type Item = MyAttribute;
+    fn size() -> usize {
+        1
+    }
+}
+
+unsafe impl smallvec::Array for NodeId {
+    type Item = NodeId;
+    fn size() -> usize {
+        1
+    }
 }
 
 /// Core implementation.
@@ -409,7 +444,7 @@ impl Element {
     {
         Element {
             name: QualName::new(None, ns!(), lname.into()),
-            attrs: Vec::new()
+            attrs: SmallVec::new()
         }
     }
 
@@ -437,8 +472,8 @@ impl Element {
         let lname = lname.into();
         self.attrs
             .iter()
-            .find(|attr| attr.name.local == lname)
-            .map(|attr| &attr.value)
+            .find(|attr| attr.0.name.local == lname)
+            .map(|attr| &attr.0.value)
     }
 
     /// Remove attribute by local name, returning any value found.
@@ -454,8 +489,8 @@ impl Element {
         let mut i = 0;
         let lname = lname.into();
         while i < self.attrs.len() {
-            if self.attrs[i].name.local == lname {
-                found = Some(self.attrs.remove(i).value);
+            if self.attrs[i].0.name.local == lname {
+                found = Some(self.attrs.remove(i).0.value);
             } else {
                 i += 1;
             }
@@ -484,25 +519,25 @@ impl Element {
         let mut value = Some(value.into());
 
         while i < self.attrs.len() {
-            if self.attrs[i].name.local == lname {
+            if self.attrs[i].0.name.local == lname {
                 if found.is_none() {
                     found = Some(mem::replace(
-                        &mut self.attrs[i].value,
+                        &mut self.attrs[i].0.value,
                         value.take().unwrap(),
                     ));
                     i += 1;
                 } else {
-                    found = Some(self.attrs.remove(i).value);
+                    found = Some(self.attrs.remove(i).0.value);
                 };
             } else {
                 i += 1;
             }
         }
         if found.is_none() {
-            self.attrs.push(Attribute {
-                name: QualName::new(None, ns!(), lname),
-                value: value.take().unwrap()
-            });
+            self.attrs.push(MyAttribute::new(
+                QualName::new(None, ns!(), lname),
+                value.take().unwrap()
+            ));
         }
         found
     }

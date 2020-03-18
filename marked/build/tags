@@ -155,5 +155,5 @@ u            ,    T F 5 D I    , underlined text
 ul           ,  S T F 5        , unordered list
 var          ,  S T F 5   I    , variable part of a text
 video        ,        5   I    , video container
-wbr          ,E       5   I    , A line break opportunity
+wbr          ,E       5   I    , line break opportunity
 xmp          ,          D      , preformatted text
