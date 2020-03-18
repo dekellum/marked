@@ -132,6 +132,7 @@ dependencies = [
  "lazy_static",
  "log",
  "mime",
+ "smallvec",
  "string_cache",
  "tendril",
  "xml-rs",
