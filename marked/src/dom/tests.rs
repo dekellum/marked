@@ -2,7 +2,7 @@ use std::fs::File;
 use std::{io, io::Read};
 
 use crate::{
-    Attribute, Document, Element, Node, NodeData, NodeRef,
+    Attribute, Document, Element, Node, NodeData, NodeId, NodeRef,
     QualName, StrTendril,
     filter, filter::Action,
     html, html::{a, t, TAG_META},
@@ -23,6 +23,7 @@ use rand::Rng;
 fn size_of() {
     use std::mem::size_of;
     assert_eq!(size_of::<Node>(), 80);
+    assert_eq!(size_of::<NodeId>(), 4);
     assert_eq!(size_of::<NodeData>(), 56);
     assert_eq!(size_of::<Element>(), 48);
     assert_eq!(size_of::<Attribute>(), 40);

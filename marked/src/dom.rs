@@ -60,12 +60,12 @@ pub struct NodeId(NonZeroU32);
 /// identifiers to parent, siblings and children.
 #[derive(Debug)]
 pub struct Node {
+    data: NodeData,
     parent: Option<NodeId>,
     prev_sibling: Option<NodeId>,
     next_sibling: Option<NodeId>,
     first_child: Option<NodeId>,
     last_child: Option<NodeId>,
-    data: NodeData,
 }
 
 /// The node kind and payload data associated with that kind.
