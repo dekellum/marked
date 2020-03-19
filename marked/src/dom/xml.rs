@@ -28,18 +28,20 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
     for event in xml_rs::EventReader::new(utf8_bytes) {
         match event.map_err(XmlError)? {
             XmlEvent::StartElement { name, attributes, .. } => {
-                let id = document.push_node(Node::new(NodeData::Elem(Element {
-                    name: convert_name(name),
-                    attrs: attributes
-                        .into_iter()
-                        .map(|OwnedAttribute { name, value }| -> Attribute {
-                            Attribute {
-                                name: convert_name(name),
-                                value: value.into()
-                            }
-                        })
-                        .collect()
-                })));
+                let id = document.push_node(
+                    Node::new(NodeData::Elem(Element {
+                        name: convert_name(name),
+                        attrs: attributes
+                            .into_iter()
+                            .map(|OwnedAttribute { name, value }| {
+                                Attribute {
+                                    name: convert_name(name),
+                                    value: value.into()
+                                }
+                            })
+                            .collect()
+                    }))
+                );
                 document.append(current, id);
                 ancestors.push(current);
                 current = id;
