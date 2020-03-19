@@ -68,7 +68,7 @@ pub struct Node {
     data: NodeData,
 }
 
-/// The node type and associated data.
+/// The node kind and payload data associated with that kind.
 #[derive(Clone, Debug)]
 pub enum NodeData {
     /// A place holder value. Used temporarily while filtering and for nodes
