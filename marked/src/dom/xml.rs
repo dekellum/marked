@@ -18,6 +18,7 @@ use xml_rs::attribute::OwnedAttribute;
 use crate::dom::{
     Attribute, Document, Element, Node, NodeData, QualName, StrTendril
 };
+use crate::chars::is_all_ctrl_ws;
 
 /// Parse XML document from UTF-8 bytes in RAM.
 pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
@@ -47,8 +48,7 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                 current = ancestors.pop().unwrap()
             }
             XmlEvent::CData(s) |
-            XmlEvent::Characters(s) |
-            XmlEvent::Whitespace(s) => {
+            XmlEvent::Characters(s) => {
                 if let Some(last_child) = document[current].last_child {
                     let node = &mut document[last_child];
                     if let NodeData::Text(t) = &mut node.data {
@@ -60,6 +60,10 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                     Node::new(NodeData::Text(s.into()))
                 );
                 document.append(current, id);
+            }
+            XmlEvent::Whitespace(s) => {
+                debug_assert!(is_all_ctrl_ws(&s.into()));
+                //FIXME: Push as above, if in "preserve mode"?
             }
             XmlEvent::ProcessingInstruction { name: _, data } => {
                 let data = if let Some(s) = data {
