@@ -26,16 +26,16 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
     let mut ancestors = Vec::new();
     for event in xml_rs::EventReader::new(utf8_bytes) {
         match event.map_err(XmlError)? {
-            XmlEvent::StartElement {
-                name, attributes, ..
-            } => {
+            XmlEvent::StartElement { name, attributes, .. } => {
                 let id = document.push_node(Node::new(NodeData::Elem(Element {
                     name: convert_name(name),
                     attrs: attributes
                         .into_iter()
-                        .map(|OwnedAttribute { name, value }| Attribute {
-                            name: convert_name(name),
-                            value: value.into()
+                        .map(|OwnedAttribute { name, value }| -> Attribute {
+                            Attribute {
+                                name: convert_name(name),
+                                value: value.into()
+                            }
                         })
                         .collect()
                 })));
@@ -43,8 +43,12 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                 ancestors.push(current);
                 current = id;
             }
-            XmlEvent::EndElement { .. } => current = ancestors.pop().unwrap(),
-            XmlEvent::CData(s) | XmlEvent::Characters(s) | XmlEvent::Whitespace(s) => {
+            XmlEvent::EndElement { .. } => {
+                current = ancestors.pop().unwrap()
+            }
+            XmlEvent::CData(s) |
+            XmlEvent::Characters(s) |
+            XmlEvent::Whitespace(s) => {
                 if let Some(last_child) = document[current].last_child {
                     let node = &mut document[last_child];
                     if let NodeData::Text(t) = &mut node.data {
@@ -52,7 +56,9 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                         continue;
                     }
                 }
-                let id = document.push_node(Node::new(NodeData::Text(s.into())));
+                let id = document.push_node(
+                    Node::new(NodeData::Text(s.into()))
+                );
                 document.append(current, id);
             }
             XmlEvent::ProcessingInstruction { name: _, data } => {
@@ -61,10 +67,14 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                 } else {
                     StrTendril::new()
                 };
-                let id = document.push_node(Node::new(NodeData::ProcessingInstruction(data)));
+                let id = document.push_node(
+                    Node::new(NodeData::ProcessingInstruction(data))
+                );
                 document.append(current, id);
             }
-            XmlEvent::StartDocument { .. } | XmlEvent::EndDocument | XmlEvent::Comment(_) => {}
+            XmlEvent::StartDocument { .. } |
+            XmlEvent::EndDocument |
+            XmlEvent::Comment(_) => {}
         }
     }
     Ok(document)
