@@ -55,16 +55,13 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                 let id = document.push_node(Node::new(NodeData::Text(s.into())));
                 document.append(current, id);
             }
-            XmlEvent::ProcessingInstruction { name, data } => {
+            XmlEvent::ProcessingInstruction { name: _, data } => {
                 let data = if let Some(s) = data {
                     s.into()
                 } else {
                     StrTendril::new()
                 };
-                let id = document.push_node(Node::new(NodeData::ProcessingInstruction {
-                    target: name.into(),
-                    data
-                }));
+                let id = document.push_node(Node::new(NodeData::ProcessingInstruction(data)));
                 document.append(current, id);
             }
             XmlEvent::StartDocument { .. } | XmlEvent::EndDocument | XmlEvent::Comment(_) => {}

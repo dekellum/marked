@@ -386,10 +386,10 @@ impl TreeSink for Sink {
         self.new_node(NodeData::Comment(text))
     }
 
-    fn create_pi(&mut self, target: StrTendril, data: StrTendril)
+    fn create_pi(&mut self, _target: StrTendril, data: StrTendril)
         -> NodeId
     {
-        self.new_node(NodeData::ProcessingInstruction { target, data })
+        self.new_node(NodeData::ProcessingInstruction(data))
     }
 
     fn append(&mut self, &parent: &NodeId, child: NodeOrText<NodeId>) {
@@ -428,14 +428,10 @@ impl TreeSink for Sink {
     fn append_doctype_to_document(
         &mut self,
         name: StrTendril,
-        public_id: StrTendril,
-        system_id: StrTendril)
+        _public_id: StrTendril,
+        _system_id: StrTendril)
     {
-        let node = self.new_node(NodeData::Doctype {
-            name,
-            _public_id: public_id,
-            _system_id: system_id,
-        });
+        let node = self.new_node(NodeData::Doctype(name));
         self.document.append(Document::DOCUMENT_NODE_ID, node)
     }
 

@@ -79,11 +79,7 @@ pub enum NodeData {
     Document,
 
     /// The document type definition.
-    Doctype {
-        name: StrTendril,
-        _public_id: StrTendril,
-        _system_id: StrTendril,
-    },
+    Doctype(StrTendril),
 
     /// Character data content.
     Text(StrTendril),
@@ -95,10 +91,7 @@ pub enum NodeData {
     Elem(Element),
 
     /// A processing instruction node.
-    ProcessingInstruction {
-        target: StrTendril,
-        data: StrTendril,
-    },
+    ProcessingInstruction(StrTendril),
 }
 
 /// A markup element with name and attributes.

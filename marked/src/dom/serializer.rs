@@ -33,12 +33,14 @@ impl<'a> Serialize for NodeRef<'a> {
         -> io::Result<()>
         where S: Serializer
     {
+        use NodeData::*;
+
         match (traversal_scope, &self.data) {
-            (ref scope, &NodeData::Elem(ref edata)) => {
+            (ref scope, Elem(ref elm)) => {
                 if *scope == IncludeNode {
                     serializer.start_elem(
-                        edata.name.clone(),
-                        edata.attrs.iter().map(|a| (&a.name, a.value.as_ref()))
+                        elm.name.clone(),
+                        elm.attrs.iter().map(|a| (&a.name, a.value.as_ref()))
                     )?;
                 }
                 for child in self.children() {
@@ -46,16 +48,16 @@ impl<'a> Serialize for NodeRef<'a> {
                 }
 
                 if *scope == IncludeNode {
-                    serializer.end_elem(edata.name.clone())?;
+                    serializer.end_elem(elm.name.clone())?;
                 }
                 Ok(())
             }
 
-            (_, &NodeData::Hole) => {
+            (_, Hole) => {
                 panic!("Hole in Document")
             }
 
-            (_, &NodeData::Document) => {
+            (_, Document) => {
                 for child in self.children() {
                     Serialize::serialize(&child, serializer, IncludeNode)?;
                 }
@@ -64,18 +66,17 @@ impl<'a> Serialize for NodeRef<'a> {
 
             (ChildrenOnly(_), _) => Ok(()),
 
-            (IncludeNode, &NodeData::Doctype { ref name, .. }) => {
+            (IncludeNode, Doctype(ref name)) => {
                 serializer.write_doctype(name)
             }
-            (IncludeNode, &NodeData::Text(ref t)) => {
+            (IncludeNode, Text(ref t)) => {
                 serializer.write_text(&t)
             }
-            (IncludeNode, &NodeData::Comment(ref t)) => {
+            (IncludeNode, Comment(ref t)) => {
                 serializer.write_comment(&t)
             }
-            (IncludeNode,
-             &NodeData::ProcessingInstruction { ref target, ref data }) => {
-                serializer.write_processing_instruction(&target, &data)
+            (IncludeNode, ProcessingInstruction(ref d)) => {
+                serializer.write_processing_instruction(&"", &d)
             }
         }
     }
