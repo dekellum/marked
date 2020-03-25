@@ -278,7 +278,7 @@ pub fn detach_comments(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
 ///
 /// Compatible with depth or breadth-first filtering.
 pub fn detach_pis(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
-    if let NodeData::ProcessingInstruction {..} = data {
+    if let NodeData::Pi(_) = data {
         Action::Detach
     } else {
         Action::Continue

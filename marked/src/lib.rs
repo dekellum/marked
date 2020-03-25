@@ -44,7 +44,8 @@ pub use decode::{
 mod dom;
 pub use dom::{
     html, xml,
-    Document, Element, Node, NodeData, NodeId, NodeRef, Selector,
+    Document, DocumentType, Element,
+    Node, NodeData, NodeId, NodeRef, ProcessingInstruction, Selector,
     Attribute, LocalName, Namespace, QualName, StrTendril,
 };
 

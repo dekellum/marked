@@ -66,8 +66,8 @@ impl<'a> Serialize for NodeRef<'a> {
 
             (ChildrenOnly(_), _) => Ok(()),
 
-            (IncludeNode, Doctype(ref name)) => {
-                serializer.write_doctype(name)
+            (IncludeNode, DocType(ref dt)) => {
+                serializer.write_doctype(&dt.name)
             }
             (IncludeNode, Text(ref t)) => {
                 serializer.write_text(&t)
@@ -75,8 +75,8 @@ impl<'a> Serialize for NodeRef<'a> {
             (IncludeNode, Comment(ref t)) => {
                 serializer.write_comment(&t)
             }
-            (IncludeNode, ProcessingInstruction(ref d)) => {
-                serializer.write_processing_instruction(&"", &d)
+            (IncludeNode, Pi(ref pi)) => {
+                serializer.write_processing_instruction(&"", &pi.data)
             }
         }
     }

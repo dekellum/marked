@@ -79,7 +79,7 @@ pub enum NodeData {
     Document,
 
     /// The document type definition.
-    Doctype(StrTendril),
+    DocType(DocumentType),
 
     /// Character data content.
     Text(StrTendril),
@@ -91,7 +91,21 @@ pub enum NodeData {
     Elem(Element),
 
     /// A processing instruction node.
-    ProcessingInstruction(StrTendril),
+    Pi(ProcessingInstruction),
+}
+
+/// Document type definition details.
+#[derive(Clone, Debug)]
+pub struct DocumentType {
+    pub name: StrTendril,
+    _priv: ()
+}
+
+/// Processing instruction details.
+#[derive(Clone, Debug)]
+pub struct ProcessingInstruction {
+    pub data: StrTendril,
+    _priv: ()
 }
 
 /// A markup element with name and attributes.
@@ -99,6 +113,7 @@ pub enum NodeData {
 pub struct Element {
     pub name: QualName,
     pub attrs: Vec<Attribute>,
+    _priv: ()
 }
 
 /// Core implementation.
@@ -133,9 +148,9 @@ impl Document {
         let mut root = None;
         for child in self.children(Document::DOCUMENT_NODE_ID) {
             match &self[child].data {
-                NodeData::Doctype { .. }
-                | NodeData::Comment(_)
-                | NodeData::ProcessingInstruction { .. } => {}
+                NodeData::DocType(_) |
+                NodeData::Comment(_) |
+                NodeData::Pi(_) => {}
                 NodeData::Document => {
                     debug_assert!(false, "Document child of Document");
                     root = None;
@@ -402,7 +417,8 @@ impl Element {
     {
         Element {
             name: QualName::new(None, ns!(), lname.into()),
-            attrs: Vec::new()
+            attrs: Vec::new(),
+            _priv: ()
         }
     }
 

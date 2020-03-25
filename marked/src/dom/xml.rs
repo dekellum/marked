@@ -16,7 +16,8 @@ use xml_rs::reader::XmlEvent;
 use xml_rs::attribute::OwnedAttribute;
 
 use crate::dom::{
-    Attribute, Document, Element, Node, NodeData, QualName, StrTendril
+    Attribute, Document, Element, Node, NodeData,
+    ProcessingInstruction, QualName, StrTendril
 };
 use crate::chars::is_all_ctrl_ws;
 
@@ -39,7 +40,8 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                                     value: value.into()
                                 }
                             })
-                            .collect()
+                            .collect(),
+                        _priv: ()
                     }))
                 );
                 document.append(current, id);
@@ -74,7 +76,9 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                     StrTendril::new()
                 };
                 let id = document.push_node(
-                    Node::new(NodeData::ProcessingInstruction(data))
+                    Node::new(NodeData::Pi(
+                        ProcessingInstruction { data, _priv: () }
+                    ))
                 );
                 document.append(current, id);
             }

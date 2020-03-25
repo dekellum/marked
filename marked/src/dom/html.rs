@@ -27,8 +27,8 @@ use log::{debug, info, trace};
 use tendril::{fmt as form, Tendril};
 
 use crate::{
-    Attribute, Decoder, Document, Element, EncodingHint,
-    Node, NodeData, NodeId, SharedEncodingHint,
+    Attribute, Decoder, Document, DocumentType, Element, EncodingHint,
+    Node, NodeData, NodeId, ProcessingInstruction, SharedEncodingHint,
     BOM_CONF, HTML_META_CONF, INITIAL_BUFFER_SIZE,
 };
 
@@ -378,7 +378,7 @@ impl TreeSink for Sink {
         _flags: ElementFlags)
         -> NodeId
     {
-        self.new_node(NodeData::Elem(Element { name, attrs }))
+        self.new_node(NodeData::Elem(Element { name, attrs, _priv: () }))
     }
 
     fn create_comment(&mut self, text: StrTendril) -> NodeId {
@@ -388,7 +388,7 @@ impl TreeSink for Sink {
     fn create_pi(&mut self, _target: StrTendril, data: StrTendril)
         -> NodeId
     {
-        self.new_node(NodeData::ProcessingInstruction(data))
+        self.new_node(NodeData::Pi(ProcessingInstruction { data, _priv: () }))
     }
 
     fn append(&mut self, &parent: &NodeId, child: NodeOrText<NodeId>) {
@@ -430,7 +430,9 @@ impl TreeSink for Sink {
         _p_id: StrTendril,
         _s_id: StrTendril)
     {
-        let node = self.new_node(NodeData::Doctype(name));
+        let node = self.new_node(NodeData::DocType(
+            DocumentType { name, _priv: () }
+        ));
         self.document.append(Document::DOCUMENT_NODE_ID, node)
     }
 
