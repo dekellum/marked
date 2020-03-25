@@ -10,6 +10,7 @@
 //! Support for html5 parsing to `Document`.
 
 use std::borrow::Cow;
+use std::collections::HashSet;
 use std::default::Default;
 use std::io;
 
@@ -436,9 +437,32 @@ impl TreeSink for Sink {
         self.document.append(Document::DOCUMENT_NODE_ID, node)
     }
 
-    fn add_attrs_if_missing(&mut self, &_t: &NodeId, _a: Vec<Attribute>)
+    fn add_attrs_if_missing(
+        &mut self,
+        &target: &NodeId,
+        attrs: Vec<Attribute>)
     {
-        unimplemented!("not sure why this is a trait requirement!");
+        // Note this is only used in few, strange cases involving re-working of
+        // html and body node attributes, but it definitely needs to be
+        // implemented.
+
+        let node = &mut self.document[target];
+        let element = if let NodeData::Elem(e) = &mut node.data {
+            e
+        } else {
+            panic!("not an element");
+        };
+
+        let existing_names = element
+            .attrs
+            .iter()
+            .map(|e| e.name.clone())
+            .collect::<HashSet<_>>();
+        element.attrs.extend(
+            attrs
+                .into_iter()
+                .filter(|attr| !existing_names.contains(&attr.name)),
+        );
     }
 
     fn remove_from_parent(&mut self, &target: &NodeId) {

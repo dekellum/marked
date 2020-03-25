@@ -540,6 +540,22 @@ fn test_parsed_attrs() {
 }
 
 #[test]
+fn test_html_attr() {
+    // Found parser call of `Sink::add_attrs_if_missing`
+    ensure_logger();
+    let doc = html::parse_utf8(
+        "<body><html lang=\"en\">text</html></body>"
+            .as_bytes()
+    );
+    assert_eq!(
+        "<html lang=\"en\"><head></head><body>\
+         text\
+         </body></html>",
+        doc.to_string()
+    );
+}
+
+#[test]
 fn test_shallow_fragment() {
     ensure_logger();
     let doc = html::parse_utf8_fragment(
