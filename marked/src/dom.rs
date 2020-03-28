@@ -233,6 +233,7 @@ impl Document {
     fn append(&mut self, parent: NodeId, new_child: NodeId) {
         self.detach(new_child);
         self[new_child].parent = Some(parent);
+        self[parent].assert_suitable_parent();
         if let Some(last_child) = self[parent].last_child.take() {
             self[new_child].prev_sibling = Some(last_child);
             debug_assert!(self[last_child].next_sibling.is_none());
@@ -255,7 +256,10 @@ impl Document {
 
     fn insert_before(&mut self, sibling: NodeId, new_sibling: NodeId) {
         self.detach(new_sibling);
-        self[new_sibling].parent = self[sibling].parent;
+        let parent = self[sibling].parent
+            .expect("insert_before sibling has parent");
+        self[parent].assert_suitable_parent();
+        self[new_sibling].parent = Some(parent);
         self[new_sibling].next_sibling = Some(sibling);
         if let Some(prev_sibling) = self[sibling].prev_sibling.take() {
             self[new_sibling].prev_sibling = Some(prev_sibling);
@@ -264,7 +268,7 @@ impl Document {
                 Some(sibling)
             );
             self[prev_sibling].next_sibling = Some(new_sibling);
-        } else if let Some(parent) = self[sibling].parent {
+        } else {
             debug_assert_eq!(self[parent].first_child, Some(sibling));
             self[parent].first_child = Some(new_sibling);
         }
@@ -611,6 +615,14 @@ impl NodeData {
             edata.is_elem(lname)
         } else {
             false
+        }
+    }
+
+    #[inline]
+    fn assert_suitable_parent(&self) {
+        match self {
+            NodeData::Document | NodeData::Elem(_) => {}
+            _ => debug_assert!(false, "Not a suitable parent: {:?}", self)
         }
     }
 }

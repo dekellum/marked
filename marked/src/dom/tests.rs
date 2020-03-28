@@ -53,6 +53,20 @@ fn one_element() {
 }
 
 #[test]
+#[cfg(debug_assertions)]
+#[should_panic]
+fn suitable_parent_asserted() {
+    ensure_logger();
+    let mut doc = Document::new();
+    let eid = doc.append_child(
+        Document::DOCUMENT_NODE_ID,
+        Node::new_elem(Element::new("one"))
+    );
+    let tid = doc.append_child(eid, Node::new_text("text"));
+    doc.append_child(tid, Node::new_elem(Element::new("bogus")));
+}
+
+#[test]
 fn element_attrs() {
     ensure_logger();
     let mut el = Element::new(t::A);
