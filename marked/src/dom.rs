@@ -396,14 +396,16 @@ impl Document {
     /// referenced by ID.
     pub fn deep_clone(&self, id: NodeId) -> Document {
         let mut ndoc = Document::with_capacity(self.len() as u32 / 2);
-        ndoc.deep_clone_to(Document::DOCUMENT_NODE_ID, self, id);
+        ndoc.append_deep_clone(Document::DOCUMENT_NODE_ID, self, id);
         ndoc
     }
 
-    fn deep_clone_to(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
+    /// Clone node oid in odoc and all its descendants, appending to id in
+    /// self.
+    pub fn append_deep_clone(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
         let id = self.append_child(id, odoc[oid].clone());
         for child in odoc.children(oid) {
-            self.deep_clone_to(id, odoc, child);
+            self.append_deep_clone(id, odoc, child);
         }
     }
 

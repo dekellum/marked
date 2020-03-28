@@ -669,6 +669,35 @@ fn test_deep_clone() {
 }
 
 #[test]
+fn test_append_deep_clone() {
+    ensure_logger();
+    let frag1 = html::parse_utf8(
+        "<div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
+         <div>sibling</div>"
+            .as_bytes()
+    );
+    let root = frag1.root_element_ref().expect("root");
+    let aref = root.find(|n| n.is_elem(t::A)).expect("<a>");
+
+    let mut frag2 = Document::new();
+    let ul = frag2.append_child(
+        Document::DOCUMENT_NODE_ID,
+        Node::new_elem(Element::new(t::UL))
+    );
+    let li1 = frag2.append_child(ul, Node::new_elem(Element::new(t::LI)));
+    frag2.append_deep_clone(li1, &frag1, aref.id());
+    let li2 = frag2.append_child(ul, Node::new_elem(Element::new(t::LI)));
+    frag2.append_deep_clone(li2, &frag1, aref.id());
+    assert_eq!(
+        "<ul>\
+           <li><a href=\"link\"><i>bar</i>s</a></li>\
+           <li><a href=\"link\"><i>bar</i>s</a></li>\
+         </ul>",
+        frag2.to_string()
+    );
+}
+
+#[test]
 fn test_select_children() {
     ensure_logger();
     let doc = html::parse_utf8(
