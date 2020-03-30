@@ -40,6 +40,8 @@ fn empty_document() {
     let doc = Document::default();
     assert_eq!(None, doc.root_element_ref(), "no root Element");
     assert_eq!(1, doc.nodes().count(), "one Document node");
+    assert_eq!(1, doc.len());
+    assert!(doc.is_empty());
 }
 
 #[test]

@@ -55,7 +55,7 @@ pub struct Document {
 /// A `Node` identifier, as u32 index into a `Document`s `Node` vector.
 ///
 /// Should only be used with the `Document` it was obtained from.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NodeId(NonZeroU32);
 
 /// A typed node (e.g. text, element, etc.) within a `Document` including
@@ -127,10 +127,34 @@ impl Document {
 
     /// Construct a new `Document` with the single empty document node.
     pub fn new() -> Self {
-        Document { nodes: vec![
-            Node::new(NodeData::Hole),     // padding, index 0
-            Node::new(NodeData::Document)  // Index 1: DOCUMENT_NODE_ID
-        ]}
+        Document::with_capacity(8)
+    }
+
+    /// Construct a new `Document` with the single empty document node and
+    /// specified capacity.
+    pub fn with_capacity(count: u32) -> Self {
+        let mut nodes = Vec::with_capacity(count as usize);
+        nodes.push(Node::new(NodeData::Hole));        // Index 0: Padding
+        nodes.push(Node::new(NodeData::Document));    // Index 1: DOCUMENT_NODE_ID
+        Document { nodes }
+    }
+
+    /// Return total number of `Node`s.
+    ///
+    /// This includes the document node and all occupied nodes, some of which
+    /// may not be accessable from the document node. The value returned
+    /// may be more than the accessable nodes counted via `nodes().count()`,
+    /// unless [`Document::compact`] or [`Document::deep_clone`] is first used.
+    pub fn len(&self) -> usize {
+        self.nodes.len() - 1
+    }
+
+    /// Return true if this document only contains the single empty document
+    /// node.
+    ///
+    /// Note that when "empty" the [`Document::len`] is still one (1).
+    pub fn is_empty(&self) -> bool {
+        self.nodes.len() < 3
     }
 
     /// Return the root element `NodeId` for this Document, or None if there is
@@ -350,7 +374,7 @@ impl Document {
     /// Create a new `Document` from the ordered sub-tree rooted in the node
     /// referenced by ID.
     pub fn deep_clone(&self, id: NodeId) -> Document {
-        let mut ndoc = Document::new();
+        let mut ndoc = Document::with_capacity(self.len() as u32 / 2);
         ndoc.deep_clone_to(Document::DOCUMENT_NODE_ID, self, id);
         ndoc
     }
