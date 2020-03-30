@@ -205,6 +205,10 @@ fn test_remove_filter() {
          </body></html>",
         doc.to_string()
     );
+    assert_eq!(11, doc.len());
+
+    doc.compact();
+    assert_eq!(6 + 1, doc.len());
 }
 
 #[test]
@@ -277,8 +281,14 @@ fn test_filter_chain_large_sample() {
     // Make sure filtering is stable/idempotent
     doc.filter(pass_1);
     doc.filter(filter::text_normalize);
+
     assert_eq!(25893, doc.to_string().len(), "{}",
                doc.to_string());
+    assert_eq!(5500, doc.len());
+
+    doc.compact();
+    assert_eq!(1497, doc.len());
+    assert_eq!(2, doc.children(Document::DOCUMENT_NODE_ID).count());
 }
 
 #[test]

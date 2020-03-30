@@ -220,8 +220,7 @@ impl Document {
     /// element.
     ///
     /// Detach just removes references from other nodes. To free up the memory
-    /// associated with the node and its children, use [`Document::deep_clone`]
-    /// and drop the original `Document`.
+    /// associated with the node and its children, use [`Document::compact`].
     pub fn detach(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
@@ -371,6 +370,28 @@ impl Document {
         })
     }
 
+    /// Compact in place, by removing `Node`s that are no longer referenced
+    /// from the document node.
+    pub fn compact(&mut self) {
+        let mut ndoc = Document::with_capacity(self.len() as u32);
+        let mut next = Vec::new();
+        push_if_pair(
+            &mut next,
+            self[Document::DOCUMENT_NODE_ID].first_child,
+            Document::DOCUMENT_NODE_ID);
+
+        while let Some((id, nid)) = next.pop() {
+            let data = std::mem::replace(&mut self[id].data, NodeData::Hole);
+            let ncid = ndoc.append_child(nid, Node::new(data));
+            push_if_pair(&mut next, self[id].next_sibling, nid);
+            push_if_pair(&mut next, self[id].first_child, ncid);
+        }
+
+        ndoc.nodes.shrink_to_fit();
+
+        std::mem::swap(&mut self.nodes, &mut ndoc.nodes);
+    }
+
     /// Create a new `Document` from the ordered sub-tree rooted in the node
     /// referenced by ID.
     pub fn deep_clone(&self, id: NodeId) -> Document {
@@ -395,8 +416,8 @@ impl Document {
     ///
     /// After repositioning children the specified node is detached, which only
     /// removes references. To free up the memory associated with the node, use
-    /// [`Document::deep_clone`] and drop the original `Document`. For a
-    /// node with no children, fold is equivalent to [`Document::detach`].
+    /// [`Document::compact`]. For a node with no children, fold is equivalent
+    /// to [`Document::detach`].
     pub fn fold(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
@@ -654,7 +675,7 @@ impl NodeData {
 }
 
 /// Clone `Node` by cloning its `NodeData`, but not sibling/parent/children
-/// indexes (which are left `None`).
+/// indexes (which are left `None`, so the new Node is completely "detached").
 impl Clone for Node {
     fn clone(&self) -> Self {
         Node::new(self.data.clone())
@@ -664,5 +685,15 @@ impl Clone for Node {
 fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
     if let Some(id) = id {
         stack.push(id);
+    }
+}
+
+fn push_if_pair(
+    stack: &mut Vec<(NodeId, NodeId)>,
+    id: Option<NodeId>,
+    oid: NodeId)
+{
+    if let Some(id) = id {
+        stack.push((id, oid));
     }
 }
