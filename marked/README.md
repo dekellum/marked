@@ -10,12 +10,23 @@ Parsing, filtering, selecting and serializing HTML/XML markup.
 See the above linked rustdoc or The Märkəd Project [../README] for a feature
 overview.
 
+## Optional Features
+
+The following features may be enabled at build time. **All are disabled by
+default, unless otherwise noted.**
+
+_xml_
+: Includes `marked::xml` module for xml support via the _xml-rs_ crate.
+
 ## Minimum supported rust version
 
 MSRV := 1.38.0
 
 The crate will fail fast on any lower rustc (via a build.rs version
 check) and is also CI tested on this version.
+
+Certain non-default features (e.g. _xml_) may include dependencies which have
+higher MSRV requirements.
 
 ## License
 

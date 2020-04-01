@@ -6,9 +6,11 @@ use crate::{
     QualName, StrTendril,
     filter, filter::Action,
     html, html::{a, t, TAG_META},
-    xml,
     HTTP_CTYPE_CONF,
 };
+
+#[cfg(feature = "xml")]
+use crate::xml;
 
 use crate::chain_filters;
 use crate::logger::ensure_logger;
@@ -288,6 +290,7 @@ fn test_filter_chain_large_sample_breadth() {
 }
 
 #[test]
+#[cfg(feature = "xml")]
 fn test_simple_xml() {
     ensure_logger();
     let doc = xml::parse_utf8(
@@ -301,6 +304,7 @@ fn test_simple_xml() {
 }
 
 #[test]
+#[cfg(feature = "xml")]
 fn test_xml_with_decl() {
     ensure_logger();
     let doc = xml::parse_utf8(
