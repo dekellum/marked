@@ -60,7 +60,7 @@ pub struct NodeId(NonZeroU32);
 
 /// A typed node (e.g. text, element, etc.) within a `Document` including
 /// identifiers to parent, siblings and children.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Node {
     data: NodeData,
     parent: Option<NodeId>,
@@ -414,10 +414,20 @@ impl Document {
     /// Clone node oid in odoc and all its descendants, appending to id in
     /// self.
     pub fn append_deep_clone(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
-        let id = self.append_child(id, odoc[oid].clone());
+        let id = self.append_child(id, Node::new(odoc[oid].data.clone()));
         for child in odoc.children(oid) {
             self.append_deep_clone(id, odoc, child);
         }
+    }
+
+    /// Return a clone of self by bulk clone of all `Node`s.
+    ///
+    /// This clone is performed without regard for what nodes are reachable
+    /// from the document node. The [`Document::len`] of the clone will be the
+    /// same as the original. As compared with `deep_clone(DOCUMENT_NODE_ID)`
+    /// this is faster but potentially much less memory efficient.
+    pub fn bulk_clone(&self) -> Document {
+        Document { nodes: self.nodes.clone() }
     }
 
     /// Replace the specified node ID with its children.
@@ -684,14 +694,6 @@ impl NodeData {
             NodeData::Document | NodeData::Elem(_) => {}
             _ => debug_assert!(false, "Not a suitable parent: {:?}", self)
         }
-    }
-}
-
-/// Clone `Node` by cloning its `NodeData`, but not sibling/parent/children
-/// indexes (which are left `None`, so the new Node is completely "detached").
-impl Clone for Node {
-    fn clone(&self) -> Self {
-        Node::new(self.data.clone())
     }
 }
 
