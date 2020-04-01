@@ -40,6 +40,8 @@ fn empty_document() {
     let doc = Document::default();
     assert_eq!(None, doc.root_element_ref(), "no root Element");
     assert_eq!(1, doc.nodes().count(), "one Document node");
+    assert_eq!(1, doc.len());
+    assert!(doc.is_empty());
 }
 
 #[test]
@@ -66,6 +68,17 @@ fn suitable_parent_asserted() {
     );
     let tid = doc.append_child(eid, Node::new_text("text"));
     doc.append_child(tid, Node::new_elem(Element::new("bogus")));
+}
+
+#[test]
+#[cfg(debug_assertions)]
+#[should_panic]
+fn redundant_document_node_asserted() {
+    ensure_logger();
+    let mut doc = Document::new();
+    doc.append_child(
+        Document::DOCUMENT_NODE_ID,
+        Node::new(NodeData::Document));
 }
 
 #[test]
@@ -203,6 +216,10 @@ fn test_remove_filter() {
          </body></html>",
         doc.to_string()
     );
+    assert_eq!(11, doc.len());
+
+    doc.compact();
+    assert_eq!(6 + 1, doc.len());
 }
 
 #[test]
@@ -275,8 +292,14 @@ fn test_filter_chain_large_sample() {
     // Make sure filtering is stable/idempotent
     doc.filter(pass_1);
     doc.filter(filter::text_normalize);
+
     assert_eq!(25893, doc.to_string().len(), "{}",
                doc.to_string());
+    assert_eq!(5500, doc.len());
+
+    doc.compact();
+    assert_eq!(1497, doc.len());
+    assert_eq!(2, doc.children(Document::DOCUMENT_NODE_ID).count());
 }
 
 #[test]
@@ -630,7 +653,7 @@ fn test_deep_clone() {
             .as_bytes()
     );
 
-    let doc = doc.deep_clone(doc.root_element().expect("root"));
+    let doc = doc.deep_clone(Document::DOCUMENT_NODE_ID);
     assert_eq!(
         "<html><head></head><body>\
            <div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
@@ -654,6 +677,35 @@ fn test_deep_clone() {
     assert!(doc[nodes.next().unwrap()].is_elem(t::DIV));
     assert_eq!("sibling", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
     assert!(nodes.next().is_none());
+}
+
+#[test]
+fn test_append_deep_clone() {
+    ensure_logger();
+    let frag1 = html::parse_utf8(
+        "<div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
+         <div>sibling</div>"
+            .as_bytes()
+    );
+    let root = frag1.root_element_ref().expect("root");
+    let aref = root.find(|n| n.is_elem(t::A)).expect("<a>");
+
+    let mut frag2 = Document::new();
+    let ul = frag2.append_child(
+        Document::DOCUMENT_NODE_ID,
+        Node::new_elem(Element::new(t::UL))
+    );
+    let li1 = frag2.append_child(ul, Node::new_elem(Element::new(t::LI)));
+    frag2.append_deep_clone(li1, &frag1, aref.id());
+    let li2 = frag2.append_child(ul, Node::new_elem(Element::new(t::LI)));
+    frag2.append_deep_clone(li2, &frag1, aref.id());
+    assert_eq!(
+        "<ul>\
+           <li><a href=\"link\"><i>bar</i>s</a></li>\
+           <li><a href=\"link\"><i>bar</i>s</a></li>\
+         </ul>",
+        frag2.to_string()
+    );
 }
 
 #[test]

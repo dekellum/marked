@@ -16,7 +16,7 @@ use markup5ever_rcdom::{SerializableHandle, RcDom};
 use html5ever::serialize as rc_serialize;
 
 use marked;
-use marked::{Decoder, EncodingHint};
+use marked::{Decoder, Document, EncodingHint};
 use marked::chain_filters;
 use marked::filter;
 use marked::html::parse_buffered;
@@ -146,6 +146,80 @@ fn b31_text_normalize_content_identity(b: &mut Bencher) {
         doc.filter(filter::text_normalize); // New pass is realistic
         let out = doc.document_node_ref().text().unwrap();
         assert_eq!(out.len32(), 3257, "txt: {}", out.as_ref());
+    });
+}
+
+// In b5*_ benches below, compare with in-place `compact()`, so need to parse
+// and filter each time to produce a new "sparse" document.
+
+#[bench]
+fn b50_sparse_bulk_clone(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut doc = parse_buffered(eh, &mut fin).expect("parse");
+    doc.filter_breadth(chain_filters!(
+        filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+    ));
+
+    doc.filter(filter::fold_empty_inline);
+    doc.filter(filter::text_normalize); // Always use new pass.
+
+    b.iter(|| {
+        let doc = doc.bulk_clone();
+        assert_eq!(5500, doc.len());
+    });
+}
+
+#[bench]
+fn b51_sparse_compact(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut doc = parse_buffered(eh, &mut fin).expect("parse");
+    doc.filter_breadth(chain_filters!(
+        filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+    ));
+
+    doc.filter(filter::fold_empty_inline);
+    doc.filter(filter::text_normalize); // Always use new pass.
+
+    b.iter(|| {
+        let mut doc = doc.bulk_clone();
+        doc.compact();
+        assert_eq!(1497, doc.len());
+    });
+}
+
+#[bench]
+fn b52_sparse_deep_clone(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let mut doc = parse_buffered(eh, &mut fin).expect("parse");
+    doc.filter_breadth(chain_filters!(
+        filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+    ));
+
+    doc.filter(filter::fold_empty_inline);
+    doc.filter(filter::text_normalize); // Always use new pass.
+
+    b.iter(|| {
+        let doc = doc.bulk_clone();
+        let dc = doc.deep_clone(Document::DOCUMENT_NODE_ID);
+        assert_eq!(1497, dc.len());
     });
 }
 
