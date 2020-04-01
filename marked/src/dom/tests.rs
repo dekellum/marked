@@ -642,7 +642,7 @@ fn test_deep_clone() {
             .as_bytes()
     );
 
-    let doc = doc.deep_clone(doc.root_element().expect("root"));
+    let doc = doc.deep_clone(Document::DOCUMENT_NODE_ID);
     assert_eq!(
         "<html><head></head><body>\
            <div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
