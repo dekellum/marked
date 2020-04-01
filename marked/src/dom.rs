@@ -205,6 +205,11 @@ impl Document {
     }
 
     fn push_node(&mut self, node: Node) -> NodeId {
+        match node.data {
+            NodeData::Document | NodeData::Hole =>
+                debug_assert!(false, "Invalid push {:?}", node.data),
+            _ => (),
+        }
         let next_index = self.nodes.len()
             .try_into()
             .expect("Document (u32) node index overflow");
@@ -409,8 +414,6 @@ impl Document {
     /// Clone node oid in odoc and all its descendants, appending to id in
     /// self.
     pub fn append_deep_clone(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
-        debug_assert!(oid != Document::DOCUMENT_NODE_ID,
-                      "Invalid attempt to append_deep_clone document node");
         let id = self.append_child(id, odoc[oid].clone());
         for child in odoc.children(oid) {
             self.append_deep_clone(id, odoc, child);

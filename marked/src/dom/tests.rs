@@ -71,6 +71,17 @@ fn suitable_parent_asserted() {
 }
 
 #[test]
+#[cfg(debug_assertions)]
+#[should_panic]
+fn redundant_document_node_asserted() {
+    ensure_logger();
+    let mut doc = Document::new();
+    doc.append_child(
+        Document::DOCUMENT_NODE_ID,
+        Node::new(NodeData::Document));
+}
+
+#[test]
 fn element_attrs() {
     ensure_logger();
     let mut el = Element::new(t::A);
