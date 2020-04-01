@@ -43,12 +43,15 @@ pub use decode::{
 
 mod dom;
 pub use dom::{
-    html, xml,
+    html,
     Document, Element, Node, NodeData, NodeId, NodeRef, Selector,
     Attribute, LocalName, Namespace, QualName, StrTendril,
 };
 
 pub use dom::filter;
+
+#[cfg(feature = "xml")]
+pub use dom::xml;
 
 #[doc(hideen)]
 pub mod logger;
