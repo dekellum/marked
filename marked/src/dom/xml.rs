@@ -7,7 +7,9 @@
 // (No copyright notice.)
 // Licensed under the Apache license v2.0, or the MIT license
 
-//! Support for XML parsing to `Document`.
+//! Support for XML parsing to `Document` (_xml_ feature).
+//!
+//! This module is enabled at build time via the _xml_ non-default feature.
 
 use std::fmt;
 use std::error::Error as StdError;

@@ -28,6 +28,8 @@ mod node_ref;
 mod serializer;
 #[macro_use] pub mod filter;
 pub mod html;
+
+#[cfg(feature = "xml")]
 pub mod xml;
 
 #[cfg(test)]

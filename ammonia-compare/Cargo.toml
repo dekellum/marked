@@ -9,5 +9,5 @@ edition = "2018"
 doctest = false
 
 [dependencies]
-marked        = { version=">=0.1.0, <0.2", path="../marked" }
+marked        = { version=">=0.2.0, <0.3", path="../marked" }
 ammonia       = { version=">=3.1.0, <3.2" }
