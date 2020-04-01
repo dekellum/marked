@@ -3,7 +3,7 @@ members = [ "marked", "marked-cli" ]
 exclude = [ "ammonia-compare", "marked-sanitizer" ]
 
 [patch.crates-io]
-"marked" = { version = ">=0.1.0, <0.2", path = "marked" }
+"marked" = { path = "marked" }
 
 [profile.release]
 lto = "thin"
