@@ -60,7 +60,7 @@ pub struct NodeId(NonZeroU32);
 
 /// A typed node (e.g. text, element, etc.) within a `Document` including
 /// identifiers to parent, siblings and children.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Node {
     data: NodeData,
     parent: Option<NodeId>,
