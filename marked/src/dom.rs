@@ -164,10 +164,10 @@ impl Document {
     /// child of the document node, with no other element or text sibling.
     pub fn root_element(&self) -> Option<NodeId> {
         let document_node = &self[Document::DOCUMENT_NODE_ID];
-        debug_assert!(match document_node.data {
-            NodeData::Document => true,
-            _ => false
-        });
+        debug_assert!(
+            (if let NodeData::Document = document_node.data { true }
+             else { false }),
+            "not document node: {:?}", document_node);
         debug_assert!(document_node.parent.is_none());
         debug_assert!(document_node.next_sibling.is_none());
         debug_assert!(document_node.prev_sibling.is_none());
@@ -205,11 +205,10 @@ impl Document {
     }
 
     fn push_node(&mut self, node: Node) -> NodeId {
-        match node.data {
-            NodeData::Document | NodeData::Hole =>
-                debug_assert!(false, "Invalid push {:?}", node.data),
-            _ => (),
-        }
+        debug_assert!(
+            (if let NodeData::Document | NodeData::Hole = node.data { false }
+             else { true }),
+            "Invalid push {:?}", node.data);
         let next_index = self.nodes.len()
             .try_into()
             .expect("Document (u32) node index overflow");
@@ -690,10 +689,10 @@ impl NodeData {
 
     #[inline]
     fn assert_suitable_parent(&self) {
-        match self {
-            NodeData::Document | NodeData::Elem(_) => {}
-            _ => debug_assert!(false, "Not a suitable parent: {:?}", self)
-        }
+        debug_assert!(
+            (if let NodeData::Document | NodeData::Elem(_) = self { true }
+             else { false }),
+            "Not a suitable parent: {:?}", self)
     }
 }
 
