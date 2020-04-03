@@ -210,16 +210,17 @@ fn test_remove_filter() {
     );
     // Non-useful chain but confirms it works on one!
     doc.filter(chain_filters!(strike_remove_filter));
+
+    assert_eq!(10, doc.len() - 1);
+    doc.compact();
+    assert_eq!(6, doc.len() - 1);
+
     assert_eq!(
         "<html><head></head><body>\
          <div>foo  baz</div>\
          </body></html>",
         doc.to_string()
     );
-    assert_eq!(11, doc.len());
-
-    doc.compact();
-    assert_eq!(6 + 1, doc.len());
 }
 
 #[test]
@@ -272,6 +273,7 @@ fn test_filter_chain_large_sample() {
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut reader = sample_file("github-dekellum.html");
     let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
+    assert_eq!(5500, doc.len());
     let pass_0 = chain_filters!(
         filter::detach_banned_elements,
         filter::detach_comments,
@@ -292,14 +294,11 @@ fn test_filter_chain_large_sample() {
     // Make sure filtering is stable/idempotent
     doc.filter(pass_1);
     doc.filter(filter::text_normalize);
-
-    assert_eq!(25893, doc.to_string().len(), "{}",
-               doc.to_string());
-    assert_eq!(5500, doc.len());
-
     doc.compact();
     assert_eq!(1497, doc.len());
     assert_eq!(2, doc.children(Document::DOCUMENT_NODE_ID).count());
+
+    assert_eq!(25893, doc.to_string().len(), "{}", doc.to_string());
 }
 
 #[test]
@@ -308,6 +307,7 @@ fn test_filter_chain_large_sample_breadth() {
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut reader = sample_file("github-dekellum.html");
     let mut doc = html::parse_buffered(eh, &mut reader).unwrap();
+    assert_eq!(5500, doc.len());
     let pass_0 = chain_filters!(
         filter::detach_banned_elements,
         filter::detach_comments,
@@ -324,6 +324,11 @@ fn test_filter_chain_large_sample_breadth() {
     doc.filter_breadth(pass_0);
     doc.filter(filter::fold_empty_inline);
     doc.filter(filter::text_normalize);
+
+    doc.compact();
+    assert_eq!(1497, doc.len());
+    assert_eq!(2, doc.children(Document::DOCUMENT_NODE_ID).count());
+
     assert_eq!(25893, doc.to_string().len(), /*"{}", doc.to_string()*/);
 }
 
@@ -387,15 +392,14 @@ fn test_empty_inline() {
     // Now normalize properly:
     doc.filter(filter::text_normalize);
 
+    doc.compact();
+    assert_eq!(4, doc.len() - 1);
+
     assert_eq!(
         "<div>text 2 3<br>end</div>",
         doc.to_string()
     );
 
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    debug!("the doc nodes:\n{:?}", doc);
-    assert_eq!(4, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -416,15 +420,13 @@ fn test_xmp() {
         filter::text_normalize
     ));
 
+    doc.compact();
+    assert_eq!(5, doc.len() - 1);
+
     assert_eq!(
         "<div>foo<pre>&lt;i&gt;bar\n&lt;/i&gt;\n</pre>baz</div>",
         doc.to_string()
     );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    debug!("the doc nodes:\n{:?}", doc);
-    assert_eq!(5, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -445,22 +447,20 @@ fn test_plaintext() {
         filter::text_normalize
     ));
 
+    doc.compact();
+    assert_eq!(3, doc.len() - 1);
+
     assert_eq!(
         "<div><pre>bar\n\tbaz&lt;/div&gt;</pre></div>",
         doc.to_string()
     );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    debug!("the doc nodes:\n{:?}", doc);
-    assert_eq!(3, doc.nodes.len() - 2);
 }
 
 #[test]
 fn test_img_decoding_unknown() {
     ensure_logger();
     // The decoding attribute is unknown to html5ever
-    let doc = html::parse_utf8_fragment(
+    let mut doc = html::parse_utf8_fragment(
         r##"<img href="foo" decoding="sync"/>"##
             .as_bytes()
     );
@@ -476,34 +476,31 @@ fn test_img_decoding_unknown() {
             .as_ref(),
         "sync");
 
+    doc.compact();
+    assert_eq!(2, doc.len() - 1);
+
     assert_eq!(
         r##"<div><img href="foo" decoding="sync"></div>"##,
         doc.to_string()
     );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    debug!("the doc nodes:\n{:?}", doc);
-    assert_eq!(2, doc.nodes.len() - 2);
 }
 
 #[test]
 fn test_text_fragment() {
     ensure_logger();
-    let doc = html::parse_utf8_fragment(
+    let mut doc = html::parse_utf8_fragment(
         "plain &lt; text".as_bytes()
     );
+
+    doc.compact();
+    assert_eq!(2, doc.len() - 1);
+
     assert_eq!(
         "<div>\
          plain &lt; text\
          </div>",
         doc.to_string()
     );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    debug!("the doc nodes:\n{:?}", doc);
-    assert_eq!(2, doc.nodes.len() - 2);
 
     let text_doc = doc.root_element_ref()
         .unwrap()
@@ -519,20 +516,19 @@ fn test_text_fragment() {
 #[test]
 fn test_empty_tag() {
     ensure_logger();
-    let doc = html::parse_utf8_fragment(
+    let mut doc = html::parse_utf8_fragment(
         "plain<wbr>text".as_bytes()
     );
+
+    doc.compact();
+    assert_eq!(4, doc.len() - 1);
+
     assert_eq!(
         "<div>\
          plain<wbr>text\
          </div>",
         doc.to_string()
     );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    debug!("the doc nodes:\n{:?}", doc);
-    assert_eq!(4, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -599,20 +595,19 @@ fn test_html_attr() {
 #[test]
 fn test_shallow_fragment() {
     ensure_logger();
-    let doc = html::parse_utf8_fragment(
+    let mut doc = html::parse_utf8_fragment(
         "<b>b</b> text <i>i</i>".as_bytes()
     );
+
+    doc.compact();
+    assert_eq!(6, doc.len() - 1);
+
     assert_eq!(
         "<div>\
          <b>b</b> text <i>i</i>\
          </div>",
         doc.to_string()
     );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    debug!("the doc nodes:\n{:?}", doc);
-    assert_eq!(6, doc.nodes.len() - 2);
 }
 
 #[test]
@@ -620,20 +615,19 @@ fn test_inline_fragment() {
     ensure_logger();
 
     // An single inline element such as <i> will not be used as the root
-    let doc = html::parse_utf8_fragment(
+    let mut doc = html::parse_utf8_fragment(
         "<i>text</i>".as_bytes()
     );
+
+    doc.compact();
+    assert_eq!(3, doc.len() - 1);
+
     assert_eq!(
         "<div>\
          <i>text</i>\
          </div>",
         doc.to_string()
     );
-
-    // Currently node count is only ensured by cloning
-    let doc = doc.deep_clone(doc.root_element().unwrap());
-    debug!("the doc nodes:\n{:?}", doc);
-    assert_eq!(3, doc.nodes.len() - 2);
 }
 
 #[test]
