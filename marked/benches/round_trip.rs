@@ -102,17 +102,7 @@ fn b30_text_normalize_content(b: &mut Bencher) {
     let doc = parse_buffered(eh, &mut fin).expect("parse");
     b.iter(|| {
         let mut doc = doc.deep_clone(doc.root_element().unwrap());
-        doc.filter_breadth(chain_filters!(
-            filter::detach_banned_elements,
-            filter::detach_comments,
-            filter::detach_pis,
-            filter::retain_basic_attributes,
-            filter::xmp_to_pre,
-        ));
-
-        doc.filter(filter::fold_empty_inline);
-        doc.filter(filter::text_normalize); // Always use new pass.
-
+        filter_all(&mut doc);
         let out = doc.document_node_ref().text().unwrap();
         assert_eq!(out.len32(), 3257, "txt: {}", out.as_ref());
     });
@@ -158,17 +148,7 @@ fn b50_sparse_bulk_clone(b: &mut Bencher) {
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
-    doc.filter_breadth(chain_filters!(
-        filter::detach_banned_elements,
-        filter::detach_comments,
-        filter::detach_pis,
-        filter::retain_basic_attributes,
-        filter::xmp_to_pre,
-    ));
-
-    doc.filter(filter::fold_empty_inline);
-    doc.filter(filter::text_normalize); // Always use new pass.
-
+    filter_all(&mut doc);
     b.iter(|| {
         let doc = doc.bulk_clone();
         assert_eq!(5500, doc.len());
@@ -181,17 +161,7 @@ fn b51_sparse_compact(b: &mut Bencher) {
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
-    doc.filter_breadth(chain_filters!(
-        filter::detach_banned_elements,
-        filter::detach_comments,
-        filter::detach_pis,
-        filter::retain_basic_attributes,
-        filter::xmp_to_pre,
-    ));
-
-    doc.filter(filter::fold_empty_inline);
-    doc.filter(filter::text_normalize); // Always use new pass.
-
+    filter_all(&mut doc);
     b.iter(|| {
         let mut doc = doc.bulk_clone();
         doc.compact();
@@ -205,17 +175,7 @@ fn b52_sparse_deep_clone(b: &mut Bencher) {
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
-    doc.filter_breadth(chain_filters!(
-        filter::detach_banned_elements,
-        filter::detach_comments,
-        filter::detach_pis,
-        filter::retain_basic_attributes,
-        filter::xmp_to_pre,
-    ));
-
-    doc.filter(filter::fold_empty_inline);
-    doc.filter(filter::text_normalize); // Always use new pass.
-
+    filter_all(&mut doc);
     b.iter(|| {
         let doc = doc.bulk_clone();
         let dc = doc.deep_clone(Document::DOCUMENT_NODE_ID);
@@ -227,4 +187,17 @@ fn sample_file(fname: &str) -> Result<File, io::Error> {
     let root = env!("CARGO_MANIFEST_DIR");
     let fpath = format!("{}/samples/{}", root, fname);
     File::open(fpath)
+}
+
+fn filter_all(doc: &mut Document) {
+    doc.filter_breadth(chain_filters!(
+        filter::detach_banned_elements,
+        filter::detach_comments,
+        filter::detach_pis,
+        filter::retain_basic_attributes,
+        filter::xmp_to_pre,
+    ));
+
+    doc.filter(filter::fold_empty_inline);
+    doc.filter(filter::text_normalize); // Always use new pass.
 }
