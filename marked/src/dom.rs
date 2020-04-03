@@ -385,7 +385,7 @@ impl Document {
             Document::DOCUMENT_NODE_ID);
 
         while let Some((id, nid)) = next.pop() {
-            let data = std::mem::replace(&mut self[id].data, NodeData::Hole);
+            let data = mem::replace(&mut self[id].data, NodeData::Hole);
             let ncid = ndoc.append_child(nid, Node::new(data));
             push_if_pair(&mut next, self[id].next_sibling, nid);
             push_if_pair(&mut next, self[id].first_child, ncid);
@@ -393,7 +393,7 @@ impl Document {
 
         ndoc.nodes.shrink_to_fit();
 
-        std::mem::swap(&mut self.nodes, &mut ndoc.nodes);
+        mem::replace(&mut self.nodes, ndoc.nodes);
     }
 
     /// Create a new `Document` from the ordered sub-tree rooted in the node
