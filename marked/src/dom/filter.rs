@@ -84,8 +84,9 @@ impl Document {
     /// combined via the [`chain_filters`] macro and run in one pass.
     ///
     /// Note that to free up all memory associated with filtered `Node`s that
-    /// have been detached, use [`Document::deep_clone`] and drop the original
-    /// `Document.`.
+    /// have been detached, use [`Document::compact`], or
+    /// [`Document::deep_clone`][`Document::deep_clone`] and drop the original
+    /// `Document`.
     pub fn filter_at<F>(&mut self, id: NodeId, mut f: F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
