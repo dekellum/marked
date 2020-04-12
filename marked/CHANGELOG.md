@@ -1,4 +1,4 @@
-## 0.2.0 (unreleased)
+## 0.2.0 (2020-4-12)
 * The `marked::xml` module and xml-rs dependency is now under a non-default
   _xml_ feature. The xml-rs crate appears to not manage or test MSRV. Patch
   release 0.8.1 of xml-rs no longer builds on rust 0.38.0 (our MSRV). A
