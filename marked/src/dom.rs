@@ -393,7 +393,7 @@ impl Document {
 
         ndoc.nodes.shrink_to_fit();
 
-        mem::replace(&mut self.nodes, ndoc.nodes);
+        self.nodes = ndoc.nodes;
     }
 
     /// Create a new `Document` from the ordered sub-tree rooted in the node

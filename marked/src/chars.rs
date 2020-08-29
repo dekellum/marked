@@ -1,5 +1,3 @@
-use std::mem;
-
 use tendril::StrTendril;
 
 /// Replace or remove sequences of white-space and/or control characters, and
@@ -50,7 +48,7 @@ pub(crate) fn replace_chars(
         ost.as_mut().unwrap().push_slice(&ins[last..]);
     }
     if ost.is_some() {
-        mem::replace(st, ost.take().unwrap());
+        *st = ost.take().unwrap();
     }
 }
 
