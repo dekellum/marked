@@ -19,19 +19,15 @@ use std::io::Write;
 use std::string::ToString;
 
 use html5ever::serialize::{
-    serialize, Serialize, SerializeOpts, Serializer,
-    TraversalScope, TraversalScope::*
+    serialize, Serialize, SerializeOpts, Serializer, TraversalScope, TraversalScope::*,
 };
 
 use crate::dom::{Document, NodeData, NodeRef};
 
 impl<'a> Serialize for NodeRef<'a> {
-    fn serialize<S>(
-        &self,
-        serializer: &mut S,
-        traversal_scope: TraversalScope)
-        -> io::Result<()>
-        where S: Serializer
+    fn serialize<S>(&self, serializer: &mut S, traversal_scope: TraversalScope) -> io::Result<()>
+    where
+        S: Serializer,
     {
         use NodeData::*;
 
@@ -40,7 +36,7 @@ impl<'a> Serialize for NodeRef<'a> {
                 if *scope == IncludeNode {
                     serializer.start_elem(
                         elm.name.clone(),
-                        elm.attrs.iter().map(|a| (&a.name, a.value.as_ref()))
+                        elm.attrs.iter().map(|a| (&a.name, a.value.as_ref())),
                     )?;
                 }
                 for child in self.children() {
@@ -66,18 +62,10 @@ impl<'a> Serialize for NodeRef<'a> {
 
             (ChildrenOnly(_), _) => Ok(()),
 
-            (IncludeNode, DocType(ref dt)) => {
-                serializer.write_doctype(&dt.name)
-            }
-            (IncludeNode, Text(ref t)) => {
-                serializer.write_text(&t)
-            }
-            (IncludeNode, Comment(ref t)) => {
-                serializer.write_comment(&t)
-            }
-            (IncludeNode, Pi(ref pi)) => {
-                serializer.write_processing_instruction(&"", &pi.data)
-            }
+            (IncludeNode, DocType(ref dt)) => serializer.write_doctype(&dt.name),
+            (IncludeNode, Text(ref t)) => serializer.write_text(&t),
+            (IncludeNode, Comment(ref t)) => serializer.write_comment(&t),
+            (IncludeNode, Pi(ref pi)) => serializer.write_processing_instruction(&"", &pi.data),
         }
     }
 }
@@ -96,7 +84,8 @@ impl Document {
     /// Serialize the contents of the document node and descendants in HTML
     /// syntax to the given stream.
     pub fn serialize<W>(&self, writer: &mut W) -> io::Result<()>
-        where W: Write
+    where
+        W: Write,
     {
         serialize(
             writer,
@@ -114,7 +103,8 @@ impl<'a> NodeRef<'a> {
     /// Serialize the referenced node and its descendants in HTML syntax to the
     /// given stream.
     pub fn serialize<W>(&'a self, writer: &mut W) -> io::Result<()>
-        where W: Write
+    where
+        W: Write,
     {
         serialize(
             writer,

@@ -2,15 +2,15 @@ use std::fmt;
 use std::iter;
 use std::ops::Deref;
 
-use crate::dom::{Document, Node, NodeId, StrTendril, push_if};
+use crate::dom::{push_if, Document, Node, NodeId, StrTendril};
 
 /// A `Node` within `Document` lifetime reference.
 ///
 /// This provides convenient but necessarily read-only access.
 #[derive(Copy, Clone)]
-pub struct NodeRef<'a>{
+pub struct NodeRef<'a> {
     doc: &'a Document,
-    id: NodeId
+    id: NodeId,
 }
 
 impl<'a> NodeRef<'a> {
@@ -31,9 +31,9 @@ impl<'a> NodeRef<'a> {
     /// This is a convenence short hand for `children().filter(predicate)`. The
     /// "filter" name is avoided in deference to the (mutating)
     /// `Document::filter` method.
-    pub fn select_children<P>(&'a self, predicate: P)
-        -> impl Iterator<Item = NodeRef<'a>> + 'a
-        where P: FnMut(&NodeRef<'a>) -> bool + 'a
+    pub fn select_children<P>(&'a self, predicate: P) -> impl Iterator<Item = NodeRef<'a>> + 'a
+    where
+        P: FnMut(&NodeRef<'a>) -> bool + 'a,
     {
         self.children().filter(predicate)
     }
@@ -44,7 +44,8 @@ impl<'a> NodeRef<'a> {
     /// When element nodes fail the predicate, their children are scanned,
     /// depth-first, in search of all matches.
     pub fn select<P>(&'a self, predicate: P) -> Selector<'a, P>
-        where P: FnMut(&NodeRef<'a>) -> bool + 'a
+    where
+        P: FnMut(&NodeRef<'a>) -> bool + 'a,
     {
         Selector::new(self.doc, self.first_child, predicate)
     }
@@ -54,7 +55,8 @@ impl<'a> NodeRef<'a> {
     ///
     /// This is a convenence short hand for `children().find(predicate)`.
     pub fn find_child<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
-        where P: FnMut(&NodeRef<'a>) -> bool
+    where
+        P: FnMut(&NodeRef<'a>) -> bool,
     {
         self.children().find(predicate)
     }
@@ -65,7 +67,8 @@ impl<'a> NodeRef<'a> {
     /// When element nodes fail the predicate, their children are scanned,
     /// depth-first, in search of the first match.
     pub fn find<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
-        where P: FnMut(&NodeRef<'a>) -> bool + 'a
+    where
+        P: FnMut(&NodeRef<'a>) -> bool + 'a,
     {
         Selector::new(self.doc, self.first_child, predicate).next()
     }
@@ -74,21 +77,15 @@ impl<'a> NodeRef<'a> {
     ///
     /// Will yield nothing if the node can not or does not have children.
     pub fn children(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
-        iter::successors(
-            self.for_some_node(self.first_child),
-            move |nref| self.for_some_node(nref.next_sibling)
-        )
+        iter::successors(self.for_some_node(self.first_child), move |nref| {
+            self.for_some_node(nref.next_sibling)
+        })
     }
 
     /// Return an iterator yielding self and all ancestors, terminating at the
     /// document node.
-    pub fn node_and_ancestors(&'a self)
-        -> impl Iterator<Item = NodeRef<'a>> + 'a
-    {
-        iter::successors(
-            Some(*self),
-            move |nref| self.for_some_node(nref.parent)
-        )
+    pub fn node_and_ancestors(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
+        iter::successors(Some(*self), move |nref| self.for_some_node(nref.parent))
     }
 
     /// Return any parent node or None.
@@ -163,21 +160,24 @@ pub struct Selector<'a, P> {
 }
 
 impl<'a, P> Selector<'a, P> {
-    fn new(doc: &'a Document, first: Option<NodeId>, predicate: P)
-        -> Selector<'a, P>
-    {
+    fn new(doc: &'a Document, first: Option<NodeId>, predicate: P) -> Selector<'a, P> {
         let next = if let Some(id) = first {
             vec![id]
         } else {
             vec![]
         };
 
-        Selector { doc, next, predicate }
+        Selector {
+            doc,
+            next,
+            predicate,
+        }
     }
 }
 
 impl<'a, P> Iterator for Selector<'a, P>
-    where P: FnMut(&NodeRef<'a>) -> bool + 'a
+where
+    P: FnMut(&NodeRef<'a>) -> bool + 'a,
 {
     type Item = NodeRef<'a>;
 

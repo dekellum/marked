@@ -26,7 +26,8 @@ pub use tendril::StrTendril;
 
 mod node_ref;
 mod serializer;
-#[macro_use] pub mod filter;
+#[macro_use]
+pub mod filter;
 pub mod html;
 
 #[cfg(feature = "xml")]
@@ -100,14 +101,14 @@ pub enum NodeData {
 #[derive(Clone, Debug)]
 pub struct DocumentType {
     pub name: StrTendril,
-    _priv: ()
+    _priv: (),
 }
 
 /// Processing instruction details.
 #[derive(Clone, Debug)]
 pub struct ProcessingInstruction {
     pub data: StrTendril,
-    _priv: ()
+    _priv: (),
 }
 
 /// A markup element with name and attributes.
@@ -115,15 +116,13 @@ pub struct ProcessingInstruction {
 pub struct Element {
     pub name: QualName,
     pub attrs: Vec<Attribute>,
-    _priv: ()
+    _priv: (),
 }
 
 /// Core implementation.
 impl Document {
     /// The constant `NodeId` for the document node of all `Document`s.
-    pub const DOCUMENT_NODE_ID: NodeId = NodeId(
-        unsafe { NonZeroU32::new_unchecked(1) }
-    );
+    pub const DOCUMENT_NODE_ID: NodeId = NodeId(unsafe { NonZeroU32::new_unchecked(1) });
 
     /// Construct a new `Document` with the single empty document node.
     pub fn new() -> Self {
@@ -134,8 +133,8 @@ impl Document {
     /// specified capacity.
     pub fn with_capacity(count: u32) -> Self {
         let mut nodes = Vec::with_capacity(count as usize);
-        nodes.push(Node::new(NodeData::Hole));        // Index 0: Padding
-        nodes.push(Node::new(NodeData::Document));    // Index 1: DOCUMENT_NODE_ID
+        nodes.push(Node::new(NodeData::Hole)); // Index 0: Padding
+        nodes.push(Node::new(NodeData::Document)); // Index 1: DOCUMENT_NODE_ID
         Document { nodes }
     }
 
@@ -165,18 +164,21 @@ impl Document {
     pub fn root_element(&self) -> Option<NodeId> {
         let document_node = &self[Document::DOCUMENT_NODE_ID];
         debug_assert!(
-            (if let NodeData::Document = document_node.data { true }
-             else { false }),
-            "not document node: {:?}", document_node);
+            (if let NodeData::Document = document_node.data {
+                true
+            } else {
+                false
+            }),
+            "not document node: {:?}",
+            document_node
+        );
         debug_assert!(document_node.parent.is_none());
         debug_assert!(document_node.next_sibling.is_none());
         debug_assert!(document_node.prev_sibling.is_none());
         let mut root = None;
         for child in self.children(Document::DOCUMENT_NODE_ID) {
             match &self[child].data {
-                NodeData::DocType(_) |
-                NodeData::Comment(_) |
-                NodeData::Pi(_) => {}
+                NodeData::DocType(_) | NodeData::Comment(_) | NodeData::Pi(_) => {}
                 NodeData::Document => {
                     debug_assert!(false, "Document child of Document");
                     root = None;
@@ -206,10 +208,17 @@ impl Document {
 
     fn push_node(&mut self, node: Node) -> NodeId {
         debug_assert!(
-            (if let NodeData::Document | NodeData::Hole = node.data { false }
-             else { true }),
-            "Invalid push {:?}", node.data);
-        let next_index = self.nodes.len()
+            (if let NodeData::Document | NodeData::Hole = node.data {
+                false
+            } else {
+                true
+            }),
+            "Invalid push {:?}",
+            node.data
+        );
+        let next_index = self
+            .nodes
+            .len()
             .try_into()
             .expect("Document (u32) node index overflow");
         debug_assert!(next_index > 1);
@@ -228,13 +237,16 @@ impl Document {
     pub fn detach(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
-            "Can't detach the synthetic document node");
+            "Can't detach the synthetic document node"
+        );
 
         let (parent, prev_sibling, next_sibling) = {
             let node = &mut self[id];
-            (node.parent.take(),
-             node.prev_sibling.take(),
-             node.next_sibling.take())
+            (
+                node.parent.take(),
+                node.prev_sibling.take(),
+                node.next_sibling.take(),
+            )
         };
 
         if let Some(next_sibling) = next_sibling {
@@ -251,9 +263,7 @@ impl Document {
     }
 
     /// Append node as new last child of parent, and return its new ID.
-    pub fn append_child(&mut self, parent: NodeId, node: Node)
-        -> NodeId
-    {
+    pub fn append_child(&mut self, parent: NodeId, node: Node) -> NodeId {
         let id = self.push_node(node);
         self.append(parent, id);
         id
@@ -275,9 +285,7 @@ impl Document {
     }
 
     /// Insert node before the given sibling and return its new ID.
-    pub fn insert_before_sibling(&mut self, sibling: NodeId, node: Node)
-        -> NodeId
-    {
+    pub fn insert_before_sibling(&mut self, sibling: NodeId, node: Node) -> NodeId {
         let id = self.push_node(node);
         self.insert_before(sibling, id);
         id
@@ -285,17 +293,15 @@ impl Document {
 
     fn insert_before(&mut self, sibling: NodeId, new_sibling: NodeId) {
         self.detach(new_sibling);
-        let parent = self[sibling].parent
+        let parent = self[sibling]
+            .parent
             .expect("insert_before sibling has parent");
         self[parent].assert_suitable_parent();
         self[new_sibling].parent = Some(parent);
         self[new_sibling].next_sibling = Some(sibling);
         if let Some(prev_sibling) = self[sibling].prev_sibling.take() {
             self[new_sibling].prev_sibling = Some(prev_sibling);
-            debug_assert_eq!(
-                self[prev_sibling].next_sibling,
-                Some(sibling)
-            );
+            debug_assert_eq!(self[prev_sibling].next_sibling, Some(sibling));
             self[prev_sibling].next_sibling = Some(new_sibling);
         } else {
             debug_assert_eq!(self[parent].first_child, Some(sibling));
@@ -333,38 +339,31 @@ impl Document {
     /// Return an iterator over this node's direct children.
     ///
     /// Will be empty if the node can not or does not have children.
-    pub fn children<'a>(&'a self, id: NodeId)
-        -> impl Iterator<Item = NodeId> + 'a
-    {
-        iter::successors(
-            self[id].first_child,
-            move |&id| self[id].next_sibling
-        )
+    pub fn children<'a>(&'a self, id: NodeId) -> impl Iterator<Item = NodeId> + 'a {
+        iter::successors(self[id].first_child, move |&id| self[id].next_sibling)
     }
 
     /// Return an iterator over the specified node and all its following,
     /// direct siblings, within the same parent.
-    pub fn node_and_following_siblings<'a>(&'a self, id: NodeId)
-        -> impl Iterator<Item = NodeId> + 'a
-    {
+    pub fn node_and_following_siblings<'a>(
+        &'a self,
+        id: NodeId,
+    ) -> impl Iterator<Item = NodeId> + 'a {
         iter::successors(Some(id), move |&id| self[id].next_sibling)
     }
 
     /// Return an iterator over the specified node and all its ancestors,
     /// terminating at the document node.
-    pub fn node_and_ancestors<'a>(&'a self, id: NodeId)
-        -> impl Iterator<Item = NodeId> + 'a
-    {
+    pub fn node_and_ancestors<'a>(&'a self, id: NodeId) -> impl Iterator<Item = NodeId> + 'a {
         iter::successors(Some(id), move |&id| self[id].parent)
     }
 
     /// Return an iterator over all nodes, starting with the document node, and
     /// including all descendants in tree order.
     pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
-        iter::successors(
-            Some(Document::DOCUMENT_NODE_ID),
-            move |&id| self.next_in_tree_order(id)
-        )
+        iter::successors(Some(Document::DOCUMENT_NODE_ID), move |&id| {
+            self.next_in_tree_order(id)
+        })
     }
 
     fn next_in_tree_order(&self, id: NodeId) -> Option<NodeId> {
@@ -382,7 +381,8 @@ impl Document {
         push_if_pair(
             &mut next,
             self[Document::DOCUMENT_NODE_ID].first_child,
-            Document::DOCUMENT_NODE_ID);
+            Document::DOCUMENT_NODE_ID,
+        );
 
         while let Some((id, nid)) = next.pop() {
             let data = mem::replace(&mut self[id].data, NodeData::Hole);
@@ -426,7 +426,9 @@ impl Document {
     /// same as the original. As compared with `deep_clone(DOCUMENT_NODE_ID)`
     /// this is faster but potentially much less memory efficient.
     pub fn bulk_clone(&self) -> Document {
-        Document { nodes: self.nodes.clone() }
+        Document {
+            nodes: self.nodes.clone(),
+        }
     }
 
     /// Replace the specified node ID with its children.
@@ -443,7 +445,8 @@ impl Document {
     pub fn fold(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
-            "Can't fold the synthetic document node");
+            "Can't fold the synthetic document node"
+        );
 
         let mut next_child = self[id].first_child;
         while let Some(child) = next_child {
@@ -486,18 +489,20 @@ impl std::ops::IndexMut<NodeId> for Document {
 impl Element {
     /// Construct new element by local name, with no attributes.
     pub fn new<LN>(lname: LN) -> Element
-        where LN: Into<LocalName>
+    where
+        LN: Into<LocalName>,
     {
         Element {
             name: QualName::new(None, ns!(), lname.into()),
             attrs: Vec::new(),
-            _priv: ()
+            _priv: (),
         }
     }
 
     /// Return true if this element has the given local name.
     pub fn is_elem<LN>(&self, lname: LN) -> bool
-        where LN: Into<LocalName>
+    where
+        LN: Into<LocalName>,
     {
         self.name.local == lname.into()
     }
@@ -514,7 +519,8 @@ impl Element {
 
     /// Return attribute value by local name, if present.
     pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
-        where LN: Into<LocalName>
+    where
+        LN: Into<LocalName>,
     {
         let lname = lname.into();
         self.attrs
@@ -530,7 +536,8 @@ impl Element {
     /// same named attributes or multiples might be introduced via manual
     /// mutations.
     pub fn remove_attr<LN>(&mut self, lname: LN) -> Option<StrTendril>
-        where LN: Into<LocalName>
+    where
+        LN: Into<LocalName>,
     {
         let mut found = None;
         let mut i = 0;
@@ -555,7 +562,9 @@ impl Element {
     /// returned.  Parsers may allow same named attributes or multiples might be
     /// introduced via manual mutations.
     pub fn set_attr<LN, V>(&mut self, lname: LN, value: V) -> Option<StrTendril>
-        where LN: Into<LocalName>, V: Into<StrTendril>
+    where
+        LN: Into<LocalName>,
+        V: Into<StrTendril>,
     {
         let mut found = None;
         let mut i = 0;
@@ -583,7 +592,7 @@ impl Element {
         if found.is_none() {
             self.attrs.push(Attribute {
                 name: QualName::new(None, ns!(), lname),
-                value: value.take().unwrap()
+                value: value.take().unwrap(),
             });
         }
         found
@@ -598,7 +607,8 @@ impl Node {
 
     /// Construct a new text node.
     pub fn new_text<T>(text: T) -> Node
-        where T: Into<StrTendril>
+    where
+        T: Into<StrTendril>,
     {
         Node::new(NodeData::Text(text.into()))
     }
@@ -667,7 +677,8 @@ impl NodeData {
     /// Return attribute value by given local attribute name, if this is an
     /// element with that attribute present.
     pub fn attr<LN>(&self, lname: LN) -> Option<&StrTendril>
-        where LN: Into<LocalName>
+    where
+        LN: Into<LocalName>,
     {
         if let Some(edata) = self.as_element() {
             edata.attr(lname)
@@ -678,7 +689,8 @@ impl NodeData {
 
     /// Return true if this Node is an element with the given local name.
     pub fn is_elem<LN>(&self, lname: LN) -> bool
-        where LN: Into<LocalName>
+    where
+        LN: Into<LocalName>,
     {
         if let Some(edata) = self.as_element() {
             edata.is_elem(lname)
@@ -690,9 +702,14 @@ impl NodeData {
     #[inline]
     fn assert_suitable_parent(&self) {
         debug_assert!(
-            (if let NodeData::Document | NodeData::Elem(_) = self { true }
-             else { false }),
-            "Not a suitable parent: {:?}", self)
+            (if let NodeData::Document | NodeData::Elem(_) = self {
+                true
+            } else {
+                false
+            }),
+            "Not a suitable parent: {:?}",
+            self
+        )
     }
 }
 
@@ -702,11 +719,7 @@ fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
     }
 }
 
-fn push_if_pair(
-    stack: &mut Vec<(NodeId, NodeId)>,
-    id: Option<NodeId>,
-    oid: NodeId)
-{
+fn push_if_pair(stack: &mut Vec<(NodeId, NodeId)>, id: Option<NodeId>, oid: NodeId) {
     if let Some(id) = id {
         stack.push((id, oid));
     }

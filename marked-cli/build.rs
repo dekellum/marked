@@ -13,14 +13,21 @@ fn main() {
     if rustv < msrv {
         panic!(
             "{} v{} {} is {} > {} (this rustc)",
-            PACKAGE, VERSION, M_V, join(&msrv), join(&rustv));
+            PACKAGE,
+            VERSION,
+            M_V,
+            join(&msrv),
+            join(&rustv)
+        );
     }
 }
 
 fn join(ver: &[u16]) -> String {
     let mut out = String::new();
     for v in ver {
-        if !out.is_empty() { out.push('.'); }
+        if !out.is_empty() {
+            out.push('.');
+        }
         out.push_str(&v.to_string());
     }
     out
@@ -39,9 +46,7 @@ fn rustc_version() -> Vec<u16> {
             }
             let mut vp = v.split("-");
             if let Some(v) = vp.next() {
-                let vs: Vec<u16> = v.split(".")
-                    .filter_map(|vss| vss.parse().ok())
-                    .collect();
+                let vs: Vec<u16> = v.split(".").filter_map(|vss| vss.parse().ok()).collect();
                 if !vs.is_empty() {
                     return vs;
                 }

@@ -10,7 +10,7 @@ use std::sync::Once;
 type Flaw = Box<dyn StdError + Send + Sync + 'static>;
 
 struct Monolog {
-    other: log::Level
+    other: log::Level,
 }
 
 impl log::Log for Monolog {
@@ -23,10 +23,12 @@ impl log::Log for Monolog {
             writeln!(
                 std::io::stderr(),
                 "{:5} {} {}: {}",
-                record.level(), record.target(),
+                record.level(),
+                record.target(),
                 std::thread::current().name().unwrap_or("-"),
                 record.args()
-            ).ok();
+            )
+            .ok();
         }
     }
 

@@ -2,10 +2,11 @@ use std::fs::File;
 use std::{io, io::Read};
 
 use crate::{
-    Attribute, Document, Element, Node, NodeData, NodeId, NodeRef,
-    QualName, StrTendril,
-    filter, filter::Action,
-    html, html::{a, t, TAG_META},
+    filter,
+    filter::Action,
+    html,
+    html::{a, t, TAG_META},
+    Attribute, Document, Element, Node, NodeData, NodeId, NodeRef, QualName, StrTendril,
     HTTP_CTYPE_CONF,
 };
 
@@ -13,8 +14,8 @@ use crate::{
 use crate::xml;
 
 use crate::chain_filters;
-use crate::logger::ensure_logger;
 use crate::decode::EncodingHint;
+use crate::logger::ensure_logger;
 
 use encoding_rs as enc;
 use log::debug;
@@ -64,7 +65,7 @@ fn suitable_parent_asserted() {
     let mut doc = Document::new();
     let eid = doc.append_child(
         Document::DOCUMENT_NODE_ID,
-        Node::new_elem(Element::new("one"))
+        Node::new_elem(Element::new("one")),
     );
     let tid = doc.append_child(eid, Node::new_text("text"));
     doc.append_child(tid, Node::new_elem(Element::new("bogus")));
@@ -76,9 +77,7 @@ fn suitable_parent_asserted() {
 fn redundant_document_node_asserted() {
     ensure_logger();
     let mut doc = Document::new();
-    doc.append_child(
-        Document::DOCUMENT_NODE_ID,
-        Node::new(NodeData::Document));
+    doc.append_child(Document::DOCUMENT_NODE_ID, Node::new(NodeData::Document));
 }
 
 #[test]
@@ -98,21 +97,24 @@ fn element_attrs_dups() {
     el.attrs = vec![
         Attribute {
             name: QualName::new(None, ns!(), a::REL),
-            value: "nofollow".into()
+            value: "nofollow".into(),
         },
         Attribute {
             name: QualName::new(None, ns!(), a::HREF),
-            value: "/some".into()
+            value: "/some".into(),
         },
         Attribute {
             name: QualName::new(None, ns!(), a::REL),
-            value: "noreferrer".into()
+            value: "noreferrer".into(),
         },
     ];
     assert_eq!(3, el.attrs.len());
     assert_eq!("/some", el.set_attr("href", "/other").unwrap().as_ref());
     assert_eq!(3, el.attrs.len());
-    assert_eq!("noreferrer", el.set_attr(a::REL, "external").unwrap().as_ref());
+    assert_eq!(
+        "noreferrer",
+        el.set_attr(a::REL, "external").unwrap().as_ref()
+    );
     assert_eq!(2, el.attrs.len());
     assert_eq!("external", el.attr("rel").unwrap().as_ref());
 }
@@ -134,20 +136,25 @@ fn mixed_text_no_root() {
 }
 
 fn strike_fold_filter(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
-    if data.is_elem(t::STRIKE) { Action::Fold } else { Action::Continue }
+    if data.is_elem(t::STRIKE) {
+        Action::Fold
+    } else {
+        Action::Continue
+    }
 }
 
 fn strike_remove_filter(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
-    if data.is_elem(t::STRIKE) { Action::Detach } else { Action::Continue }
+    if data.is_elem(t::STRIKE) {
+        Action::Detach
+    } else {
+        Action::Continue
+    }
 }
 
 #[test]
 fn test_detach_root() {
     ensure_logger();
-    let mut doc = html::parse_utf8(
-        "<html>text</html>"
-            .as_bytes()
-    );
+    let mut doc = html::parse_utf8("<html>text</html>".as_bytes());
     doc.detach(doc.root_element_ref().unwrap().id());
     assert!(doc.root_element_ref().is_none());
     assert_eq!("", doc.to_string());
@@ -156,10 +163,7 @@ fn test_detach_root() {
 #[test]
 fn test_detach_root_doctype() {
     ensure_logger();
-    let mut doc = html::parse_utf8(
-        "<!DOCTYPE html><html>text</html>"
-            .as_bytes()
-    );
+    let mut doc = html::parse_utf8("<!DOCTYPE html><html>text</html>".as_bytes());
     doc.detach(doc.root_element_ref().unwrap().id());
     assert!(doc.root_element_ref().is_none());
     assert_eq!("<!DOCTYPE html>", doc.to_string());
@@ -172,7 +176,7 @@ fn test_fold_filter() {
         "<div>foo <strike><strike>\
          <strike/><i>bar</i><strike>s</strike>\
          </strike></strike> baz</div>"
-            .as_bytes()
+            .as_bytes(),
     );
     doc.filter(strike_fold_filter);
     assert_eq!(
@@ -190,7 +194,7 @@ fn test_fold_filter_breadth() {
         "<div>foo <strike><strike>\
          <strike/><i>bar</i><strike>s</strike>\
          </strike></strike> baz</div>"
-            .as_bytes()
+            .as_bytes(),
     );
     doc.filter_breadth(strike_fold_filter);
     assert_eq!(
@@ -204,10 +208,7 @@ fn test_fold_filter_breadth() {
 #[test]
 fn test_remove_filter() {
     ensure_logger();
-    let mut doc = html::parse_utf8(
-        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
-            .as_bytes()
-    );
+    let mut doc = html::parse_utf8("<div>foo <strike><i>bar</i>s</strike> baz</div>".as_bytes());
     // Non-useful chain but confirms it works on one!
     doc.filter(chain_filters!(strike_remove_filter));
 
@@ -226,10 +227,7 @@ fn test_remove_filter() {
 #[test]
 fn test_remove_filter_breadth() {
     ensure_logger();
-    let mut doc = html::parse_utf8(
-        "<div>foo <strike><i>bar</i>s</strike> baz</div>"
-            .as_bytes()
-    );
+    let mut doc = html::parse_utf8("<div>foo <strike><i>bar</i>s</strike> baz</div>".as_bytes());
     // Non-useful chain but confirms it works on one!
     doc.filter_breadth(chain_filters!(strike_remove_filter));
     assert_eq!(
@@ -243,14 +241,16 @@ fn test_remove_filter_breadth() {
 #[test]
 fn test_filter_chain() {
     ensure_logger();
-    let mut doc = html::parse_utf8_fragment(
-        "<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>"
-            .as_bytes()
-    );
+    let mut doc =
+        html::parse_utf8_fragment("<div>foo<strike><i>bar</i>s</strike> \n\t baz</div>".as_bytes());
 
     // just to confirm that closures also work in chain
     let other_filter = |_p: NodeRef<'_>, data: &mut NodeData| {
-        if data.is_elem(t::META) { Action::Detach } else { Action::Continue }
+        if data.is_elem(t::META) {
+            Action::Detach
+        } else {
+            Action::Continue
+        }
     };
 
     doc.filter(chain_filters!(
@@ -261,10 +261,7 @@ fn test_filter_chain() {
         filter::text_normalize, // best not used liked this
     ));
 
-    assert_eq!(
-        "<div>foo baz</div>",
-        doc.to_string()
-    );
+    assert_eq!("<div>foo baz</div>", doc.to_string());
 }
 
 #[test]
@@ -288,8 +285,7 @@ fn test_filter_chain_large_sample() {
     );
     doc.filter(pass_1);
     doc.filter(filter::text_normalize);
-    assert_eq!(25893, doc.to_string().len(), "{}",
-               doc.to_string());
+    assert_eq!(25893, doc.to_string().len(), "{}", doc.to_string());
 
     // Make sure filtering is stable/idempotent
     doc.filter(pass_1);
@@ -318,7 +314,7 @@ fn test_filter_chain_large_sample_breadth() {
     doc.filter_breadth(pass_0);
     doc.filter(filter::fold_empty_inline);
     doc.filter(filter::text_normalize);
-    assert_eq!(25893, doc.to_string().len(), /*"{}", doc.to_string()*/);
+    assert_eq!(25893, doc.to_string().len() /*"{}", doc.to_string()*/,);
 
     // Make sure filtering is stable/idempotent
     doc.filter_breadth(pass_0);
@@ -329,21 +325,15 @@ fn test_filter_chain_large_sample_breadth() {
     assert_eq!(1497, doc.len());
     assert_eq!(2, doc.children(Document::DOCUMENT_NODE_ID).count());
 
-    assert_eq!(25893, doc.to_string().len(), /*"{}", doc.to_string()*/);
+    assert_eq!(25893, doc.to_string().len() /*"{}", doc.to_string()*/,);
 }
 
 #[test]
 #[cfg(feature = "xml")]
 fn test_simple_xml() {
     ensure_logger();
-    let doc = xml::parse_utf8(
-        "<a>foo <b><c>bar</c></b> baz</a>"
-            .as_bytes()
-    ).expect("parsed");
-    assert_eq!(
-        "<a>foo <b><c>bar</c></b> baz</a>",
-        doc.to_string()
-    );
+    let doc = xml::parse_utf8("<a>foo <b><c>bar</c></b> baz</a>".as_bytes()).expect("parsed");
+    assert_eq!("<a>foo <b><c>bar</c></b> baz</a>", doc.to_string());
 }
 
 #[test]
@@ -351,24 +341,21 @@ fn test_simple_xml() {
 fn test_xml_with_decl() {
     ensure_logger();
     let doc = xml::parse_utf8(
-r####"
+        r####"
 <?xml version="1.0" encoding="UTF-8"?>
 <a>foo <b><c>bar</c></b> baz</a>
 "####
-        .as_bytes()
-    ).expect("parsed");
-    assert_eq!(
-        "<a>foo <b><c>bar</c></b> baz</a>",
-        doc.to_string()
-    );
+            .as_bytes(),
+    )
+    .expect("parsed");
+    assert_eq!("<a>foo <b><c>bar</c></b> baz</a>", doc.to_string());
 }
 
 #[test]
 fn test_empty_inline() {
     ensure_logger();
     let mut doc = html::parse_utf8_fragment(
-        "<div>text<i> </i> 2 <i></i> 3 <i> <br> </i> end</div>"
-            .as_bytes()
+        "<div>text<i> </i> 2 <i></i> 3 <i> <br> </i> end</div>".as_bytes(),
     );
 
     assert_eq!(
@@ -384,10 +371,7 @@ fn test_empty_inline() {
     // Its not recomended to combine text_normalize as above, but make sure it
     // just leaves some whitespace.
 
-    assert_eq!(
-        "<div>text  2  3 <br>  end</div>",
-        doc.to_string()
-    );
+    assert_eq!("<div>text  2  3 <br>  end</div>", doc.to_string());
 
     // Now normalize properly:
     doc.filter(filter::text_normalize);
@@ -395,30 +379,21 @@ fn test_empty_inline() {
     doc.compact();
     assert_eq!(4, doc.len() - 1);
 
-    assert_eq!(
-        "<div>text 2 3<br>end</div>",
-        doc.to_string()
-    );
-
+    assert_eq!("<div>text 2 3<br>end</div>", doc.to_string());
 }
 
 #[test]
 fn test_xmp() {
     ensure_logger();
-    let mut doc = html::parse_utf8_fragment(
-        "<div>foo <xmp><i>bar\n</i>\n</xmp> baz</div>"
-            .as_bytes()
-    );
+    let mut doc =
+        html::parse_utf8_fragment("<div>foo <xmp><i>bar\n</i>\n</xmp> baz</div>".as_bytes());
 
     assert_eq!(
         "<div>foo <xmp><i>bar\n</i>\n</xmp> baz</div>",
         doc.to_string()
     );
 
-    doc.filter(chain_filters!(
-        filter::xmp_to_pre,
-        filter::text_normalize
-    ));
+    doc.filter(chain_filters!(filter::xmp_to_pre, filter::text_normalize));
 
     doc.compact();
     assert_eq!(5, doc.len() - 1);
@@ -432,20 +407,14 @@ fn test_xmp() {
 #[test]
 fn test_plaintext() {
     ensure_logger();
-    let mut doc = html::parse_utf8_fragment(
-        "<div><plaintext>bar\n\tbaz</div>"
-            .as_bytes()
-    );
+    let mut doc = html::parse_utf8_fragment("<div><plaintext>bar\n\tbaz</div>".as_bytes());
     // Serializer isn't aware that <plaintext> doesn't need end tags, etc.
     assert_eq!(
         "<div><plaintext>bar\n\tbaz</div></plaintext></div>",
         doc.to_string()
     );
 
-    doc.filter(chain_filters!(
-        filter::xmp_to_pre,
-        filter::text_normalize
-    ));
+    doc.filter(chain_filters!(filter::xmp_to_pre, filter::text_normalize));
 
     doc.compact();
     assert_eq!(3, doc.len() - 1);
@@ -460,10 +429,7 @@ fn test_plaintext() {
 fn test_img_decoding_unknown() {
     ensure_logger();
     // The decoding attribute is unknown to html5ever
-    let mut doc = html::parse_utf8_fragment(
-        r##"<img href="foo" decoding="sync"/>"##
-            .as_bytes()
-    );
+    let mut doc = html::parse_utf8_fragment(r##"<img href="foo" decoding="sync"/>"##.as_bytes());
     assert_eq!(
         doc.root_element_ref()
             .unwrap()
@@ -474,7 +440,8 @@ fn test_img_decoding_unknown() {
             .attr(&*a::DECODING) //Note required alt syntax
             .unwrap()
             .as_ref(),
-        "sync");
+        "sync"
+    );
 
     doc.compact();
     assert_eq!(2, doc.len() - 1);
@@ -488,9 +455,7 @@ fn test_img_decoding_unknown() {
 #[test]
 fn test_text_fragment() {
     ensure_logger();
-    let mut doc = html::parse_utf8_fragment(
-        "plain &lt; text".as_bytes()
-    );
+    let mut doc = html::parse_utf8_fragment("plain &lt; text".as_bytes());
 
     doc.compact();
     assert_eq!(2, doc.len() - 1);
@@ -502,7 +467,8 @@ fn test_text_fragment() {
         doc.to_string()
     );
 
-    let text_doc = doc.root_element_ref()
+    let text_doc = doc
+        .root_element_ref()
         .unwrap()
         .find_child(|n| n.as_text().is_some())
         .unwrap()
@@ -516,9 +482,7 @@ fn test_text_fragment() {
 #[test]
 fn test_empty_tag() {
     ensure_logger();
-    let mut doc = html::parse_utf8_fragment(
-        "plain<wbr>text".as_bytes()
-    );
+    let mut doc = html::parse_utf8_fragment("plain<wbr>text".as_bytes());
 
     doc.compact();
     assert_eq!(4, doc.len() - 1);
@@ -535,7 +499,7 @@ fn test_empty_tag() {
 fn test_parsed_attrs() {
     ensure_logger();
     let mut doc = html::parse_utf8_fragment(
-        r##"<a rel="nofollow" href=".." rel="noindex">link</a>"##.as_bytes()
+        r##"<a rel="nofollow" href=".." rel="noindex">link</a>"##.as_bytes(),
     );
     // *5ever won't duplicate attributes:
     assert_eq!(
@@ -545,25 +509,16 @@ fn test_parsed_attrs() {
     let root = doc.root_element_ref().expect("root");
     let aid = root.find(|n| n.is_elem(t::A)).expect("find <a>").id();
 
-    doc[aid]
-        .as_element_mut()
-        .unwrap()
-        .set_attr(a::REL, "reset");
+    doc[aid].as_element_mut().unwrap().set_attr(a::REL, "reset");
 
     assert_eq!(
         r##"<div><a rel="reset" href="..">link</a></div>"##,
         doc.to_string()
     );
 
-    doc[aid]
-        .as_element_mut()
-        .unwrap()
-        .remove_attr(a::REL);
+    doc[aid].as_element_mut().unwrap().remove_attr(a::REL);
 
-    assert_eq!(
-        r##"<div><a href="..">link</a></div>"##,
-        doc.to_string()
-    );
+    assert_eq!(r##"<div><a href="..">link</a></div>"##, doc.to_string());
 
     doc[aid]
         .as_element_mut()
@@ -580,10 +535,7 @@ fn test_parsed_attrs() {
 fn test_html_attr() {
     // Found parser call of `Sink::add_attrs_if_missing`
     ensure_logger();
-    let doc = html::parse_utf8(
-        "<body><html lang=\"en\">text</html></body>"
-            .as_bytes()
-    );
+    let doc = html::parse_utf8("<body><html lang=\"en\">text</html></body>".as_bytes());
     assert_eq!(
         "<html lang=\"en\"><head></head><body>\
          text\
@@ -595,9 +547,7 @@ fn test_html_attr() {
 #[test]
 fn test_shallow_fragment() {
     ensure_logger();
-    let mut doc = html::parse_utf8_fragment(
-        "<b>b</b> text <i>i</i>".as_bytes()
-    );
+    let mut doc = html::parse_utf8_fragment("<b>b</b> text <i>i</i>".as_bytes());
 
     doc.compact();
     assert_eq!(6, doc.len() - 1);
@@ -615,9 +565,7 @@ fn test_inline_fragment() {
     ensure_logger();
 
     // An single inline element such as <i> will not be used as the root
-    let mut doc = html::parse_utf8_fragment(
-        "<i>text</i>".as_bytes()
-    );
+    let mut doc = html::parse_utf8_fragment("<i>text</i>".as_bytes());
 
     doc.compact();
     assert_eq!(3, doc.len() - 1);
@@ -644,7 +592,7 @@ fn test_deep_clone() {
     let doc = html::parse_utf8(
         "<div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
          <div>sibling</div>"
-            .as_bytes()
+            .as_bytes(),
     );
 
     let doc = doc.deep_clone(Document::DOCUMENT_NODE_ID);
@@ -662,14 +610,26 @@ fn test_deep_clone() {
     assert!(doc[nodes.next().unwrap()].is_elem(t::HEAD));
     assert!(doc[nodes.next().unwrap()].is_elem(t::BODY));
     assert!(doc[nodes.next().unwrap()].is_elem(t::DIV));
-    assert_eq!("foo ", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert_eq!(
+        "foo ",
+        doc[nodes.next().unwrap()].as_text().unwrap().as_ref()
+    );
     assert!(doc[nodes.next().unwrap()].is_elem(t::A));
     assert!(doc[nodes.next().unwrap()].is_elem(t::I));
-    assert_eq!("bar", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert_eq!(
+        "bar",
+        doc[nodes.next().unwrap()].as_text().unwrap().as_ref()
+    );
     assert_eq!("s", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
-    assert_eq!(" baz", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert_eq!(
+        " baz",
+        doc[nodes.next().unwrap()].as_text().unwrap().as_ref()
+    );
     assert!(doc[nodes.next().unwrap()].is_elem(t::DIV));
-    assert_eq!("sibling", doc[nodes.next().unwrap()].as_text().unwrap().as_ref());
+    assert_eq!(
+        "sibling",
+        doc[nodes.next().unwrap()].as_text().unwrap().as_ref()
+    );
     assert!(nodes.next().is_none());
 }
 
@@ -679,7 +639,7 @@ fn test_append_deep_clone() {
     let frag1 = html::parse_utf8(
         "<div>foo <a href=\"link\"><i>bar</i>s</a> baz</div>\
          <div>sibling</div>"
-            .as_bytes()
+            .as_bytes(),
     );
     let root = frag1.root_element_ref().expect("root");
     let aref = root.find(|n| n.is_elem(t::A)).expect("<a>");
@@ -687,7 +647,7 @@ fn test_append_deep_clone() {
     let mut frag2 = Document::new();
     let ul = frag2.append_child(
         Document::DOCUMENT_NODE_ID,
-        Node::new_elem(Element::new(t::UL))
+        Node::new_elem(Element::new(t::UL)),
     );
     let li1 = frag2.append_child(ul, Node::new_elem(Element::new(t::LI)));
     frag2.append_deep_clone(li1, &frag1, aref.id());
@@ -716,7 +676,7 @@ fn test_select_children() {
              <i>fill</i>\
            </div>\
          </div>"
-            .as_bytes()
+            .as_bytes(),
     );
 
     let root = doc.root_element_ref().expect("root");
@@ -743,7 +703,7 @@ fn test_select() {
              <i>fill</i>\
            </div>\
          </div>"
-            .as_bytes()
+            .as_bytes(),
     );
 
     let root = doc.root_element_ref().expect("root");
@@ -783,14 +743,14 @@ impl<R: Read> Read for ShortRead<R> {
         let end = if rng.gen_bool(0.20) {
             buf.len()
         } else {
-            rng.gen_range(0, buf.len()+1)
+            rng.gen_range(0, buf.len() + 1)
         };
         if end > 0 {
             self.0.read(&mut buf[0..end])
         } else {
             Err(std::io::Error::new(
                 std::io::ErrorKind::Interrupted,
-                "short interruption!"
+                "short interruption!",
             ))
         }
     }
@@ -995,7 +955,9 @@ fn test_russez_windows1251_meta() {
             } else {
                 false
             }
-        }).is_some(),
-        "txt: {}", body.text().unwrap().as_ref()
+        })
+        .is_some(),
+        "txt: {}",
+        body.text().unwrap().as_ref()
     );
 }

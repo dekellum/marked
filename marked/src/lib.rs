@@ -6,7 +6,8 @@
 
 #![warn(rust_2018_idioms)]
 
-#[macro_use] extern crate html5ever;
+#[macro_use]
+extern crate html5ever;
 
 /// Initial parse buffer size in which encoding hints are considered, possibly
 /// triggering reparse.
@@ -20,33 +21,29 @@ pub const READ_BUFFER_SIZE: u32 = 16 * 1024;
 ///
 /// Used as a necessary starting encoding, such as UTF-8 (recommended
 /// based on current adoption) or `Windows-1252" (for backward compatibility).
-pub const DEFAULT_CONF: f32       = 0.01;
+pub const DEFAULT_CONF: f32 = 0.01;
 
 /// Recommended confidence for a hint from an HTTP Content-Type header with
 /// charset.
-pub const HTTP_CTYPE_CONF: f32    = 0.09;
+pub const HTTP_CTYPE_CONF: f32 = 0.09;
 
 /// Recommended confidence for the sum of all hints from within an HTML head,
 /// in meta elements.
-pub const HTML_META_CONF: f32     = 0.20;
+pub const HTML_META_CONF: f32 = 0.20;
 
 /// Recommended confidence for hints based on a leading Byte-Order-Mark (BOM)
 /// at the start of a document stream.
-pub const BOM_CONF: f32           = 0.31;
+pub const BOM_CONF: f32 = 0.31;
 
 mod chars;
 
 mod decode;
-pub use decode::{
-    Decoder, EncodingHint, SharedEncodingHint,
-};
+pub use decode::{Decoder, EncodingHint, SharedEncodingHint};
 
 mod dom;
 pub use dom::{
-    html,
-    Document, DocumentType, Element,
-    Node, NodeData, NodeId, NodeRef, ProcessingInstruction, Selector,
-    Attribute, LocalName, Namespace, QualName, StrTendril,
+    html, Attribute, Document, DocumentType, Element, LocalName, Namespace, Node, NodeData, NodeId,
+    NodeRef, ProcessingInstruction, QualName, Selector, StrTendril,
 };
 
 pub use dom::filter;

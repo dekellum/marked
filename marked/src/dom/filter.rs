@@ -7,7 +7,7 @@ use log::debug;
 use crate::chars::{is_all_ctrl_ws, replace_chars};
 use crate::dom::{
     html::{t, TAG_META},
-    Document, Element, NodeData, NodeId, NodeRef, StrTendril
+    Document, Element, NodeData, NodeId, NodeRef, StrTendril,
 };
 
 /// An instruction returned by the `Fn` closure used by [`Document::filter`].
@@ -32,7 +32,8 @@ impl Document {
     ///
     /// See [`Document::filter_at`] for additional details.
     pub fn filter<F>(&mut self, mut f: F)
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    where
+        F: Fn(NodeRef<'_>, &mut NodeData) -> Action,
     {
         self.filter_at_ref(Document::DOCUMENT_NODE_ID, true, &mut f);
     }
@@ -43,7 +44,8 @@ impl Document {
     ///
     /// See [`Document::filter_at`] for additional details.
     pub fn filter_breadth<F>(&mut self, mut f: F)
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    where
+        F: Fn(NodeRef<'_>, &mut NodeData) -> Action,
     {
         self.filter_at_ref(Document::DOCUMENT_NODE_ID, false, &mut f);
     }
@@ -88,7 +90,8 @@ impl Document {
     /// [`Document::deep_clone`][`Document::deep_clone`] and drop the original
     /// `Document`.
     pub fn filter_at<F>(&mut self, id: NodeId, mut f: F)
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    where
+        F: Fn(NodeRef<'_>, &mut NodeData) -> Action,
     {
         self.filter_at_ref(id, true, &mut f);
     }
@@ -98,14 +101,15 @@ impl Document {
     ///
     /// See [`Document::filter_at`] for additional details.
     pub fn filter_at_breadth<F>(&mut self, id: NodeId, mut f: F)
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    where
+        F: Fn(NodeRef<'_>, &mut NodeData) -> Action,
     {
         self.filter_at_ref(id, false, &mut f);
     }
 
-    fn filter_at_ref<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F)
-        -> Action
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    fn filter_at_ref<F>(&mut self, id: NodeId, depth_first: bool, f: &mut F) -> Action
+    where
+        F: Fn(NodeRef<'_>, &mut NodeData) -> Action,
     {
         let res = if depth_first {
             self.walk_depth(id, f)
@@ -114,7 +118,7 @@ impl Document {
         };
 
         match res {
-            Action::Continue => {},
+            Action::Continue => {}
             Action::Fold => {
                 self.fold(id);
             }
@@ -126,7 +130,8 @@ impl Document {
     }
 
     fn walk_depth<F>(&mut self, id: NodeId, f: &mut F) -> Action
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    where
+        F: Fn(NodeRef<'_>, &mut NodeData) -> Action,
     {
         // Children first, recursively
         let mut next_child = self[id].first_child;
@@ -140,7 +145,8 @@ impl Document {
     }
 
     fn walk_breadth<F>(&mut self, id: NodeId, f: &mut F) -> Action
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    where
+        F: Fn(NodeRef<'_>, &mut NodeData) -> Action,
     {
         let res = self.filter_node(id, f);
         if res != Action::Continue {
@@ -170,7 +176,8 @@ impl Document {
     }
 
     fn filter_node<F>(&mut self, id: NodeId, f: &mut F) -> Action
-        where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
+    where
+        F: Fn(NodeRef<'_>, &mut NodeData) -> Action,
     {
         // We need to replace node.data with a placeholder (Hole) to appease
         // the borrow checker. Otherwise there would be an aliasing problem
@@ -192,7 +199,9 @@ impl Document {
                     debug_assert!(
                         node.first_child.is_none() && node.last_child.is_none(),
                         "Filter changed node {:?} with children to {:?}",
-                        id, ndata);
+                        id,
+                        ndata
+                    );
                 }
             }
             node.data = ndata;
@@ -254,10 +263,7 @@ pub fn detach_banned_elements(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
 ///
 /// Should be run depth-first for complete filtering.
 pub fn fold_empty_inline(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
-    if  is_inline(data) &&
-        !is_multi_media(data) &&
-        pos.children().all(is_logical_ws)
-    {
+    if is_inline(data) && !is_multi_media(data) && pos.children().all(is_logical_ws) {
         Action::Fold
     } else {
         Action::Continue
@@ -290,9 +296,7 @@ pub fn detach_pis(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
 /// [`TagMeta`](crate::html::TagMeta) for each element.
 ///
 /// Compatible with depth or breadth-first filtering.
-pub fn retain_basic_attributes(_p: NodeRef<'_>, data: &mut NodeData)
-    -> Action
-{
+pub fn retain_basic_attributes(_p: NodeRef<'_>, data: &mut NodeData) -> Action {
     if let Some(ref mut elm) = data.as_element_mut() {
         if let Some(tmeta) = TAG_META.get(&elm.name.local) {
             elm.attrs.retain(|a| tmeta.has_basic_attr(&a.name.local));
@@ -328,9 +332,7 @@ pub fn text_normalize(pos: NodeRef<'_>, data: &mut NodeData) -> Action {
         // tendril to the merge queue and detach.
         let node_r = pos.next_sibling();
         if node_r.map_or(false, |n| n.as_text().is_some()) {
-            MERGE_Q.with(|q| {
-                q.borrow_mut().push_tendril(t)
-            });
+            MERGE_Q.with(|q| q.borrow_mut().push_tendril(t));
             return Action::Detach;
         }
 
@@ -417,14 +419,15 @@ fn is_logical_ws(n: NodeRef<'_>) -> bool {
 }
 
 fn is_multi_media(n: &NodeData) -> bool {
-    /**/n.is_elem(t::AUDIO) ||
-        n.is_elem(t::EMBED) ||
-        n.is_elem(t::IFRAME) ||
-        n.is_elem(t::IMG) ||
-        n.is_elem(t::METER) ||
-        n.is_elem(t::OBJECT) ||
-        n.is_elem(t::PICTURE) ||
-        n.is_elem(t::PROGRESS) ||
-        n.is_elem(t::SVG) ||
-        n.is_elem(t::VIDEO)
+    /**/
+    n.is_elem(t::AUDIO)
+        || n.is_elem(t::EMBED)
+        || n.is_elem(t::IFRAME)
+        || n.is_elem(t::IMG)
+        || n.is_elem(t::METER)
+        || n.is_elem(t::OBJECT)
+        || n.is_elem(t::PICTURE)
+        || n.is_elem(t::PROGRESS)
+        || n.is_elem(t::SVG)
+        || n.is_elem(t::VIDEO)
 }
