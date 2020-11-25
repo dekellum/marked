@@ -13,8 +13,8 @@ pub(crate) fn replace_chars(
     ws: bool,
     ctrl: bool,
     trim_start: bool,
-    trim_end: bool)
-{
+    trim_end: bool,
+) {
     let mut last = 0;
     let mut ost = None; // output lazy allocated
     let mut replacing = 0u8;
@@ -31,9 +31,7 @@ pub(crate) fn replace_chars(
             }
             replacing |= rmask;
         } else if replacing > 0 {
-            if  replacing >= 2 &&
-                (ost.as_ref().unwrap().len32() > 0 || !trim_start)
-            {
+            if replacing >= 2 && (ost.as_ref().unwrap().len32() > 0 || !trim_start) {
                 ost.as_mut().unwrap().push_char(' ');
             }
             last = i;
@@ -74,7 +72,9 @@ enum CharClass {
 
 /// True if all contained characters are classified as whitespace or controls.
 pub(crate) fn is_all_ctrl_ws(st: &StrTendril) -> bool {
-    st.as_ref().chars().all(|c| char_class(c) != CharClass::Unclassified)
+    st.as_ref()
+        .chars()
+        .all(|c| char_class(c) != CharClass::Unclassified)
 }
 
 // Return CharClass for a char
@@ -137,61 +137,61 @@ mod tests {
     fn test_char_class() {
         use CharClass::*;
         assert_eq!(Unclassified, char_class('x'));
-        assert_eq!(Control,      char_class('\u{0008}'));
-        assert_eq!(ZeroSpace,    char_class('\u{2060}'));
-        assert_eq!(WhiteSpace,   char_class('\n'));
-        assert_eq!(WhiteSpace,   char_class('\n'));
+        assert_eq!(Control, char_class('\u{0008}'));
+        assert_eq!(ZeroSpace, char_class('\u{2060}'));
+        assert_eq!(WhiteSpace, char_class('\n'));
+        assert_eq!(WhiteSpace, char_class('\n'));
     }
 
     #[test]
     fn replace() {
-        assert_clean("",  "" );
-        assert_clean("",  "\u{2060}" );
+        assert_clean("", "");
+        assert_clean("", "\u{2060}");
         assert_clean(" ", " ");
         assert_clean(" ", "\t \r\n");
 
-        assert_clean("x",   "x"   );
+        assert_clean("x", "x");
         assert_clean(" x ", " x  ");
-        assert_clean(" x",  " x\u{2060}"  );
-        assert_clean("x ",  "x "  );
+        assert_clean(" x", " x\u{2060}");
+        assert_clean("x ", "x ");
 
-        assert_clean("aa b ",  "\u{009F}a\u{009F}a  b " );
+        assert_clean("aa b ", "\u{009F}a\u{009F}a  b ");
 
-        assert_clean("aa b c ", "aa b c "     );
-        assert_clean("aa b c",  "aa \t b c"   );
+        assert_clean("aa b c ", "aa b c ");
+        assert_clean("aa b c", "aa \t b c");
         assert_clean(" aa b c", "\t aa \t b c");
     }
 
     // Assert that super-ASCII character boundaries are properly observed
     #[test]
     fn replace_multibyte() {
-        assert_clean("Ψ",   "Ψ"   );
+        assert_clean("Ψ", "Ψ");
         assert_clean(" Ψ ", " Ψ  ");
-        assert_clean(" Ψ",  " Ψ\u{2060}"  );
-        assert_clean("Ψ ",  "Ψ "  );
+        assert_clean(" Ψ", " Ψ\u{2060}");
+        assert_clean("Ψ ", "Ψ ");
 
-        assert_clean("αα β ",  "\u{009F}α\u{009F}α  β " );
+        assert_clean("αα β ", "\u{009F}α\u{009F}α  β ");
 
-        assert_clean("αα β γ ", "αα β γ "     );
-        assert_clean("αα β γ",  "αα \t β γ"   );
+        assert_clean("αα β γ ", "αα β γ ");
+        assert_clean("αα β γ", "αα \t β γ");
         assert_clean(" αα β γ", "\t αα \t β γ");
     }
 
     #[test]
     fn replace_ctrl_only() {
-        assert_clean_ctrl("",  "" );
-        assert_clean_ctrl("",  "\u{2060}" );
+        assert_clean_ctrl("", "");
+        assert_clean_ctrl("", "\u{2060}");
         assert_clean_ctrl(" ", " ");
 
-        assert_clean_ctrl("x",   "x"   );
+        assert_clean_ctrl("x", "x");
         assert_clean_ctrl(" x  ", " x  ");
-        assert_clean_ctrl(" x",  " x\u{2060}"  );
-        assert_clean_ctrl("x ",  "x "  );
+        assert_clean_ctrl(" x", " x\u{2060}");
+        assert_clean_ctrl("x ", "x ");
 
-        assert_clean_ctrl("aaa  β ",  "\u{009F}a\u{009F}aa  β " );
+        assert_clean_ctrl("aaa  β ", "\u{009F}a\u{009F}aa  β ");
 
-        assert_clean_ctrl("aa β c ", "aa β c "     );
-        assert_clean_ctrl("aa \t β c",  "aa \t β c"   );
+        assert_clean_ctrl("aa β c ", "aa β c ");
+        assert_clean_ctrl("aa \t β c", "aa \t β c");
         assert_clean_ctrl("\t aa \t β c", "\t aa \t β c");
     }
 
@@ -203,15 +203,15 @@ mod tests {
         assert_clean_trim("", "\u{FFFE}"); //BAD BOM
         assert_clean_trim("", "\u{00A0}\u{2007}\u{202F}");
 
-        assert_clean_trim("x",  "x"  );
+        assert_clean_trim("x", "x");
         assert_clean_trim("x", " x  ");
-        assert_clean_trim("x", " x"  );
-        assert_clean_trim("x",  "x " );
+        assert_clean_trim("x", " x");
+        assert_clean_trim("x", "x ");
 
-        assert_clean_trim("aa b",  " a\u{009F}a\u{009F}  b " );
+        assert_clean_trim("aa b", " a\u{009F}a\u{009F}  b ");
 
-        assert_clean_trim("aa b c", "aa b c "     );
-        assert_clean_trim("aa b c", "aa \t b c"   );
+        assert_clean_trim("aa b c", "aa b c ");
+        assert_clean_trim("aa b c", "aa \t b c");
         assert_clean_trim("aa b c", "\t aa \t b c");
     }
 

@@ -1,4 +1,3 @@
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -46,9 +45,7 @@ impl EncodingHint {
 
     /// Construct a new Encoding hint with the specified encoding and
     /// confidence, wrapped for sharing.
-    pub fn shared_with_hint(enc: &'static enc::Encoding, confidence: f32)
-        -> SharedEncodingHint
-    {
+    pub fn shared_with_hint(enc: &'static enc::Encoding, confidence: f32) -> SharedEncodingHint {
         let mut eh = EncodingHint::new();
         eh.add_hint(enc, confidence);
         eh.clear_changed();
@@ -59,9 +56,9 @@ impl EncodingHint {
     /// positive confidence value.  If no encoding (or applicable replacement)
     /// is found for the specified label, returns false.  Return true if an
     /// encoding is found _and_ this hint changes the top confidence encoding.
-    pub fn add_label_hint<L>(&mut self, enc: L, confidence: f32)
-        -> bool
-        where L: AsRef<[u8]>
+    pub fn add_label_hint<L>(&mut self, enc: L, confidence: f32) -> bool
+    where
+        L: AsRef<[u8]>,
     {
         if let Some(enc) = enc::Encoding::for_label(enc.as_ref()) {
             self.add_hint(enc, confidence)
@@ -73,16 +70,14 @@ impl EncodingHint {
     /// Add a hint for the specified encoding and some positive confidence
     /// value. Return true if this hint changes the top most confident
     /// encoding.
-    pub fn add_hint(&mut self, enc: &'static enc::Encoding, confidence: f32)
-        -> bool
-    {
+    pub fn add_hint(&mut self, enc: &'static enc::Encoding, confidence: f32) -> bool {
         assert!(confidence > 0.0);
 
-        let new_conf = *(
-            self.encodings.entry(enc)
-                .and_modify(|c| *c += confidence)
-                .or_insert(confidence)
-        );
+        let new_conf = *(self
+            .encodings
+            .entry(enc)
+            .and_modify(|c| *c += confidence)
+            .or_insert(confidence));
 
         if new_conf > self.confidence {
             self.confidence = new_conf;
@@ -115,9 +110,7 @@ impl EncodingHint {
     /// part of the document body.
     pub fn could_read_from(&self, enc: &'static enc::Encoding) -> bool {
         if let Some(t) = self.top {
-            if  ( includes_ascii(t) && !includes_ascii(enc)) ||
-                (!includes_ascii(t) && t != enc)
-            {
+            if (includes_ascii(t) && !includes_ascii(enc)) || (!includes_ascii(t) && t != enc) {
                 return false;
             }
         }
@@ -178,8 +171,12 @@ fn includes_ascii(enc: &'static enc::Encoding) -> bool {
 mod tests {
     use super::*;
 
-    fn is_send<T: Send>() -> bool { true }
-    fn is_sync<T: Sync>() -> bool { true }
+    fn is_send<T: Send>() -> bool {
+        true
+    }
+    fn is_sync<T: Sync>() -> bool {
+        true
+    }
 
     #[test]
     fn test_send_sync() {
@@ -191,14 +188,18 @@ mod tests {
     // MIT/Apache licensed
 
     trait AmbiguousIfImpl<A> {
-        fn some_f() -> bool { true }
+        fn some_f() -> bool {
+            true
+        }
     }
     impl<T: ?Sized> AmbiguousIfImpl<()> for T {}
 
-    #[allow(unused)] struct NotSync;
+    #[allow(unused)]
+    struct NotSync;
     impl<T: ?Sized + Sync> AmbiguousIfImpl<NotSync> for T {}
 
-    #[allow(unused)] struct NotSend;
+    #[allow(unused)]
+    struct NotSend;
     impl<T: ?Sized + Send> AmbiguousIfImpl<NotSend> for T {}
 
     #[test]
@@ -209,11 +210,12 @@ mod tests {
     #[test]
     fn encoding_hint() {
         let mut encs = EncodingHint::new();
-        assert!( encs.add_label_hint("LATIN1",     0.3));
+        assert!(encs.add_label_hint("LATIN1", 0.3));
         assert!(!encs.add_label_hint("iso-8859-1", 0.4));
-        assert!(!encs.add_label_hint("utf-8",      0.5));
+        assert!(!encs.add_label_hint("utf-8", 0.5));
         assert_eq!(
-            "windows-1252", encs.top().unwrap().name(),
+            "windows-1252",
+            encs.top().unwrap().name(),
             "desired replacement for first two hints"
         );
         assert_eq!(0.3 + 0.4, encs.confidence());
@@ -223,9 +225,9 @@ mod tests {
     fn could_read_from() {
         let mut eh = EncodingHint::new();
         eh.add_hint(enc::UTF_8, 0.5);
-        assert!( eh.could_read_from(enc::UTF_8));
-        assert!( eh.could_read_from(enc::WINDOWS_1252));
-        assert!( eh.could_read_from(enc::ISO_2022_JP));
+        assert!(eh.could_read_from(enc::UTF_8));
+        assert!(eh.could_read_from(enc::WINDOWS_1252));
+        assert!(eh.could_read_from(enc::ISO_2022_JP));
         assert!(!eh.could_read_from(enc::UTF_16LE));
         assert!(!eh.could_read_from(enc::UTF_16BE));
     }
@@ -234,7 +236,7 @@ mod tests {
     fn could_read_from_multi_byte() {
         let mut eh = EncodingHint::new();
         eh.add_hint(enc::UTF_16LE, 0.5);
-        assert!( eh.could_read_from(enc::UTF_16LE));
+        assert!(eh.could_read_from(enc::UTF_16LE));
         assert!(!eh.could_read_from(enc::UTF_16BE));
         assert!(!eh.could_read_from(enc::ISO_2022_JP));
         assert!(!eh.could_read_from(enc::UTF_8));

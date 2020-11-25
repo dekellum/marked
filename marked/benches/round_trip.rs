@@ -1,39 +1,35 @@
 #![warn(rust_2018_idioms)]
-
 #![feature(test)]
 extern crate test; // Still required, see rust-lang/rust#55133
 
 use std::default::Default;
-use std::io;
 use std::fs::File;
+use std::io;
 
 use test::Bencher;
 
 use encoding_rs as enc;
 use html5ever::driver::ParseOpts;
 use html5ever::parse_document;
-use markup5ever_rcdom::{SerializableHandle, RcDom};
 use html5ever::serialize as rc_serialize;
+use markup5ever_rcdom::{RcDom, SerializableHandle};
 
 use marked;
-use marked::{Decoder, Document, EncodingHint};
 use marked::chain_filters;
 use marked::filter;
 use marked::html::parse_buffered;
+use marked::{Decoder, Document, EncodingHint};
 
 #[bench]
 fn b00_round_trip_rcdom(b: &mut Bencher) {
     b.iter(|| {
-        let parser_sink =
-            parse_document(RcDom::default(), ParseOpts::default());
+        let parser_sink = parse_document(RcDom::default(), ParseOpts::default());
         let decoder = Decoder::new(enc::UTF_8, parser_sink);
-        let mut fin = sample_file("github-dekellum.html")
-            .expect("sample_file");
+        let mut fin = sample_file("github-dekellum.html").expect("sample_file");
         let doc = decoder.read_to_end(&mut fin).expect("parse");
         let mut out = Vec::with_capacity(273108);
         let ser_handle: SerializableHandle = doc.document.clone().into();
-        rc_serialize(&mut out, &ser_handle, Default::default())
-            .expect("serialization");
+        rc_serialize(&mut out, &ser_handle, Default::default()).expect("serialization");
         assert_eq!(out.len(), 272273);
     });
 }
@@ -41,8 +37,7 @@ fn b00_round_trip_rcdom(b: &mut Bencher) {
 #[bench]
 fn b01_round_trip_marked(b: &mut Bencher) {
     b.iter(|| {
-        let mut fin = sample_file("github-dekellum.html")
-            .expect("sample_file");
+        let mut fin = sample_file("github-dekellum.html").expect("sample_file");
         let eh = EncodingHint::shared_default(enc::UTF_8);
         let doc = parse_buffered(eh, &mut fin).expect("parse");
         let mut out = Vec::with_capacity(273108);
@@ -54,8 +49,7 @@ fn b01_round_trip_marked(b: &mut Bencher) {
 #[bench]
 fn b11_decode_eucjp_parse_marked(b: &mut Bencher) {
     b.iter(|| {
-        let mut fin = sample_file("matsunami_eucjp_meta.html")
-            .expect("sample_file");
+        let mut fin = sample_file("matsunami_eucjp_meta.html").expect("sample_file");
         let eh = EncodingHint::shared_default(enc::UTF_8);
         parse_buffered(eh, &mut fin).expect("parse");
     });
@@ -64,8 +58,7 @@ fn b11_decode_eucjp_parse_marked(b: &mut Bencher) {
 #[bench]
 fn b12_decode_windows1251_parse_marked(b: &mut Bencher) {
     b.iter(|| {
-        let mut fin = sample_file("russez_windows1251_meta.html")
-            .expect("sample_file");
+        let mut fin = sample_file("russez_windows1251_meta.html").expect("sample_file");
         let eh = EncodingHint::shared_default(enc::UTF_8);
         parse_buffered(eh, &mut fin).expect("parse");
     });
@@ -74,8 +67,7 @@ fn b12_decode_windows1251_parse_marked(b: &mut Bencher) {
 #[bench]
 fn b13_utf8_parse_marked(b: &mut Bencher) {
     b.iter(|| {
-        let mut fin = sample_file("github-dekellum.html")
-            .expect("sample_file");
+        let mut fin = sample_file("github-dekellum.html").expect("sample_file");
         let eh = EncodingHint::shared_default(enc::UTF_8);
         parse_buffered(eh, &mut fin).expect("parse");
     });
@@ -83,8 +75,7 @@ fn b13_utf8_parse_marked(b: &mut Bencher) {
 
 #[bench]
 fn b20_text_content(b: &mut Bencher) {
-    let mut fin = sample_file("github-dekellum.html")
-        .expect("sample_file");
+    let mut fin = sample_file("github-dekellum.html").expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let doc = parse_buffered(eh, &mut fin).expect("parse");
 
@@ -96,8 +87,7 @@ fn b20_text_content(b: &mut Bencher) {
 
 #[bench]
 fn b30_text_normalize_content(b: &mut Bencher) {
-    let mut fin = sample_file("github-dekellum.html")
-        .expect("sample_file");
+    let mut fin = sample_file("github-dekellum.html").expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let doc = parse_buffered(eh, &mut fin).expect("parse");
     b.iter(|| {
@@ -110,8 +100,7 @@ fn b30_text_normalize_content(b: &mut Bencher) {
 
 #[bench]
 fn b31_text_normalize_content_identity(b: &mut Bencher) {
-    let mut fin = sample_file("github-dekellum.html")
-        .expect("sample_file");
+    let mut fin = sample_file("github-dekellum.html").expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
     doc.filter(chain_filters!(
@@ -144,8 +133,7 @@ fn b31_text_normalize_content_identity(b: &mut Bencher) {
 
 #[bench]
 fn b50_sparse_bulk_clone(b: &mut Bencher) {
-    let mut fin = sample_file("github-dekellum.html")
-        .expect("sample_file");
+    let mut fin = sample_file("github-dekellum.html").expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
     filter_all(&mut doc);
@@ -157,8 +145,7 @@ fn b50_sparse_bulk_clone(b: &mut Bencher) {
 
 #[bench]
 fn b51_sparse_compact(b: &mut Bencher) {
-    let mut fin = sample_file("github-dekellum.html")
-        .expect("sample_file");
+    let mut fin = sample_file("github-dekellum.html").expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
     filter_all(&mut doc);
@@ -171,8 +158,7 @@ fn b51_sparse_compact(b: &mut Bencher) {
 
 #[bench]
 fn b52_sparse_deep_clone(b: &mut Bencher) {
-    let mut fin = sample_file("github-dekellum.html")
-        .expect("sample_file");
+    let mut fin = sample_file("github-dekellum.html").expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
     let mut doc = parse_buffered(eh, &mut fin).expect("parse");
     filter_all(&mut doc);

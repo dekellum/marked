@@ -16,29 +16,20 @@ use std::io;
 
 use encoding_rs as enc;
 
-use html5ever::{
-    parse_document, parse_fragment,
-    ExpandedName, QualName, Parser, ParseOpts
-};
-use html5ever::interface::tree_builder::{
-    ElementFlags, NodeOrText, QuirksMode, TreeSink
-};
+use html5ever::interface::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
 use html5ever::tendril::{StrTendril, TendrilSink};
+use html5ever::{parse_document, parse_fragment, ExpandedName, ParseOpts, Parser, QualName};
 use log::{debug, info, trace};
 use tendril::{fmt as form, Tendril};
 
 use crate::{
-    Attribute, Decoder, Document, DocumentType, Element, EncodingHint,
-    Node, NodeData, NodeId, ProcessingInstruction, SharedEncodingHint,
-    BOM_CONF, HTML_META_CONF, INITIAL_BUFFER_SIZE,
+    Attribute, Decoder, Document, DocumentType, Element, EncodingHint, Node, NodeData, NodeId,
+    ProcessingInstruction, SharedEncodingHint, BOM_CONF, HTML_META_CONF, INITIAL_BUFFER_SIZE,
 };
 
 mod meta;
 
-pub use self::meta::{
-    a, ns, t,
-    TagMeta, TAG_META
-};
+pub use self::meta::{a, ns, t, TagMeta, TAG_META};
 
 /// Parse HTML document from UTF-8 bytes in RAM.
 pub fn parse_utf8(bytes: &[u8]) -> Document {
@@ -60,9 +51,10 @@ pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
         sink,
         Default::default(),
         QualName::new(None, ns::HTML, t::DIV),
-        vec![])
-        .from_utf8()
-        .one(bytes);
+        vec![],
+    )
+    .from_utf8()
+    .one(bytes);
 
     // Note that the above context name, doesn't really get used. A matching
     // element is pushed but never linked, so unless we replace the doc (deep
@@ -103,16 +95,17 @@ pub fn parse_utf8_fragment(bytes: &[u8]) -> Document {
 /// hint is found via a leading Byte-Order-Mark (BOM) or in the documents
 /// `<head>`, the parse will be restarted from the beginning with that encoding
 /// and continuing until the end.
-pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
-    -> Result<Document, io::Error>
-    where R: io::Read
+pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R) -> Result<Document, io::Error>
+where
+    R: io::Read,
 {
-    let enc = hint.borrow().top().expect("EnodingHint default encoding required");
+    let enc = hint
+        .borrow()
+        .top()
+        .expect("EnodingHint default encoding required");
 
-    let parser_sink: Parser<Sink> = parse_document(
-        Sink::new(hint.clone(), true),
-        ParseOpts::default()
-    );
+    let parser_sink: Parser<Sink> =
+        parse_document(Sink::new(hint.clone(), true), ParseOpts::default());
 
     // Decoders are "Sink adaptors" that also impl TendrilSink.
     // The decoder is consumed to finish the parse.
@@ -161,7 +154,7 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
                 }
             }
             Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
-            Err(e) => return Err(e)
+            Err(e) => return Err(e),
         }
     } // repeat on interrupt or short read.
 
@@ -177,17 +170,16 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
     if let Some(enc) = changed {
         info!(
             "Reparsing with enc {}, buffered: {}, prior enc errors: {}",
-            enc.name(), buff.len(), errors
+            enc.name(),
+            buff.len(),
+            errors
         );
         hint.borrow_mut().clear_errors();
         finished = None;
 
         // Replace decoder and re-process, consuming the original tendril
         // buffer, which was previously cloned.
-        let parser_sink = parse_document(
-            Sink::new(hint.clone(), false),
-            ParseOpts::default()
-        );
+        let parser_sink = parse_document(Sink::new(hint.clone(), false), ParseOpts::default());
         decoder = Some(Decoder::new(enc, parser_sink));
         decoder.as_mut().unwrap().process(buff);
     }
@@ -205,13 +197,12 @@ pub fn parse_buffered<R>(hint: SharedEncodingHint, r: &mut R)
 }
 
 // Return encoding for any Byte-Order-Mark found at start of buff.
-fn bom_enc(buff: &Tendril::<form::Bytes>) -> Option<&'static enc::Encoding>
-{
+fn bom_enc(buff: &Tendril<form::Bytes>) -> Option<&'static enc::Encoding> {
     match (buff[0], buff[1], buff[2]) {
-        (0xFE, 0xFF,    _) => Some(enc::UTF_16BE),
-        (0xFF, 0xFE,    _) => Some(enc::UTF_16LE),
+        (0xFE, 0xFF, _) => Some(enc::UTF_16BE),
+        (0xFF, 0xFE, _) => Some(enc::UTF_16LE),
         (0xEF, 0xBB, 0xBF) => Some(enc::UTF_8),
-        _ => None
+        _ => None,
     }
 }
 
@@ -230,7 +221,6 @@ impl Sink {
     /// If enc_check is true, encodings mentioned in html meta elements will be
     /// added to the encoding hint as soon as possible in the parse.
     pub fn new(enc_hint: SharedEncodingHint, enc_check: bool) -> Sink {
-
         Sink {
             document: Document::new(),
             quirks_mode: QuirksMode::NoQuirks,
@@ -243,13 +233,10 @@ impl Sink {
         self.document.push_node(Node::new(data))
     }
 
-    fn append_common<P, A>(
-        &mut self,
-        child: NodeOrText<NodeId>,
-        previous: P,
-        append: A)
-        where P: FnOnce(&mut Document) -> Option<NodeId>,
-              A: FnOnce(&mut Document, NodeId)
+    fn append_common<P, A>(&mut self, child: NodeOrText<NodeId>, previous: P, append: A)
+    where
+        P: FnOnce(&mut Document) -> Option<NodeId>,
+        A: FnOnce(&mut Document, NodeId),
     {
         let new_node = match child {
             NodeOrText::AppendText(text) => {
@@ -309,7 +296,8 @@ impl Sink {
             debug!(
                 "found charsets: {:?} ({})",
                 charsets.iter().map(|e| e.name()).collect::<Vec<_>>(),
-                metas);
+                metas
+            );
             let conf = HTML_META_CONF / (metas as f32);
 
             let mut hints = self.enc_hint.borrow_mut();
@@ -376,19 +364,20 @@ impl TreeSink for Sink {
         &mut self,
         name: QualName,
         attrs: Vec<Attribute>,
-        _flags: ElementFlags)
-        -> NodeId
-    {
-        self.new_node(NodeData::Elem(Element { name, attrs, _priv: () }))
+        _flags: ElementFlags,
+    ) -> NodeId {
+        self.new_node(NodeData::Elem(Element {
+            name,
+            attrs,
+            _priv: (),
+        }))
     }
 
     fn create_comment(&mut self, text: StrTendril) -> NodeId {
         self.new_node(NodeData::Comment(text))
     }
 
-    fn create_pi(&mut self, _target: StrTendril, data: StrTendril)
-        -> NodeId
-    {
+    fn create_pi(&mut self, _target: StrTendril, data: StrTendril) -> NodeId {
         self.new_node(NodeData::Pi(ProcessingInstruction { data, _priv: () }))
     }
 
@@ -400,11 +389,7 @@ impl TreeSink for Sink {
         )
     }
 
-    fn append_before_sibling(
-        &mut self,
-        &sibling: &NodeId,
-        child: NodeOrText<NodeId>)
-    {
+    fn append_before_sibling(&mut self, &sibling: &NodeId, child: NodeOrText<NodeId>) {
         self.append_common(
             child,
             |document| document[sibling].prev_sibling,
@@ -416,8 +401,8 @@ impl TreeSink for Sink {
         &mut self,
         element: &NodeId,
         prev_element: &NodeId,
-        child: NodeOrText<NodeId>)
-    {
+        child: NodeOrText<NodeId>,
+    ) {
         if self.document[*element].parent.is_some() {
             self.append_before_sibling(element, child)
         } else {
@@ -429,19 +414,13 @@ impl TreeSink for Sink {
         &mut self,
         name: StrTendril,
         _p_id: StrTendril,
-        _s_id: StrTendril)
-    {
-        let node = self.new_node(NodeData::DocType(
-            DocumentType { name, _priv: () }
-        ));
+        _s_id: StrTendril,
+    ) {
+        let node = self.new_node(NodeData::DocType(DocumentType { name, _priv: () }));
         self.document.append(Document::DOCUMENT_NODE_ID, node)
     }
 
-    fn add_attrs_if_missing(
-        &mut self,
-        &target: &NodeId,
-        attrs: Vec<Attribute>)
-    {
+    fn add_attrs_if_missing(&mut self, &target: &NodeId, attrs: Vec<Attribute>) {
         // Note this is only used in few, strange cases involving re-working of
         // html and body node attributes, but it definitely needs to be
         // implemented.

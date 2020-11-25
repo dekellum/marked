@@ -11,17 +11,16 @@
 //!
 //! This module is enabled at build time via the _xml_ non-default feature.
 
-use std::fmt;
 use std::error::Error as StdError;
+use std::fmt;
 
-use xml_rs::reader::XmlEvent;
 use xml_rs::attribute::OwnedAttribute;
+use xml_rs::reader::XmlEvent;
 
-use crate::dom::{
-    Attribute, Document, Element, Node, NodeData,
-    ProcessingInstruction, QualName, StrTendril
-};
 use crate::chars::is_all_ctrl_ws;
+use crate::dom::{
+    Attribute, Document, Element, Node, NodeData, ProcessingInstruction, QualName, StrTendril,
+};
 
 /// Parse XML document from UTF-8 bytes in RAM.
 pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
@@ -30,31 +29,26 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
     let mut ancestors = Vec::new();
     for event in xml_rs::EventReader::new(utf8_bytes) {
         match event.map_err(XmlError)? {
-            XmlEvent::StartElement { name, attributes, .. } => {
-                let id = document.push_node(
-                    Node::new(NodeData::Elem(Element {
-                        name: convert_name(name),
-                        attrs: attributes
-                            .into_iter()
-                            .map(|OwnedAttribute { name, value }| {
-                                Attribute {
-                                    name: convert_name(name),
-                                    value: value.into()
-                                }
-                            })
-                            .collect(),
-                        _priv: ()
-                    }))
-                );
+            XmlEvent::StartElement {
+                name, attributes, ..
+            } => {
+                let id = document.push_node(Node::new(NodeData::Elem(Element {
+                    name: convert_name(name),
+                    attrs: attributes
+                        .into_iter()
+                        .map(|OwnedAttribute { name, value }| Attribute {
+                            name: convert_name(name),
+                            value: value.into(),
+                        })
+                        .collect(),
+                    _priv: (),
+                })));
                 document.append(current, id);
                 ancestors.push(current);
                 current = id;
             }
-            XmlEvent::EndElement { .. } => {
-                current = ancestors.pop().unwrap()
-            }
-            XmlEvent::CData(s) |
-            XmlEvent::Characters(s) => {
+            XmlEvent::EndElement { .. } => current = ancestors.pop().unwrap(),
+            XmlEvent::CData(s) | XmlEvent::Characters(s) => {
                 if let Some(last_child) = document[current].last_child {
                     let node = &mut document[last_child];
                     if let NodeData::Text(t) = &mut node.data {
@@ -62,9 +56,7 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                         continue;
                     }
                 }
-                let id = document.push_node(
-                    Node::new(NodeData::Text(s.into()))
-                );
+                let id = document.push_node(Node::new(NodeData::Text(s.into())));
                 document.append(current, id);
             }
             XmlEvent::Whitespace(s) => {
@@ -77,16 +69,13 @@ pub fn parse_utf8(utf8_bytes: &[u8]) -> Result<Document, XmlError> {
                 } else {
                     StrTendril::new()
                 };
-                let id = document.push_node(
-                    Node::new(NodeData::Pi(
-                        ProcessingInstruction { data, _priv: () }
-                    ))
-                );
+                let id = document.push_node(Node::new(NodeData::Pi(ProcessingInstruction {
+                    data,
+                    _priv: (),
+                })));
                 document.append(current, id);
             }
-            XmlEvent::StartDocument { .. } |
-            XmlEvent::EndDocument |
-            XmlEvent::Comment(_) => {}
+            XmlEvent::StartDocument { .. } | XmlEvent::EndDocument | XmlEvent::Comment(_) => {}
         }
     }
     Ok(document)

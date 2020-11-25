@@ -2,24 +2,15 @@
 
 use std::error::Error as StdError;
 use std::fmt;
+use std::fs::File;
 use std::io;
 use std::process;
-use std::fs::File;
 
 use encoding_rs as enc;
 
-use marked::{
-    chain_filters,
-    filter,
-    html::parse_buffered,
-    logger::setup_logger,
-    EncodingHint,
-};
+use marked::{chain_filters, filter, html::parse_buffered, logger::setup_logger, EncodingHint};
 
-use clap::{
-    crate_version,
-    Arg, App, AppSettings, SubCommand,
-};
+use clap::{crate_version, App, AppSettings, Arg, SubCommand};
 
 use log::{debug, error};
 
@@ -55,8 +46,7 @@ fn run() -> Result<(), Flaw> {
     let html = SubCommand::with_name("html")
         .setting(AppSettings::DeriveDisplayOrder)
         .about("HTML processing")
-        .after_help(
-            "Parses input, applies filters, and serializes to output.")
+        .after_help("Parses input, applies filters, and serializes to output.")
         .args(&[
             Arg::with_name("output")
                 .short("o")
@@ -80,7 +70,7 @@ fn run() -> Result<(), Flaw> {
             Arg::with_name("file")
                 .required(false)
                 .value_name("INPUT-FILE")
-                .help("File path to read (default: STDIN)")
+                .help("File path to read (default: STDIN)"),
         ]);
 
     let app = App::new("marked")
@@ -89,12 +79,14 @@ fn run() -> Result<(), Flaw> {
         .setting(AppSettings::SubcommandRequired)
         .setting(AppSettings::DeriveDisplayOrder)
         .max_term_width(100)
-        .arg(Arg::with_name("debug")
-             .short("d")
-             .long("debug")
-             .multiple(true)
-             .help("Enable more logging, and up to `-dddd`")
-             .global(true))
+        .arg(
+            Arg::with_name("debug")
+                .short("d")
+                .long("debug")
+                .multiple(true)
+                .help("Enable more logging, and up to `-dddd`")
+                .global(true),
+        )
         .subcommand(html);
 
     let mtch = app.get_matches();
@@ -148,7 +140,9 @@ fn run() -> Result<(), Flaw> {
         } else {
             quit!(
                 "input {} same as output {} not supported",
-                fin.unwrap(), fout);
+                fin.unwrap(),
+                fout
+            );
         }
     } else {
         Box::new(io::stdout())
