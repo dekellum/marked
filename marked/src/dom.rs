@@ -239,8 +239,14 @@ impl Document {
     /// self.
     fn append_move(&mut self, id: NodeId, odoc: &mut Document, oid: NodeId) {
         let id = self.append_child(id, Node::new(odoc[oid].take_data()));
-        for child in odoc.children(oid).collect::<Vec<_>>() {
-            self.append_move(id, odoc, child);
+        let mut next = Vec::new();
+        push_if_pair(&mut next, odoc[oid].first_child, id);
+
+        while let Some((oid, id)) = next.pop() {
+            let onode = &mut odoc[oid];
+            let nid = self.append_child(id, Node::new(onode.take_data()));
+            push_if_pair(&mut next, onode.next_sibling, id);
+            push_if_pair(&mut next, onode.first_child, nid);
         }
     }
 
