@@ -466,7 +466,7 @@ impl TreeSink for Sink {
     }
 
     fn remove_from_parent(&mut self, &target: &NodeId) {
-        self.document.detach(target)
+        self.document.detach_only(target)
     }
 
     fn reparent_children(&mut self, &node: &NodeId, &new_parent: &NodeId) {

@@ -116,10 +116,10 @@ impl Document {
         match res {
             Action::Continue => {},
             Action::Fold => {
-                self.fold(id);
+                self.fold_only(id);
             }
             Action::Detach => {
-                self.detach(id);
+                self.detach_only(id);
             }
         }
         res
@@ -172,12 +172,14 @@ impl Document {
     fn filter_node<F>(&mut self, id: NodeId, f: &mut F) -> Action
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        // We need to replace node.data with a placeholder (Hole) to appease
-        // the borrow checker. Otherwise there would be an aliasing problem
-        // where the Document (&self) reference could see the same NodeData
-        // passed as &mut.
-        let mut ndata = std::mem::replace(&mut self[id].data, NodeData::Hole);
+        // We need to temporarily replace node.data with a placeholder (Hole)
+        // to appease the borrow checker. Otherwise there would be an aliasing
+        // problem where the Document (&self) reference could see the same
+        // NodeData passed as &mut.
+        let mut ndata = self[id].take_data();
+
         let res = f(NodeRef::new(self, id), &mut ndata);
+
         // We only need to reset the potentially mutated node.data if the
         // action is to continue, as all other cases result in the node
         // being detached.
