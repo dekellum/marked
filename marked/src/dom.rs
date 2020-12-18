@@ -52,7 +52,7 @@ pub struct Document {
     nodes: Vec<Node>,
 }
 
-/// A `Node` identifier, as u32 index into a `Document`s `Node` vector.
+/// A `Node` identifier as a u32 index into a `Document`s `Node` vector.
 ///
 /// Should only be used with the `Document` it was obtained from.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -145,16 +145,22 @@ impl Document {
     /// may not be accessable from the document node. The value returned
     /// may be more than the accessable nodes counted via `nodes().count()`,
     /// unless [`Document::compact`] or [`Document::deep_clone`] is first used.
-    pub fn len(&self) -> usize {
-        self.nodes.len() - 1
+    #[inline]
+    pub fn len(&self) -> u32 {
+        let nodes: u32 = self.nodes.len()
+            .try_into()
+            .expect("Document (u32) node index overflow");
+        debug_assert!(nodes > 0);
+        nodes - 1
     }
 
-    /// Return true if this document only contains the single empty document
+    /// Return true if this document only contains the single, empty document
     /// node.
     ///
     /// Note that when "empty" the [`Document::len`] is still one (1).
+    #[inline]
     pub fn is_empty(&self) -> bool {
-        self.nodes.len() < 3
+        self.len() < 2
     }
 
     /// Return the root element `NodeId` for this Document, or None if there is
@@ -404,7 +410,7 @@ impl Document {
     /// Compact in place, by removing `Node`s that are no longer referenced
     /// from the document node.
     pub fn compact(&mut self) {
-        let mut ndoc = Document::with_capacity(self.len() as u32);
+        let mut ndoc = Document::with_capacity(self.len() + 1);
         let mut next = Vec::new();
         push_if_pair(
             &mut next,
@@ -426,7 +432,7 @@ impl Document {
     /// Create a new `Document` from the ordered sub-tree rooted in the node
     /// referenced by ID.
     pub fn deep_clone(&self, id: NodeId) -> Document {
-        let mut ndoc = Document::with_capacity(self.len() as u32 / 2);
+        let mut ndoc = Document::with_capacity(self.len() / 2);
         if id == Document::DOCUMENT_NODE_ID {
             for child in self.children(id) {
                 ndoc.append_deep_clone(Document::DOCUMENT_NODE_ID, self, child);
