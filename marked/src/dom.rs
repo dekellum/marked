@@ -232,6 +232,7 @@ impl Document {
         self.detach_only(id);
         let mut ndoc = Document::new();
         ndoc.append_move(Document::DOCUMENT_NODE_ID, self, id);
+        ndoc.nodes.shrink_to_fit();
         ndoc
     }
 
