@@ -236,9 +236,14 @@ impl Document {
     #[inline]
     pub fn detach(&mut self, id: NodeId) -> Document {
         self.detach_only(id);
-        let mut ndoc = Document::new();
+
+        // Not a great guess of the subtree, but faster than counting
+        let guess_cap = std::cmp::max(8, self.len() - id.0.get() + 2);
+        let mut ndoc = Document::with_capacity(guess_cap);
+
         ndoc.append_move(Document::DOCUMENT_NODE_ID, self, id);
-        ndoc.nodes.shrink_to_fit();
+
+        ndoc.nodes.shrink_to_fit(); // In case guess was way high
         ndoc
     }
 

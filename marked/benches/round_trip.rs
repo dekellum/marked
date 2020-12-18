@@ -183,6 +183,23 @@ fn b52_sparse_deep_clone(b: &mut Bencher) {
     });
 }
 
+#[bench]
+fn b60_detach(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
+
+    b.iter(|| {
+        let mut doc = doc.bulk_clone();
+        let rid = doc.root_element().expect("root");
+        let det = doc.detach(rid);
+        assert_eq!(5499, det.len());
+        assert_eq!(5500, doc.len());
+        assert_eq!(2, doc.nodes().count());
+    });
+}
+
 fn sample_file(fname: &str) -> Result<File, io::Error> {
     let root = env!("CARGO_MANIFEST_DIR");
     let fpath = format!("{}/samples/{}", root, fname);
