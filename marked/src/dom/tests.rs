@@ -165,6 +165,10 @@ fn test_detach_fragment() {
     assert!(doc.root_element_ref().is_none());
     assert_eq!("", doc.to_string());
     assert_eq!("<div>text</div>", det.to_string());
+
+    // Re-attach
+    doc.attach_child(Document::DOCUMENT_NODE_ID, det);
+    assert_eq!("<div>text</div>", doc.to_string());
 }
 
 #[test]
