@@ -2,7 +2,7 @@ use std::fmt;
 use std::iter;
 use std::ops::Deref;
 
-use crate::dom::{Document, Node, NodeId, StrTendril, push_if};
+use crate::dom::{Document, Node, NodeId, StrTendril, NodeStack1};
 
 /// A `Node` within `Document` lifetime reference.
 ///
@@ -158,7 +158,7 @@ impl fmt::Debug for NodeRef<'_> {
 /// A selecting iterator returned by [`NodeRef::select`].
 pub struct Selector<'a, P> {
     doc: &'a Document,
-    next: Vec<NodeId>,
+    next: NodeStack1,
     predicate: P,
 }
 
@@ -166,12 +166,8 @@ impl<'a, P> Selector<'a, P> {
     fn new(doc: &'a Document, first: Option<NodeId>, predicate: P)
         -> Selector<'a, P>
     {
-        let next = if let Some(id) = first {
-            vec![id]
-        } else {
-            vec![]
-        };
-
+        let mut next = NodeStack1::new();
+        next.push_if(first);
         Selector { doc, next, predicate }
     }
 }
@@ -185,11 +181,11 @@ impl<'a, P> Iterator for Selector<'a, P>
         while let Some(id) = self.next.pop() {
             let node = NodeRef::new(self.doc, id);
             if (self.predicate)(&node) {
-                push_if(&mut self.next, node.next_sibling);
+                self.next.push_if(node.next_sibling);
                 return Some(node);
             } else {
-                push_if(&mut self.next, node.next_sibling);
-                push_if(&mut self.next, node.first_child);
+                self.next.push_if(node.next_sibling);
+                self.next.push_if(node.first_child);
             }
         }
         None

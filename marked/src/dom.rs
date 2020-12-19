@@ -272,14 +272,14 @@ impl Document {
     /// self.
     fn append_move(&mut self, id: NodeId, odoc: &mut Document, oid: NodeId) {
         let id = self.append_child(id, Node::new(odoc[oid].take_data()));
-        let mut next = Vec::new();
-        push_if_pair(&mut next, odoc[oid].first_child, id);
+        let mut ns = NodeStack2::new();
+        ns.push_if(odoc[oid].first_child, id);
 
-        while let Some((oid, id)) = next.pop() {
+        while let Some((oid, id)) = ns.pop() {
             let onode = &mut odoc[oid];
             let nid = self.append_child(id, Node::new(onode.take_data()));
-            push_if_pair(&mut next, onode.next_sibling, id);
-            push_if_pair(&mut next, onode.first_child, nid);
+            ns.push_if(onode.next_sibling, id);
+            ns.push_if(onode.first_child, nid);
         }
     }
 
@@ -370,20 +370,20 @@ impl Document {
     /// or the document node, return the concatentation of all text
     /// descendants, in tree order. Return `None` for all other node types.
     pub fn text(&self, id: NodeId) -> Option<StrTendril> {
-        let mut next = Vec::new();
-        push_if(&mut next, self[id].first_child);
+        let mut ns = NodeStack1::new();
+        ns.push_if(self[id].first_child);
         let mut text = None;
-        while let Some(id) = next.pop() {
+        while let Some(id) = ns.pop() {
             let node = &self[id];
             if let NodeData::Text(t) = &node.data {
                 match &mut text {
                     None => text = Some(t.clone()),
                     Some(text) => text.push_tendril(&t),
                 }
-                push_if(&mut next, node.next_sibling);
+                ns.push_if(node.next_sibling);
             } else {
-                push_if(&mut next, node.next_sibling);
-                push_if(&mut next, node.first_child);
+                ns.push_if(node.next_sibling);
+                ns.push_if(node.first_child);
             }
         }
         text
@@ -443,17 +443,16 @@ impl Document {
     /// from the document node.
     pub fn compact(&mut self) {
         let mut ndoc = Document::with_capacity(self.len() + 1);
-        let mut next = Vec::new();
-        push_if_pair(
-            &mut next,
+        let mut ns = NodeStack2::new();
+        ns.push_if(
             self[Document::DOCUMENT_NODE_ID].first_child,
             Document::DOCUMENT_NODE_ID);
 
-        while let Some((id, nid)) = next.pop() {
+        while let Some((id, nid)) = ns.pop() {
             let nnode = Node::new(self[id].take_data());
             let ncid = ndoc.append_child(nid, nnode);
-            push_if_pair(&mut next, self[id].next_sibling, nid);
-            push_if_pair(&mut next, self[id].first_child, ncid);
+            ns.push_if(self[id].next_sibling, nid);
+            ns.push_if(self[id].first_child, ncid);
         }
 
         // If guess cap was higher then allowance, shrink it
@@ -790,18 +789,44 @@ impl NodeData {
     }
 }
 
-fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
-    if let Some(id) = id {
-        stack.push(id);
+struct NodeStack1(Vec<NodeId>);
+
+impl NodeStack1 {
+    #[inline]
+    fn new() -> Self {
+        NodeStack1(Vec::with_capacity(16))
+    }
+
+    #[inline]
+    fn push_if(&mut self, id: Option<NodeId>) {
+        if let Some(id) = id {
+            self.0.push(id);
+        }
+    }
+
+    #[inline]
+    fn pop(&mut self) -> Option<NodeId> {
+        self.0.pop()
     }
 }
 
-fn push_if_pair(
-    stack: &mut Vec<(NodeId, NodeId)>,
-    id: Option<NodeId>,
-    oid: NodeId)
-{
-    if let Some(id) = id {
-        stack.push((id, oid));
+struct NodeStack2(Vec<(NodeId, NodeId)>);
+
+impl NodeStack2 {
+    #[inline]
+    fn new() -> Self {
+        NodeStack2(Vec::with_capacity(16))
+    }
+
+    #[inline]
+    fn push_if(&mut self, id: Option<NodeId>, oid: NodeId) {
+        if let Some(id) = id {
+            self.0.push((id, oid));
+        }
+    }
+
+    #[inline]
+    fn pop(&mut self) -> Option<(NodeId, NodeId)> {
+        self.0.pop()
     }
 }
