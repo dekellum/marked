@@ -154,7 +154,7 @@ impl Document {
             .try_into()
             .expect("Document (u32) node index overflow");
         debug_assert!(nodes > 0);
-        nodes - 1
+        nodes - 1 // but don't include padding (index 0) in len
     }
 
     /// Return true if this document only contains the single, empty document
@@ -233,7 +233,7 @@ impl Document {
     /// Detaching the root element results in an empty document with no root
     /// element.
     ///
-    /// Detach just removes references and replaces all node data with
+    /// Detach just removes references and replaces all node data in self with
     /// `NodeData::Hole`. To free up the `Vec<Node>` slots for these nodes as
     /// well, use [`Document::compact`].
     #[inline]
@@ -262,7 +262,7 @@ impl Document {
     /// inverse of [`Document::detach`].
     pub fn attach_child(&mut self, parent: NodeId, mut other: Document)
     {
-        self.nodes.reserve(other.len() as usize - 1);
+        self.nodes.reserve(other.len() as usize - 1); // ignore DOCUMENT node
         for child in other.children(Document::DOCUMENT_NODE_ID).collect::<Vec<_>>() {
             self.append_move(parent, &mut other, child);
         }
