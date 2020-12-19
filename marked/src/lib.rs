@@ -54,5 +54,5 @@ pub use dom::filter;
 #[cfg(feature = "xml")]
 pub use dom::xml;
 
-#[doc(hideen)]
+#[doc(hidden)]
 pub mod logger;
