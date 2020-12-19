@@ -407,10 +407,16 @@ impl Document {
     /// Return an iterator over all nodes, starting with the document node, and
     /// including all descendants in tree order.
     pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
-        iter::successors(
-            Some(Document::DOCUMENT_NODE_ID),
-            move |&id| self.next_in_tree_order(id)
-        )
+        self.descendants(Document::DOCUMENT_NODE_ID)
+    }
+
+    /// Return an iterator over all descendants in tree order, starting with
+    /// the specified node.
+    #[inline]
+    pub fn descendants<'a>(&'a self, id: NodeId)
+        -> impl Iterator<Item = NodeId> + 'a
+    {
+        iter::successors(Some(id), move |&id| self.next_in_tree_order(id))
     }
 
     fn next_in_tree_order(&self, id: NodeId) -> Option<NodeId> {
