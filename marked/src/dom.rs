@@ -125,6 +125,9 @@ impl Document {
         unsafe { NonZeroU32::new_unchecked(1) }
     );
 
+    // An accepted number of extra Vec<Node> capacity
+    const WASTE_ALLOWANCE: usize = 1024;
+
     /// Construct a new `Document` with the single empty document node.
     pub fn new() -> Self {
         Document::with_capacity(8)
@@ -243,7 +246,12 @@ impl Document {
 
         ndoc.append_move(Document::DOCUMENT_NODE_ID, self, id);
 
-        ndoc.nodes.shrink_to_fit(); // In case guess was way high
+        // If guess cap was higher then allowance, shrink it
+        if (ndoc.nodes.capacity() - ndoc.nodes.len()) >
+            Document::WASTE_ALLOWANCE
+        {
+            ndoc.nodes.shrink_to_fit();
+        }
         ndoc
     }
 
@@ -429,7 +437,12 @@ impl Document {
             push_if_pair(&mut next, self[id].first_child, ncid);
         }
 
-        ndoc.nodes.shrink_to_fit();
+        // If guess cap was higher then allowance, shrink it
+        if (ndoc.nodes.capacity() - ndoc.nodes.len()) >
+            Document::WASTE_ALLOWANCE
+        {
+            ndoc.nodes.shrink_to_fit();
+        }
 
         self.nodes = ndoc.nodes;
     }
@@ -437,7 +450,12 @@ impl Document {
     /// Create a new `Document` from the ordered sub-tree rooted in the node
     /// referenced by ID.
     pub fn deep_clone(&self, id: NodeId) -> Document {
-        let mut ndoc = Document::with_capacity(self.len() / 2);
+
+        // Conservative guess of sub tree length. Shrinking after is likely
+        // expensive in this case, so avoid it.
+        let guess_cap = std::cmp::max(8, (self.len() - id.0.get() + 2) / 8);
+        let mut ndoc = Document::with_capacity(guess_cap);
+
         if id == Document::DOCUMENT_NODE_ID {
             for child in self.children(id) {
                 ndoc.append_deep_clone(Document::DOCUMENT_NODE_ID, self, child);
@@ -445,6 +463,7 @@ impl Document {
         } else {
             ndoc.append_deep_clone(Document::DOCUMENT_NODE_ID, self, id);
         }
+
         ndoc
     }
 
