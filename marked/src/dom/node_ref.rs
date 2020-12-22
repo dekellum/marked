@@ -170,9 +170,7 @@ pub struct Selector<'a, P> {
 }
 
 impl<'a, P> Selector<'a, P> {
-    fn new(doc: &'a Document, first: Option<NodeId>, predicate: P)
-        -> Selector<'a, P>
-    {
+    fn new(doc: &'a Document, first: Option<NodeId>, predicate: P) -> Self {
         let mut next = NodeStack1::new();
         next.push_if(first);
         Selector { doc, next, predicate }
