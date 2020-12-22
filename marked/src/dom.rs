@@ -345,7 +345,7 @@ impl Document {
     fn insert_before(&mut self, sibling: NodeId, new_sibling: NodeId) {
         self.detach_only(new_sibling);
         let parent = self[sibling].parent
-            .expect("insert_before sibling has parent");
+            .expect("insert_before sibling has no parent");
         self[parent].assert_suitable_parent();
         self[new_sibling].parent = Some(parent);
         self[new_sibling].next_sibling = Some(sibling);
