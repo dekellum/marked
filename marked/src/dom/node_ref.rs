@@ -31,7 +31,7 @@ impl<'a> NodeRef<'a> {
     /// This is a convenence short hand for `children().filter(predicate)`. The
     /// "filter" name is avoided in deference to the (mutating)
     /// `Document::filter` method.
-    pub fn select_children<P>(&'a self, predicate: P)
+    pub fn select_children<P>(&self, predicate: P)
         -> impl Iterator<Item = NodeRef<'a>> + 'a
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
@@ -53,7 +53,7 @@ impl<'a> NodeRef<'a> {
     /// specified predicate.
     ///
     /// This is a convenence short hand for `children().find(predicate)`.
-    pub fn find_child<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
+    pub fn find_child<P>(&self, predicate: P) -> Option<NodeRef<'a>>
         where P: FnMut(&NodeRef<'a>) -> bool
     {
         self.children().find(predicate)
@@ -73,10 +73,11 @@ impl<'a> NodeRef<'a> {
     /// Return an iterator over node's direct children.
     ///
     /// Will be empty if the node does not (or can not) have children.
-    pub fn children(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
+    pub fn children(&self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
+        let this = *self;
         iter::successors(
-            self.for_some_node(self.first_child),
-            move |nref| self.for_some_node(nref.next_sibling)
+            this.for_some_node(this.first_child),
+            move |nref| this.for_some_node(nref.next_sibling)
         )
     }
 
