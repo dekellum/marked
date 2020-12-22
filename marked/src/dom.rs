@@ -420,10 +420,7 @@ impl Document {
     /// Return an iterator over all nodes, starting with the document node, and
     /// including all descendants in tree order.
     pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
-        //FIXME: self.descendants(Document::DOCUMENT_NODE_ID)
-        iter::successors(
-            Some(Document::DOCUMENT_NODE_ID),
-            move |&id| self.next_in_tree_order(id))
+        self.descendants(Document::DOCUMENT_NODE_ID)
     }
 
     /// Return an iterator over all descendants in tree order, starting with
@@ -433,13 +430,6 @@ impl Document {
         -> impl Iterator<Item = NodeId> + 'a
     {
         NodeRef::new(self, id).descendants().map(|nr| nr.id())
-    }
-
-    fn next_in_tree_order(&self, id: NodeId) -> Option<NodeId> {
-        self[id].first_child.or_else(|| {
-            self.node_and_ancestors(id)
-                .find_map(|ancestor| self[ancestor].next_sibling)
-        })
     }
 
     /// Compact in place, by removing `Node`s that are no longer referenced
