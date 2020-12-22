@@ -45,7 +45,8 @@ mod dom;
 pub use dom::{
     html,
     Document, DocumentType, Element,
-    Node, NodeData, NodeId, NodeRef, ProcessingInstruction, Selector,
+    Node, NodeData, NodeId, NodeRef, ProcessingInstruction,
+    Descender, Selector,
     Attribute, LocalName, Namespace, QualName, StrTendril,
 };
 
