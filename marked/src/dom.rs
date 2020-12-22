@@ -256,18 +256,38 @@ impl Document {
     }
 
     /// Attach the contents of an other `Document` to self, by appending
-    /// children under the given parent node.
+    /// its elements under the given parent node.
     ///
-    /// The `Document` is consumed (its contents moved to self). This is the
+    /// The `Document` is consumed (its contents moved to self). This is an
     /// inverse of [`Document::detach`].
     pub fn attach_child(&mut self, parent: NodeId, mut other: Document)
     {
         self.nodes.reserve(other.len() as usize - 1); // ignore DOCUMENT node
-        for child in other.children(Document::DOCUMENT_NODE_ID).collect::<Vec<_>>() {
+        let children = other.children(Document::DOCUMENT_NODE_ID)
+            .collect::<Vec<_>>();
+        for child in children {
             self.append_move(parent, &mut other, child);
         }
     }
 
+    /// Attach the contents of an other `Document` to self, by inserting its
+    /// elements before the given sibling node.
+    ///
+    /// The `Document` is consumed (its contents moved to self). This is an
+    /// inverse of [`Document::detach`].
+    pub fn attach_before_sibling(&mut self, sibling: NodeId, mut other: Document)
+    {
+        self.nodes.reserve(other.len() as usize - 1);
+        let children = other.children(Document::DOCUMENT_NODE_ID)
+            .collect::<Vec<_>>();
+        for oid in children {
+            let onode = &mut other[oid];
+            let nid = self.insert_before_sibling(sibling, Node::new(onode.take_data()));
+            for coid in other.children(oid).collect::<Vec<_>>() {
+                self.append_move(nid, &mut other, coid);
+            }
+        }
+    }
     /// Move node oid in odoc and all its descendants, appending to id in
     /// self.
     fn append_move(&mut self, id: NodeId, odoc: &mut Document, oid: NodeId) {

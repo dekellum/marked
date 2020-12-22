@@ -236,6 +236,33 @@ fn test_detach_text_sib() {
 }
 
 #[test]
+fn test_detach_attach_sib() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        "<div>\
+          <p>text</p>\
+          <p>more</p>\
+         </div>"
+            .as_bytes()
+    );
+    let div = doc.root_element().unwrap();
+    let pid = doc.children(div).next().unwrap(); // <p>(text)
+    let p1 = doc.detach(pid);
+    assert_eq!("<p>text</p>", p1.to_string());
+    assert_eq!("<div><p>more</p></div>", doc.to_string());
+    let pid = doc.children(div).next().unwrap(); // <p>(more)
+    let p2 = doc.detach(pid);
+    assert_eq!("<p>more</p>", p2.to_string());
+    assert_eq!("<div></div>", doc.to_string());
+    doc.attach_child(div, p2);
+    assert_eq!("<div><p>more</p></div>", doc.to_string());
+    let pid = doc.children(div).next().unwrap(); // <p>(more)
+    doc.attach_before_sibling(pid, p1);
+    assert_eq!("<div><p>text</p><p>more</p></div>", doc.to_string());
+}
+
+
+#[test]
 fn test_fold_filter() {
     ensure_logger();
     let mut doc = html::parse_utf8(
