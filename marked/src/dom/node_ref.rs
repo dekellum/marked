@@ -72,7 +72,7 @@ impl<'a> NodeRef<'a> {
 
     /// Return an iterator over node's direct children.
     ///
-    /// Will yield nothing if the node can not or does not have children.
+    /// Will be empty if the node does not (or can not) have children.
     pub fn children(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
         iter::successors(
             self.for_some_node(self.first_child),

@@ -125,7 +125,7 @@ impl Document {
         unsafe { NonZeroU32::new_unchecked(1) }
     );
 
-    // An accepted number of extra Vec<Node> capacity
+    // An accepted amount of excess Vec<Node> capacity
     const WASTE_ALLOWANCE: usize = 1024;
 
     /// Construct a new `Document` with the single empty document node.
@@ -309,7 +309,7 @@ impl Document {
         }
     }
 
-    /// Append node as new last child of parent, and return its new ID.
+    /// Append node as new last child of given parent, and return its new ID.
     pub fn append_child(&mut self, parent: NodeId, node: Node)
         -> NodeId
     {
@@ -363,8 +363,7 @@ impl Document {
         self[sibling].prev_sibling = Some(new_sibling);
     }
 
-    /// Return all decendent text content (character data) of the given node
-    /// ID.
+    /// Return all descendant text content (character data) of the given node.
     ///
     /// If node is a text node, return that text.  If this is an element node
     /// or the document node, return the concatentation of all text
@@ -389,9 +388,9 @@ impl Document {
         text
     }
 
-    /// Return an iterator over this node's direct children.
+    /// Return an iterator over the given node's direct children.
     ///
-    /// Will be empty if the node can not or does not have children.
+    /// Will be empty if the node does not (or can not) have children.
     pub fn children<'a>(&'a self, id: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
