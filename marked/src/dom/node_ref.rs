@@ -43,7 +43,7 @@ impl<'a> NodeRef<'a> {
     ///
     /// When element nodes fail the predicate, their children are scanned,
     /// depth-first, in search of all matches.
-    pub fn select<P>(&'a self, predicate: P) -> Selector<'a, P>
+    pub fn select<P>(&self, predicate: P) -> Selector<'a, P>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
         Selector::new(self.doc, self.first_child, predicate)
@@ -64,7 +64,7 @@ impl<'a> NodeRef<'a> {
     ///
     /// When element nodes fail the predicate, their children are scanned,
     /// depth-first, in search of the first match.
-    pub fn find<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
+    pub fn find<P>(&self, predicate: P) -> Option<NodeRef<'a>>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
         Selector::new(self.doc, self.first_child, predicate).next()
@@ -99,17 +99,17 @@ impl<'a> NodeRef<'a> {
     }
 
     /// Return any parent node or None.
-    pub fn parent(&'a self) -> Option<NodeRef<'a>> {
+    pub fn parent(&self) -> Option<NodeRef<'a>> {
         self.for_some_node(self.parent)
     }
 
     /// Return any previous (left) sibling node or None.
-    pub fn prev_sibling(&'a self) -> Option<NodeRef<'a>> {
+    pub fn prev_sibling(&self) -> Option<NodeRef<'a>> {
         self.for_some_node(self.prev_sibling)
     }
 
     /// Return any subsequent next (right) sibling node or None.
-    pub fn next_sibling(&'a self) -> Option<NodeRef<'a>> {
+    pub fn next_sibling(&self) -> Option<NodeRef<'a>> {
         self.for_some_node(self.next_sibling)
     }
 
@@ -119,18 +119,18 @@ impl<'a> NodeRef<'a> {
     /// Element node or the Document root node, return the
     /// concatentation of all text descendants, in tree order. Returns
     /// `None` for all other node types.
-    pub fn text(&'a self) -> Option<StrTendril> {
+    pub fn text(&self) -> Option<StrTendril> {
         self.doc.text(self.id)
     }
 
     /// Create a new independent `Document` from the ordered sub-tree
     /// referenced by self.
-    pub fn deep_clone(&'a self) -> Document {
+    pub fn deep_clone(&self) -> Document {
         self.doc.deep_clone(self.id)
     }
 
     #[inline]
-    fn for_some_node(&'a self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
+    fn for_some_node(&self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
         if let Some(id) = id {
             Some(NodeRef::new(self.doc, id))
         } else {
