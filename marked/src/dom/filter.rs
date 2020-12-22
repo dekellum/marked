@@ -66,7 +66,7 @@ impl Document {
     ///
     /// The `f` parameter can be a closure or free-function in the form:
     ///
-    /// ```norun
+    /// ```no_run
     /// fn a_filter_fn(pos: NodeRef<'_>, data: &mut NodeData) -> Action;
     /// ```
     ///
@@ -81,7 +81,8 @@ impl Document {
     /// `Document` by returning other [`Action`] values.
     ///
     /// For convenience and efficiency, multiple filter functions can be
-    /// combined via the [`chain_filters`] macro and run in one pass.
+    /// combined via the [`chain_filters`] macro and run in one pass. See also
+    /// the [`filter`][crate::filter] module for included functions.
     ///
     /// Note that to free up all memory associated with filtered `Node`s that
     /// have been detached, use [`Document::compact`], or

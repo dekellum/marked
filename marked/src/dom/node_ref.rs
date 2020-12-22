@@ -30,7 +30,7 @@ impl<'a> NodeRef<'a> {
     ///
     /// This is a convenence short hand for `children().filter(predicate)`. The
     /// "filter" name is avoided in deference to the (mutating)
-    /// `Document::filter` method.
+    /// [`Document::filter`] method.
     pub fn select_children<P>(&self, predicate: P)
         -> impl Iterator<Item = NodeRef<'a>> + 'a
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
@@ -198,7 +198,7 @@ impl<'a, P> Iterator for Selector<'a, P>
     }
 }
 
-/// A depth-first iterator returned by [`NodeRef::descendents`].
+/// A depth-first iterator returned by [`NodeRef::descendants`].
 pub struct Descender<'a> {
     doc: &'a Document,
     first: Option<NodeId>,

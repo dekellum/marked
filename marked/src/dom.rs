@@ -46,8 +46,8 @@ pub use node_ref::{NodeRef, Descender, Selector};
 ///
 /// All `Document` instances, even logically "empty" ones as freshly
 /// constructed, contain a synthetic document node at the fixed
-/// [`DOCUMENT_NODE_ID`] that serves as a container for N top level nodes,
-/// including the [`root_element`], if present.
+/// [`Document::DOCUMENT_NODE_ID`] that serves as a container for N top level
+/// nodes, including the [`Document::root_element()`], if present.
 pub struct Document {
     nodes: Vec<Node>,
 }
@@ -256,7 +256,7 @@ impl Document {
     }
 
     /// Attach the contents of an other `Document` to self, by appending
-    /// its elements under the given parent node.
+    /// its nodes under the given parent node.
     ///
     /// The `Document` is consumed (its contents moved to self). This is an
     /// inverse of [`Document::detach`].
@@ -271,7 +271,7 @@ impl Document {
     }
 
     /// Attach the contents of an other `Document` to self, by inserting its
-    /// elements before the given sibling node.
+    /// nodes before the given sibling node.
     ///
     /// The `Document` is consumed (its contents moved to self). This is an
     /// inverse of [`Document::detach`].
