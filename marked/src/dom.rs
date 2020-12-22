@@ -35,7 +35,7 @@ pub mod xml;
 #[cfg(test)]
 mod tests;
 
-pub use node_ref::{NodeRef, Selector};
+pub use node_ref::{NodeRef, Descender, Selector};
 
 /// A DOM-like container for a tree of markup elements and text.
 ///
@@ -420,7 +420,10 @@ impl Document {
     /// Return an iterator over all nodes, starting with the document node, and
     /// including all descendants in tree order.
     pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
-        self.descendants(Document::DOCUMENT_NODE_ID)
+        //FIXME: self.descendants(Document::DOCUMENT_NODE_ID)
+        iter::successors(
+            Some(Document::DOCUMENT_NODE_ID),
+            move |&id| self.next_in_tree_order(id))
     }
 
     /// Return an iterator over all descendants in tree order, starting with
@@ -429,7 +432,7 @@ impl Document {
     pub fn descendants<'a>(&'a self, id: NodeId)
         -> impl Iterator<Item = NodeId> + 'a
     {
-        iter::successors(Some(id), move |&id| self.next_in_tree_order(id))
+        NodeRef::new(self, id).descendants().map(|nr| nr.id())
     }
 
     fn next_in_tree_order(&self, id: NodeId) -> Option<NodeId> {

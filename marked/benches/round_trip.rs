@@ -200,6 +200,30 @@ fn b60_detach(b: &mut Bencher) {
     });
 }
 
+#[bench]
+fn b70_count_old(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
+
+    b.iter(|| {
+        assert_eq!(5500, doc.nodes().count())
+    });
+}
+
+#[bench]
+fn b71_count_new(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
+
+    b.iter(|| {
+        assert_eq!(5500, doc.descendants(Document::DOCUMENT_NODE_ID).count())
+    });
+}
+
 fn sample_file(fname: &str) -> Result<File, io::Error> {
     let root = env!("CARGO_MANIFEST_DIR");
     let fpath = format!("{}/samples/{}", root, fname);

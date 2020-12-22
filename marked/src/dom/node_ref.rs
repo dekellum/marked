@@ -80,6 +80,13 @@ impl<'a> NodeRef<'a> {
         )
     }
 
+    /// Return an iterator over all descendants in tree order, starting with
+    /// the specified node.
+    pub fn descendants(&self) -> Descender<'a>
+    {
+        Descender::new(*self)
+    }
+
     /// Return an iterator yielding self and all ancestors, terminating at the
     /// document node.
     pub fn node_and_ancestors(&'a self)
@@ -189,6 +196,40 @@ impl<'a, P> Iterator for Selector<'a, P>
             }
         }
         None
+    }
+}
+
+/// A depth-first iterator returned by [`NodeRef::descendents`].
+pub struct Descender<'a> {
+    doc: &'a Document,
+    first: Option<NodeId>,
+    next: NodeStack1
+}
+
+impl<'a> Descender<'a> {
+    fn new(first: NodeRef<'a>) -> Self {
+        let mut next = NodeStack1::new();
+        next.push_if(first.first_child);
+        Descender { doc: first.doc, first: Some(first.id), next }
+    }
+}
+
+impl<'a> Iterator for Descender<'a>
+{
+    type Item = NodeRef<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(id) = self.first.take() {
+            return Some(NodeRef::new(self.doc, id));
+        }
+        if let Some(id) = self.next.pop() {
+            let node = NodeRef::new(self.doc, id);
+            self.next.push_if(node.next_sibling);
+            self.next.push_if(node.first_child);
+            Some(node)
+        } else {
+            None
+        }
     }
 }
 

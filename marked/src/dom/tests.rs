@@ -195,12 +195,42 @@ fn test_detach_text() {
 
     let rid = doc.root_element().unwrap();
     let tid = doc.children(rid).next().unwrap();
+    assert_eq!(1, doc.descendants(tid).count());
     let det = doc.detach(tid);
     assert!(det.root_element().is_none());
+    assert_eq!(1, det.nodes().count() - 1);
     assert_eq!("<div></div>", doc.to_string());
     assert_eq!(1, doc.nodes().count() - 1);
     doc.compact();
     assert_eq!(1, doc.len() - 1);
+    assert_eq!("text", det.to_string());
+    assert_eq!(1, det.len() - 1);
+}
+
+#[test]
+fn test_detach_text_sib() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        "<div>\
+          <p>text</p>\
+          <p>more</p>\
+         </div>"
+            .as_bytes()
+    );
+    assert_eq!(5, doc.nodes().count() - 1);
+
+    let rid = doc.root_element().unwrap();
+    let pid = doc.children(rid).next().unwrap(); // <p>(text)
+    assert_eq!(2, doc.descendants(pid).count());
+    let tid = doc.children(pid).next().unwrap(); // (text)
+    assert_eq!(1, doc.descendants(tid).count());
+    let det = doc.detach(tid);
+    assert!(det.root_element().is_none());
+    assert_eq!(1, det.nodes().count() - 1);
+    assert_eq!("<div><p></p><p>more</p></div>", doc.to_string());
+    assert_eq!(4, doc.nodes().count() - 1);
+    doc.compact();
+    assert_eq!(4, doc.len() - 1);
     assert_eq!("text", det.to_string());
     assert_eq!(1, det.len() - 1);
 }
