@@ -137,8 +137,8 @@ impl Document {
     /// specified capacity.
     pub fn with_capacity(count: u32) -> Self {
         let mut nodes = Vec::with_capacity(count as usize);
-        nodes.push(Node::new(NodeData::Hole));        // Index 0: Padding
-        nodes.push(Node::new(NodeData::Document));    // Index 1: DOCUMENT_NODE_ID
+        nodes.push(Node::new(NodeData::Hole));     // Index 0: Padding
+        nodes.push(Node::new(NodeData::Document)); // Index 1: DOCUMENT_NODE_ID
         Document { nodes }
     }
 
@@ -264,8 +264,7 @@ impl Document {
     ///
     /// The `Document` is consumed (its contents moved to self). This is an
     /// inverse of [`Document::detach`].
-    pub fn attach_child(&mut self, parent: NodeId, mut other: Document)
-    {
+    pub fn attach_child(&mut self, parent: NodeId, mut other: Document) {
         self.nodes.reserve(other.len() as usize - 1); // ignore DOCUMENT node
         let children = other.children(Document::DOCUMENT_NODE_ID)
             .collect::<Vec<_>>();
@@ -279,19 +278,25 @@ impl Document {
     ///
     /// The `Document` is consumed (its contents moved to self). This is an
     /// inverse of [`Document::detach`].
-    pub fn attach_before_sibling(&mut self, sibling: NodeId, mut other: Document)
+    pub fn attach_before_sibling(
+        &mut self,
+        sibling: NodeId,
+        mut other: Document)
     {
         self.nodes.reserve(other.len() as usize - 1);
         let children = other.children(Document::DOCUMENT_NODE_ID)
             .collect::<Vec<_>>();
         for oid in children {
             let onode = &mut other[oid];
-            let nid = self.insert_before_sibling(sibling, Node::new(onode.take_data()));
+            let nid = self.insert_before_sibling(
+                sibling,
+                Node::new(onode.take_data()));
             for coid in other.children(oid).collect::<Vec<_>>() {
                 self.append_move(nid, &mut other, coid);
             }
         }
     }
+
     /// Move node oid in odoc and all its descendants, appending to id in
     /// self.
     fn append_move(&mut self, id: NodeId, odoc: &mut Document, oid: NodeId) {
@@ -316,7 +321,7 @@ impl Document {
     ///
     /// Unlink removes references and replaces the single node data with
     /// `NodeData::Hole`, leaving all children in place but un-referenced. Use
-    /// [`Document::detach`] to instead obtain the entire sub-tree.  To free up
+    /// [`Document::detach`] to instead obtain the entire sub-tree. To free up
     /// the `Vec<Node>` slots for the node and any children, use
     /// [`Document::compact`].
     #[inline]
@@ -465,7 +470,8 @@ impl Document {
     /// Return an iterator over all descendants in tree order, starting with
     /// the specified node.
     #[inline]
-    pub fn descendants(&self, id: NodeId) -> impl Iterator<Item = NodeId> + '_ {
+    pub fn descendants(&self, id: NodeId) -> impl Iterator<Item = NodeId> + '_
+    {
         NodeRef::new(self, id).descendants().map(|nr| nr.id())
     }
 
@@ -517,7 +523,12 @@ impl Document {
 
     /// Clone node oid in odoc and all its descendants, appending to id in
     /// self.
-    pub fn append_deep_clone(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
+    pub fn append_deep_clone(
+        &mut self,
+        id: NodeId,
+        odoc: &Document,
+        oid: NodeId)
+    {
         let id = self.append_child(id, Node::new(odoc[oid].data.clone()));
         for child in odoc.children(oid) {
             self.append_deep_clone(id, odoc, child);
@@ -667,9 +678,10 @@ impl Element {
     /// found, the attribute is added to the end. To guarantee placement at the
     /// end, use [`Element::remove_attr`] first.  In the case where multiple
     /// existing instances of the attribute are found, the _last_ value is
-    /// returned.  Parsers may allow same named attributes or multiples might be
-    /// introduced via manual mutations.
-    pub fn set_attr<LN, V>(&mut self, lname: LN, value: V) -> Option<StrTendril>
+    /// returned.  Parsers may allow same named attributes or multiples might
+    /// be introduced via manual mutations.
+    pub fn set_attr<LN, V>(&mut self, lname: LN, value: V)
+        -> Option<StrTendril>
         where LN: Into<LocalName>, V: Into<StrTendril>
     {
         let mut found = None;
