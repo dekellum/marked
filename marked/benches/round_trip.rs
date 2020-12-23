@@ -156,7 +156,7 @@ fn b50_sparse_bulk_clone(b: &mut Bencher) {
 }
 
 #[bench]
-fn b51_sparse_compact(b: &mut Bencher) {
+fn b51_sparse_bulk_clone_compact(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html")
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
@@ -170,7 +170,7 @@ fn b51_sparse_compact(b: &mut Bencher) {
 }
 
 #[bench]
-fn b52_sparse_deep_clone(b: &mut Bencher) {
+fn b52_sparse_bulk_clone_deep_clone(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html")
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
@@ -184,7 +184,7 @@ fn b52_sparse_deep_clone(b: &mut Bencher) {
 }
 
 #[bench]
-fn b60_detach(b: &mut Bencher) {
+fn b60_bulk_clone_detach(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html")
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
