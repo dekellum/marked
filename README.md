@@ -1,7 +1,7 @@
 # The Märkəd Project
 
 [![deps status](https://deps.rs/repo/github/dekellum/marked/status.svg)](https://deps.rs/repo/github/dekellum/marked)
-[![Travis CI Build](https://travis-ci.org/dekellum/marked.svg?branch=master)](https://travis-ci.org/dekellum/marked)
+[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=master)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
 
 A rust language project for parsing, filtering, selecting and serializing HTML
 and XML mark-up.
