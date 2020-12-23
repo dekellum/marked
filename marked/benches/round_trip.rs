@@ -184,7 +184,23 @@ fn b52_sparse_bulk_clone_deep_clone(b: &mut Bencher) {
 }
 
 #[bench]
-fn b60_bulk_clone_detach(b: &mut Bencher) {
+fn b60_bulk_clone_unlink(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
+
+    b.iter(|| {
+        let mut doc = doc.bulk_clone();
+        let rid = doc.root_element().expect("root");
+        doc.unlink(rid);
+        assert_eq!(5500, doc.len());
+        assert_eq!(2, doc.nodes().count());
+    });
+}
+
+#[bench]
+fn b61_bulk_clone_detach(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html")
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);

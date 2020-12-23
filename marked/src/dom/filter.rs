@@ -16,7 +16,11 @@ pub enum Action {
     /// Continue filtering, without further changes to this `Node`.
     Continue,
 
-    /// Detach this `Node`, and any children, from the tree.
+    /// Detach (unlink) this `Node`, and its children, from the tree.
+    ///
+    /// This remove references and replaces node data with `NodeData::Hole`. To
+    /// free up the `Vec<Node>` slots for the node and any children, use
+    /// [`Document::compact`].
     Detach,
 
     /// Replace this `Node` with its children. Equivalent to `Detach` if
@@ -120,7 +124,7 @@ impl Document {
                 self.fold_only(id);
             }
             Action::Detach => {
-                self.detach_only(id);
+                self.unlink_only(id);
             }
         }
         res

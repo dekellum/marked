@@ -229,6 +229,9 @@ impl Document {
     /// Detach the specified node ID and return it and its children moved into
     /// a new independent `Document` fragment.
     ///
+    /// If the complete `Document` sub-tree fragment isn't needed, use
+    /// [`Document::unlink`] instead.
+    ///
     /// Panics if called with the synthetic DOCUMENT_NODE_ID.
     /// Detaching the root element results in an empty document with no root
     /// element.
@@ -237,8 +240,9 @@ impl Document {
     /// `NodeData::Hole`. To free up the `Vec<Node>` slots for these nodes as
     /// well, use [`Document::compact`].
     #[inline]
+    #[must_use="If the fragment isn't needed, use `unlink()` instead."]
     pub fn detach(&mut self, id: NodeId) -> Document {
-        self.detach_only(id);
+        self.unlink_only(id);
 
         // Not a great guess of the subtree, but faster than counting
         let guess_cap = std::cmp::max(8, self.len() - id.0.get() + 2);
@@ -303,8 +307,26 @@ impl Document {
         }
     }
 
-    /// Detach the specified node ID.
-    fn detach_only(&mut self, id: NodeId) {
+    /// Unlink the specified node ID from the Document, and return the replaced
+    /// `NodeData`.
+    ///
+    /// Panics if called with the synthetic DOCUMENT_NODE_ID.
+    /// Detaching the root element results in an empty document with no root
+    /// element.
+    ///
+    /// Unlink removes references and replaces the single node data with
+    /// `NodeData::Hole`, leaving all children in place but un-referenced. Use
+    /// [`Document::detach`] to instead obtain the entire sub-tree.  To free up
+    /// the `Vec<Node>` slots for the node and any children, use
+    /// [`Document::compact`].
+    #[inline]
+    pub fn unlink(&mut self, id: NodeId) -> NodeData {
+        self.unlink_only(id);
+        self[id].take_data()
+    }
+
+    /// Unlink the specified node from the Document.
+    fn unlink_only(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
             "Can't detach the synthetic document node");
@@ -339,7 +361,7 @@ impl Document {
     }
 
     fn append(&mut self, parent: NodeId, new_child: NodeId) {
-        self.detach_only(new_child);
+        self.unlink_only(new_child);
         self[new_child].parent = Some(parent);
         self[parent].assert_suitable_parent();
         if let Some(last_child) = self[parent].last_child.take() {
@@ -363,7 +385,7 @@ impl Document {
     }
 
     fn insert_before(&mut self, sibling: NodeId, new_sibling: NodeId) {
-        self.detach_only(new_sibling);
+        self.unlink_only(new_sibling);
         let parent = self[sibling].parent
             .expect("insert_before sibling has no parent");
         self[parent].assert_suitable_parent();
@@ -521,11 +543,11 @@ impl Document {
     /// specifications.
     ///
     /// After repositioning children the specified node is
-    /// [detached][Document::detach], removing references, then its data is
+    /// [unlinked][Document::unlink], removing references, then its data is
     /// replaced with `NodeData::Hole` and the original is returned. To free up
     /// the remaining `Vec<Node>` slot for the node, use
     /// [`Document::compact`]. For a node with no children, fold is equivalent
-    /// to [`Document::detach`].
+    /// to [`Document::unlink`].
     #[inline]
     pub fn fold(&mut self, id: NodeId) -> NodeData {
         self.fold_only(id);
@@ -544,7 +566,7 @@ impl Document {
             next_child = self[child].next_sibling;
             self.insert_before(id, child);
         }
-        self.detach_only(id);
+        self.unlink_only(id);
     }
 }
 
