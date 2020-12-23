@@ -1,0 +1,69 @@
+name: CI
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: '05 16 * * 1,4'
+
+env:
+  RUSTFLAGS: -Dwarnings
+
+jobs:
+
+  test:
+    name: ${{ matrix.rust }} ${{ matrix.os }} ${{ join(matrix.extras) }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - rust: 1.38.0
+            os: ubuntu-20.04
+          - rust: 1.38.0
+            os: ubuntu-20.04
+            extras: [update]
+          - rust: 1.38.0
+            os: windows-latest
+          - rust: 1.38.0
+            os: windows-latest
+            extras: [update]
+          - rust: stable
+            os: ubuntu-20.04
+            extras: [update]
+          - rust: nightly
+            os: ubuntu-20.04
+          - rust: nightly
+            os: ubuntu-20.04
+            extras: [update]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install rust (${{ matrix.rust }})
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      - name: Update deps
+        if: ${{ contains(matrix.extras, 'update') }}
+        run: cargo update
+
+      - name: Downgrade xml-rs for MSRV
+        if: ${{ matrix.rust == '1.38.0' }}
+        run: cargo update -p xml-rs --precise 0.8.0
+
+      - name: Test
+        run: cargo test
+
+      - name: Test all features
+        run: cargo test --all-features
+
+      - name: Build all features/targets
+        if: ${{ matrix.rust == 'nightly' }}
+        run: cargo build --all-features --all-targets
+
+      - name: Build marked-cli (all features)
+        working-directory: marked-cli
+        run: cargo build --all-features

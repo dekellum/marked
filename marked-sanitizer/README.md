@@ -3,7 +3,7 @@
 [![Rustdoc](https://docs.rs/marked-sanitizer/badge.svg)](https://docs.rs/marked-sanitizer)
 [![Change Log](https://img.shields.io/crates/v/marked-sanitizer.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/master/marked-sanitizer/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/marked-sanitizer.svg?maxAge=3600)](https://crates.io/crates/marked-sanitizer)
-[![Travis CI Build](https://travis-ci.org/dekellum/marked.svg?branch=master)](https://travis-ci.org/dekellum/marked)
+[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=master)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
 
 For now, just reserving the name for potential use as a dedicated sanitizer
 crate. Such would presumably be (`Builder`) API compatible with the _[ammonia]_
