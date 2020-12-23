@@ -103,7 +103,7 @@ checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
 
 [[package]]
 name = "marked"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "encoding_rs",
  "html5ever",
@@ -119,7 +119,7 @@ dependencies = [
 
 [[package]]
 name = "marked-cli"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "clap",
  "encoding_rs",
