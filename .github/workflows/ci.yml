@@ -51,7 +51,7 @@ jobs:
         run: cargo update
 
       - name: Downgrade xml-rs for MSRV
-        if: ${{ matrix.rust == '1.38.0 }}
+        if: ${{ matrix.rust == '1.38.0' }}
         run: cargo update -p xml-rs --precise 0.8.0
 
       - name: Test
