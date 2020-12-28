@@ -13,14 +13,16 @@
 * Added `Document::attach_child()` and `attach_before_sibling()` as logical
   inverses to `detach()`.
 
-* Add `Document::descendants()` as more general form of `nodes()`, as well as
-  `NodeRef::descendants()`.
+* Added `Document::descendants()` and `NodeRef::descendants()`, as more general
+  form of `nodes()`.
 
-* Made `&self` lifetime more lenient for many `NodeRef` methods.
+* Made `&self` lifetimes more lenient for many `NodeRef` methods.
 
 * Misc memory use optimizations in the form of better capacity guesses and
   selective application of `shrink_to_fit` based on tested cost, and the
   likelihood of the latter causing a memory move by the allocator.
+
+* Broaden log dependency to include later 0.4.x patch releases.
 
 ## 0.2.0 (2020-4-12)
 
