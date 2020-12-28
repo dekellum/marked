@@ -35,24 +35,24 @@ pub mod xml;
 #[cfg(test)]
 mod tests;
 
-pub use node_ref::{NodeRef, Selector};
+pub use node_ref::{NodeRef, Descender, Selector};
 
 /// A DOM-like container for a tree of markup elements and text.
 ///
-/// Unlike `RcDom`, this uses a simple vector of `Node`s and indexes for
+/// Unlike `RcDom`, this uses a simple vector of [`Node`]s and indexes for
 /// parent/child and sibling ordering. Attributes are stored as separately
 /// allocated vectors for each element. For memory efficiency, a single
 /// document is limited to 4 billion (2^32 - 1) total nodes.
 ///
 /// All `Document` instances, even logically "empty" ones as freshly
 /// constructed, contain a synthetic document node at the fixed
-/// `DOCUMENT_NODE_ID` that serves as a container for N top level nodes,
-/// including the `root_element` if present.
+/// [`Document::DOCUMENT_NODE_ID`] that serves as a container for N top level
+/// nodes, including the [`Document::root_element()`], if present.
 pub struct Document {
     nodes: Vec<Node>,
 }
 
-/// A `Node` identifier, as u32 index into a `Document`s `Node` vector.
+/// A `Node` identifier as a u32 index into a `Document`s `Node` vector.
 ///
 /// Should only be used with the `Document` it was obtained from.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -125,6 +125,9 @@ impl Document {
         unsafe { NonZeroU32::new_unchecked(1) }
     );
 
+    // An accepted amount of excess Vec<Node> capacity
+    const WASTE_ALLOWANCE: usize = 1024;
+
     /// Construct a new `Document` with the single empty document node.
     pub fn new() -> Self {
         Document::with_capacity(8)
@@ -134,8 +137,8 @@ impl Document {
     /// specified capacity.
     pub fn with_capacity(count: u32) -> Self {
         let mut nodes = Vec::with_capacity(count as usize);
-        nodes.push(Node::new(NodeData::Hole));        // Index 0: Padding
-        nodes.push(Node::new(NodeData::Document));    // Index 1: DOCUMENT_NODE_ID
+        nodes.push(Node::new(NodeData::Hole));     // Index 0: Padding
+        nodes.push(Node::new(NodeData::Document)); // Index 1: DOCUMENT_NODE_ID
         Document { nodes }
     }
 
@@ -145,16 +148,22 @@ impl Document {
     /// may not be accessable from the document node. The value returned
     /// may be more than the accessable nodes counted via `nodes().count()`,
     /// unless [`Document::compact`] or [`Document::deep_clone`] is first used.
-    pub fn len(&self) -> usize {
-        self.nodes.len() - 1
+    #[inline]
+    pub fn len(&self) -> u32 {
+        let nodes: u32 = self.nodes.len()
+            .try_into()
+            .expect("Document (u32) node index overflow");
+        debug_assert!(nodes > 0);
+        nodes - 1 // but don't include padding (index 0) in len
     }
 
-    /// Return true if this document only contains the single empty document
+    /// Return true if this document only contains the single, empty document
     /// node.
     ///
     /// Note that when "empty" the [`Document::len`] is still one (1).
+    #[inline]
     pub fn is_empty(&self) -> bool {
-        self.nodes.len() < 3
+        self.len() < 2
     }
 
     /// Return the root element `NodeId` for this Document, or None if there is
@@ -217,15 +226,112 @@ impl Document {
         NodeId(unsafe { NonZeroU32::new_unchecked(next_index) })
     }
 
-    /// Detach the specified node ID.
+    /// Detach the specified node ID and return it and its children moved into
+    /// a new independent `Document` fragment.
+    ///
+    /// If the complete `Document` sub-tree fragment isn't needed, use
+    /// [`Document::unlink`] instead.
     ///
     /// Panics if called with the synthetic DOCUMENT_NODE_ID.
-    /// Detaching the root element results in an empty document with no root
+    /// Detaching the root element results in a document with no root
     /// element.
     ///
-    /// Detach just removes references from other nodes. To free up the memory
-    /// associated with the node and its children, use [`Document::compact`].
-    pub fn detach(&mut self, id: NodeId) {
+    /// Detach just removes references and replaces all node data in self with
+    /// `NodeData::Hole`. To free up the `Vec<Node>` slots for these nodes as
+    /// well, use [`Document::compact`].
+    #[inline]
+    #[must_use="If the fragment isn't needed, use `unlink()` instead."]
+    pub fn detach(&mut self, id: NodeId) -> Document {
+        self.unlink_only(id);
+
+        // Not a great guess of the subtree, but faster than counting
+        let guess_cap = std::cmp::max(8, self.len() - id.0.get() + 2);
+        let mut ndoc = Document::with_capacity(guess_cap);
+
+        ndoc.append_move(Document::DOCUMENT_NODE_ID, self, id);
+
+        // If guess cap was higher then allowance, shrink it
+        if (ndoc.nodes.capacity() - ndoc.nodes.len()) >
+            Document::WASTE_ALLOWANCE
+        {
+            ndoc.nodes.shrink_to_fit();
+        }
+        ndoc
+    }
+
+    /// Attach the contents of an other `Document` to self, by appending
+    /// its nodes under the given parent node.
+    ///
+    /// The `Document` is consumed (its contents moved to self). This is an
+    /// inverse of [`Document::detach`].
+    pub fn attach_child(&mut self, parent: NodeId, mut other: Document) {
+        self.nodes.reserve(other.len() as usize - 1); // ignore DOCUMENT node
+        let children = other.children(Document::DOCUMENT_NODE_ID)
+            .collect::<Vec<_>>();
+        for child in children {
+            self.append_move(parent, &mut other, child);
+        }
+    }
+
+    /// Attach the contents of an other `Document` to self, by inserting its
+    /// nodes before the given sibling node.
+    ///
+    /// The `Document` is consumed (its contents moved to self). This is an
+    /// inverse of [`Document::detach`].
+    pub fn attach_before_sibling(
+        &mut self,
+        sibling: NodeId,
+        mut other: Document)
+    {
+        self.nodes.reserve(other.len() as usize - 1);
+        let children = other.children(Document::DOCUMENT_NODE_ID)
+            .collect::<Vec<_>>();
+        for oid in children {
+            let onode = &mut other[oid];
+            let nid = self.insert_before_sibling(
+                sibling,
+                Node::new(onode.take_data()));
+            for coid in other.children(oid).collect::<Vec<_>>() {
+                self.append_move(nid, &mut other, coid);
+            }
+        }
+    }
+
+    /// Move node oid in odoc and all its descendants, appending to id in
+    /// self.
+    fn append_move(&mut self, id: NodeId, odoc: &mut Document, oid: NodeId) {
+        let id = self.append_child(id, Node::new(odoc[oid].take_data()));
+        let mut ns = NodeStack2::new();
+        ns.push_if(odoc[oid].first_child, id);
+
+        while let Some((oid, id)) = ns.pop() {
+            let onode = &mut odoc[oid];
+            let nid = self.append_child(id, Node::new(onode.take_data()));
+            ns.push_if(onode.next_sibling, id);
+            ns.push_if(onode.first_child, nid);
+        }
+    }
+
+    /// Unlink the specified node ID from the Document, and return the replaced
+    /// `NodeData`.
+    ///
+    /// Panics if called with the synthetic DOCUMENT_NODE_ID.
+    /// Unlinking the root element results in an document with no root
+    /// element.
+    ///
+    /// Unlink removes references and replaces the single node data with
+    /// `NodeData::Hole`, leaving all children in place but un-referenced. Use
+    /// [`Document::detach`] to instead obtain the entire sub-tree. To free up
+    /// the `Vec<Node>` slots for the node and any children, use
+    /// [`Document::compact`].
+    #[inline]
+    pub fn unlink(&mut self, id: NodeId) -> NodeData {
+        self.unlink_only(id);
+        self[id].take_data()
+    }
+
+    /// Unlink the specified node from the Document.
+    fn unlink_only(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
             "Can't detach the synthetic document node");
@@ -250,7 +356,7 @@ impl Document {
         }
     }
 
-    /// Append node as new last child of parent, and return its new ID.
+    /// Append node as new last child of given parent, and return its new ID.
     pub fn append_child(&mut self, parent: NodeId, node: Node)
         -> NodeId
     {
@@ -260,7 +366,7 @@ impl Document {
     }
 
     fn append(&mut self, parent: NodeId, new_child: NodeId) {
-        self.detach(new_child);
+        self.unlink_only(new_child);
         self[new_child].parent = Some(parent);
         self[parent].assert_suitable_parent();
         if let Some(last_child) = self[parent].last_child.take() {
@@ -284,9 +390,9 @@ impl Document {
     }
 
     fn insert_before(&mut self, sibling: NodeId, new_sibling: NodeId) {
-        self.detach(new_sibling);
+        self.unlink_only(new_sibling);
         let parent = self[sibling].parent
-            .expect("insert_before sibling has parent");
+            .expect("insert_before sibling has no parent");
         self[parent].assert_suitable_parent();
         self[new_sibling].parent = Some(parent);
         self[new_sibling].next_sibling = Some(sibling);
@@ -304,38 +410,35 @@ impl Document {
         self[sibling].prev_sibling = Some(new_sibling);
     }
 
-    /// Return all decendent text content (character data) of the given node
-    /// ID.
+    /// Return all descendant text content (character data) of the given node.
     ///
     /// If node is a text node, return that text.  If this is an element node
     /// or the document node, return the concatentation of all text
     /// descendants, in tree order. Return `None` for all other node types.
     pub fn text(&self, id: NodeId) -> Option<StrTendril> {
-        let mut next = Vec::new();
-        push_if(&mut next, self[id].first_child);
+        let mut ns = NodeStack1::new();
+        ns.push_if(self[id].first_child);
         let mut text = None;
-        while let Some(id) = next.pop() {
+        while let Some(id) = ns.pop() {
             let node = &self[id];
             if let NodeData::Text(t) = &node.data {
                 match &mut text {
                     None => text = Some(t.clone()),
                     Some(text) => text.push_tendril(&t),
                 }
-                push_if(&mut next, node.next_sibling);
+                ns.push_if(node.next_sibling);
             } else {
-                push_if(&mut next, node.next_sibling);
-                push_if(&mut next, node.first_child);
+                ns.push_if(node.next_sibling);
+                ns.push_if(node.first_child);
             }
         }
         text
     }
 
-    /// Return an iterator over this node's direct children.
+    /// Return an iterator over the given node's direct children.
     ///
-    /// Will be empty if the node can not or does not have children.
-    pub fn children<'a>(&'a self, id: NodeId)
-        -> impl Iterator<Item = NodeId> + 'a
-    {
+    /// Will be empty if the node does not (or can not) have children.
+    pub fn children(&self, id: NodeId) -> impl Iterator<Item = NodeId> + '_ {
         iter::successors(
             self[id].first_child,
             move |&id| self[id].next_sibling
@@ -344,54 +447,56 @@ impl Document {
 
     /// Return an iterator over the specified node and all its following,
     /// direct siblings, within the same parent.
-    pub fn node_and_following_siblings<'a>(&'a self, id: NodeId)
-        -> impl Iterator<Item = NodeId> + 'a
+    pub fn node_and_following_siblings(&self, id: NodeId)
+        -> impl Iterator<Item = NodeId> + '_
     {
         iter::successors(Some(id), move |&id| self[id].next_sibling)
     }
 
     /// Return an iterator over the specified node and all its ancestors,
     /// terminating at the document node.
-    pub fn node_and_ancestors<'a>(&'a self, id: NodeId)
-        -> impl Iterator<Item = NodeId> + 'a
+    pub fn node_and_ancestors(&self, id: NodeId)
+        -> impl Iterator<Item = NodeId> + '_
     {
         iter::successors(Some(id), move |&id| self[id].parent)
     }
 
     /// Return an iterator over all nodes, starting with the document node, and
     /// including all descendants in tree order.
-    pub fn nodes<'a>(&'a self) -> impl Iterator<Item = NodeId> + 'a {
-        iter::successors(
-            Some(Document::DOCUMENT_NODE_ID),
-            move |&id| self.next_in_tree_order(id)
-        )
+    pub fn nodes(&self) -> impl Iterator<Item = NodeId> + '_ {
+        self.descendants(Document::DOCUMENT_NODE_ID)
     }
 
-    fn next_in_tree_order(&self, id: NodeId) -> Option<NodeId> {
-        self[id].first_child.or_else(|| {
-            self.node_and_ancestors(id)
-                .find_map(|ancestor| self[ancestor].next_sibling)
-        })
+    /// Return an iterator over all descendants in tree order, starting with
+    /// the specified node.
+    #[inline]
+    pub fn descendants(&self, id: NodeId) -> impl Iterator<Item = NodeId> + '_
+    {
+        NodeRef::new(self, id).descendants().map(|nr| nr.id())
     }
 
     /// Compact in place, by removing `Node`s that are no longer referenced
     /// from the document node.
     pub fn compact(&mut self) {
-        let mut ndoc = Document::with_capacity(self.len() as u32);
-        let mut next = Vec::new();
-        push_if_pair(
-            &mut next,
+        let mut ndoc = Document::with_capacity(self.len() + 1);
+        let mut ns = NodeStack2::new();
+        ns.push_if(
             self[Document::DOCUMENT_NODE_ID].first_child,
             Document::DOCUMENT_NODE_ID);
 
-        while let Some((id, nid)) = next.pop() {
-            let data = mem::replace(&mut self[id].data, NodeData::Hole);
-            let ncid = ndoc.append_child(nid, Node::new(data));
-            push_if_pair(&mut next, self[id].next_sibling, nid);
-            push_if_pair(&mut next, self[id].first_child, ncid);
+        while let Some((id, nid)) = ns.pop() {
+            let nnode = Node::new(self[id].take_data());
+            let ncid = ndoc.append_child(nid, nnode);
+            ns.push_if(self[id].next_sibling, nid);
+            ns.push_if(self[id].first_child, ncid);
         }
 
-        ndoc.nodes.shrink_to_fit();
+        // If guess cap was higher then allowance, shrink it
+        if (ndoc.nodes.capacity() - ndoc.nodes.len()) >
+            Document::WASTE_ALLOWANCE
+        {
+            ndoc.nodes.shrink_to_fit();
+        }
 
         self.nodes = ndoc.nodes;
     }
@@ -399,7 +504,12 @@ impl Document {
     /// Create a new `Document` from the ordered sub-tree rooted in the node
     /// referenced by ID.
     pub fn deep_clone(&self, id: NodeId) -> Document {
-        let mut ndoc = Document::with_capacity(self.len() as u32 / 2);
+
+        // Conservative guess of sub tree length. Shrinking after is likely
+        // expensive in this case, so avoid it.
+        let guess_cap = std::cmp::max(8, (self.len() - id.0.get() + 2) / 8);
+        let mut ndoc = Document::with_capacity(guess_cap);
+
         if id == Document::DOCUMENT_NODE_ID {
             for child in self.children(id) {
                 ndoc.append_deep_clone(Document::DOCUMENT_NODE_ID, self, child);
@@ -407,12 +517,18 @@ impl Document {
         } else {
             ndoc.append_deep_clone(Document::DOCUMENT_NODE_ID, self, id);
         }
+
         ndoc
     }
 
     /// Clone node oid in odoc and all its descendants, appending to id in
     /// self.
-    pub fn append_deep_clone(&mut self, id: NodeId, odoc: &Document, oid: NodeId) {
+    pub fn append_deep_clone(
+        &mut self,
+        id: NodeId,
+        odoc: &Document,
+        oid: NodeId)
+    {
         let id = self.append_child(id, Node::new(odoc[oid].data.clone()));
         for child in odoc.children(oid) {
             self.append_deep_clone(id, odoc, child);
@@ -429,18 +545,28 @@ impl Document {
         Document { nodes: self.nodes.clone() }
     }
 
-    /// Replace the specified node ID with its children.
+    /// Replace the specified node ID with its children, and return the
+    /// replaced `NodeData`.
     ///
     /// Panics if called with the synthetic DOCUMENT_NODE_ID. Folding the root
     /// element may result in a `Document` with no single root element, or
     /// which is otherwise invalid based on its _doctype_, e.g. the HTML or XML
     /// specifications.
     ///
-    /// After repositioning children the specified node is detached, which only
-    /// removes references. To free up the memory associated with the node, use
+    /// After repositioning children the specified node is
+    /// [unlinked][Document::unlink], removing references, then its data is
+    /// replaced with `NodeData::Hole` and the original is returned. To free up
+    /// the remaining `Vec<Node>` slot for the node, use
     /// [`Document::compact`]. For a node with no children, fold is equivalent
-    /// to [`Document::detach`].
-    pub fn fold(&mut self, id: NodeId) {
+    /// to [`Document::unlink`].
+    #[inline]
+    pub fn fold(&mut self, id: NodeId) -> NodeData {
+        self.fold_only(id);
+        self[id].take_data()
+    }
+
+    /// Replace the specified node ID with its children.
+    fn fold_only(&mut self, id: NodeId) {
         assert!(
             id != Document::DOCUMENT_NODE_ID,
             "Can't fold the synthetic document node");
@@ -451,7 +577,7 @@ impl Document {
             next_child = self[child].next_sibling;
             self.insert_before(id, child);
         }
-        self.detach(id);
+        self.unlink_only(id);
     }
 }
 
@@ -552,9 +678,10 @@ impl Element {
     /// found, the attribute is added to the end. To guarantee placement at the
     /// end, use [`Element::remove_attr`] first.  In the case where multiple
     /// existing instances of the attribute are found, the _last_ value is
-    /// returned.  Parsers may allow same named attributes or multiples might be
-    /// introduced via manual mutations.
-    pub fn set_attr<LN, V>(&mut self, lname: LN, value: V) -> Option<StrTendril>
+    /// returned.  Parsers may allow same named attributes or multiples might
+    /// be introduced via manual mutations.
+    pub fn set_attr<LN, V>(&mut self, lname: LN, value: V)
+        -> Option<StrTendril>
         where LN: Into<LocalName>, V: Into<StrTendril>
     {
         let mut found = None;
@@ -601,6 +728,14 @@ impl Node {
         where T: Into<StrTendril>
     {
         Node::new(NodeData::Text(text.into()))
+    }
+
+    /// Replace this node's data with a `NodeData::Hole`, and return the
+    /// original `NodeData`.
+    fn take_data(&mut self) -> NodeData {
+        // This remains private because if the Hole is reachable from
+        // DOCUMENT_NODE_ID node may assert panic.
+        mem::replace(&mut self.data, NodeData::Hole)
     }
 
     fn new(data: NodeData) -> Self {
@@ -696,18 +831,44 @@ impl NodeData {
     }
 }
 
-fn push_if(stack: &mut Vec<NodeId>, id: Option<NodeId>) {
-    if let Some(id) = id {
-        stack.push(id);
+struct NodeStack1(Vec<NodeId>);
+
+impl NodeStack1 {
+    #[inline]
+    fn new() -> Self {
+        NodeStack1(Vec::with_capacity(16))
+    }
+
+    #[inline]
+    fn push_if(&mut self, id: Option<NodeId>) {
+        if let Some(id) = id {
+            self.0.push(id);
+        }
+    }
+
+    #[inline]
+    fn pop(&mut self) -> Option<NodeId> {
+        self.0.pop()
     }
 }
 
-fn push_if_pair(
-    stack: &mut Vec<(NodeId, NodeId)>,
-    id: Option<NodeId>,
-    oid: NodeId)
-{
-    if let Some(id) = id {
-        stack.push((id, oid));
+struct NodeStack2(Vec<(NodeId, NodeId)>);
+
+impl NodeStack2 {
+    #[inline]
+    fn new() -> Self {
+        NodeStack2(Vec::with_capacity(16))
+    }
+
+    #[inline]
+    fn push_if(&mut self, id: Option<NodeId>, oid: NodeId) {
+        if let Some(id) = id {
+            self.0.push((id, oid));
+        }
+    }
+
+    #[inline]
+    fn pop(&mut self) -> Option<(NodeId, NodeId)> {
+        self.0.pop()
     }
 }

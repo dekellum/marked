@@ -148,9 +148,27 @@ fn test_detach_root() {
         "<html>text</html>"
             .as_bytes()
     );
-    doc.detach(doc.root_element_ref().unwrap().id());
+    let det = doc.detach(doc.root_element_ref().unwrap().id());
     assert!(doc.root_element_ref().is_none());
     assert_eq!("", doc.to_string());
+    assert_eq!("<html><head></head><body>text</body></html>", det.to_string());
+}
+
+#[test]
+fn test_detach_fragment() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        "<div>text</div>"
+            .as_bytes()
+    );
+    let det = doc.detach(doc.root_element_ref().unwrap().id());
+    assert!(doc.root_element_ref().is_none());
+    assert_eq!("", doc.to_string());
+    assert_eq!("<div>text</div>", det.to_string());
+
+    // Re-attach
+    doc.attach_child(Document::DOCUMENT_NODE_ID, det);
+    assert_eq!("<div>text</div>", doc.to_string());
 }
 
 #[test]
@@ -160,10 +178,89 @@ fn test_detach_root_doctype() {
         "<!DOCTYPE html><html>text</html>"
             .as_bytes()
     );
-    doc.detach(doc.root_element_ref().unwrap().id());
+    let det = doc.detach(doc.root_element_ref().unwrap().id());
     assert!(doc.root_element_ref().is_none());
     assert_eq!("<!DOCTYPE html>", doc.to_string());
+    assert_eq!("<html><head></head><body>text</body></html>", det.to_string());
 }
+
+#[test]
+fn test_detach_text() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        "<div>text</div>"
+            .as_bytes()
+    );
+    assert_eq!(2, doc.nodes().count() - 1);
+
+    let rid = doc.root_element().unwrap();
+    let tid = doc.children(rid).next().unwrap();
+    assert_eq!(1, doc.descendants(tid).count());
+    let det = doc.detach(tid);
+    assert!(det.root_element().is_none());
+    assert_eq!(1, det.nodes().count() - 1);
+    assert_eq!("<div></div>", doc.to_string());
+    assert_eq!(1, doc.nodes().count() - 1);
+    doc.compact();
+    assert_eq!(1, doc.len() - 1);
+    assert_eq!("text", det.to_string());
+    assert_eq!(1, det.len() - 1);
+}
+
+#[test]
+fn test_detach_text_sib() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        "<div>\
+          <p>text</p>\
+          <p>more</p>\
+         </div>"
+            .as_bytes()
+    );
+    assert_eq!(5, doc.nodes().count() - 1);
+
+    let rid = doc.root_element().unwrap();
+    let pid = doc.children(rid).next().unwrap(); // <p>(text)
+    assert_eq!(2, doc.descendants(pid).count());
+    let tid = doc.children(pid).next().unwrap(); // (text)
+    assert_eq!(1, doc.descendants(tid).count());
+    let det = doc.detach(tid);
+    assert!(det.root_element().is_none());
+    assert_eq!(1, det.nodes().count() - 1);
+    assert_eq!("<div><p></p><p>more</p></div>", doc.to_string());
+    assert_eq!(4, doc.nodes().count() - 1);
+    doc.compact();
+    assert_eq!(4, doc.len() - 1);
+    assert_eq!("text", det.to_string());
+    assert_eq!(1, det.len() - 1);
+}
+
+#[test]
+fn test_detach_attach_sib() {
+    ensure_logger();
+    let mut doc = html::parse_utf8_fragment(
+        "<div>\
+          <p>text</p>\
+          <p>more</p>\
+         </div>"
+            .as_bytes()
+    );
+    let div = doc.root_element().unwrap();
+    let pid = doc.children(div).next().unwrap(); // <p>(text)
+    let p1 = doc.detach(pid);
+    assert_eq!("<p>text</p>", p1.to_string());
+    assert_eq!("<div><p>more</p></div>", doc.to_string());
+    let pid = doc.children(div).next().unwrap(); // <p>(more)
+    let p2 = doc.detach(pid);
+    assert_eq!("<p>more</p>", p2.to_string());
+    assert_eq!("<div></div>", doc.to_string());
+    doc.attach_child(div, p2);
+    assert_eq!("<div><p>more</p></div>", doc.to_string());
+    let pid = doc.children(div).next().unwrap(); // <p>(more)
+    doc.attach_before_sibling(pid, p1);
+    assert_eq!("<div><p>text</p><p>more</p></div>", doc.to_string());
+}
+
 
 #[test]
 fn test_fold_filter() {

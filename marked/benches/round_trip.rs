@@ -156,7 +156,7 @@ fn b50_sparse_bulk_clone(b: &mut Bencher) {
 }
 
 #[bench]
-fn b51_sparse_compact(b: &mut Bencher) {
+fn b51_sparse_bulk_clone_compact(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html")
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
@@ -170,7 +170,7 @@ fn b51_sparse_compact(b: &mut Bencher) {
 }
 
 #[bench]
-fn b52_sparse_deep_clone(b: &mut Bencher) {
+fn b52_sparse_bulk_clone_deep_clone(b: &mut Bencher) {
     let mut fin = sample_file("github-dekellum.html")
         .expect("sample_file");
     let eh = EncodingHint::shared_default(enc::UTF_8);
@@ -180,6 +180,51 @@ fn b52_sparse_deep_clone(b: &mut Bencher) {
         let doc = doc.bulk_clone();
         let dc = doc.deep_clone(Document::DOCUMENT_NODE_ID);
         assert_eq!(1497, dc.len());
+    });
+}
+
+#[bench]
+fn b60_bulk_clone_unlink(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
+
+    b.iter(|| {
+        let mut doc = doc.bulk_clone();
+        let rid = doc.root_element().expect("root");
+        doc.unlink(rid);
+        assert_eq!(5500, doc.len());
+        assert_eq!(2, doc.nodes().count());
+    });
+}
+
+#[bench]
+fn b61_bulk_clone_detach(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
+
+    b.iter(|| {
+        let mut doc = doc.bulk_clone();
+        let rid = doc.root_element().expect("root");
+        let det = doc.detach(rid);
+        assert_eq!(5499, det.len());
+        assert_eq!(5500, doc.len());
+        assert_eq!(2, doc.nodes().count());
+    });
+}
+
+#[bench]
+fn b70_count(b: &mut Bencher) {
+    let mut fin = sample_file("github-dekellum.html")
+        .expect("sample_file");
+    let eh = EncodingHint::shared_default(enc::UTF_8);
+    let doc = parse_buffered(eh, &mut fin).expect("parse");
+
+    b.iter(|| {
+        assert_eq!(5500, doc.nodes().count())
     });
 }
 

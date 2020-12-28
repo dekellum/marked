@@ -16,7 +16,11 @@ pub enum Action {
     /// Continue filtering, without further changes to this `Node`.
     Continue,
 
-    /// Detach this `Node`, and any children, from the tree.
+    /// Detach (unlink) this `Node`, and its children, from the tree.
+    ///
+    /// This remove references and replaces node data with `NodeData::Hole`. To
+    /// free up the `Vec<Node>` slots for the node and any children, use
+    /// [`Document::compact`].
     Detach,
 
     /// Replace this `Node` with its children. Equivalent to `Detach` if
@@ -26,8 +30,8 @@ pub enum Action {
 
 /// Mutating filter methods.
 impl Document {
-    /// Perform a depth-first (children before parent nodes) walk of the
-    /// entire `Document`, including synthetic document node, applying the
+    /// Perform a depth-first (children before parent nodes) walk of the entire
+    /// `Document`, including the synthetic document node, applying the
     /// provided function.
     ///
     /// See [`Document::filter_at`] for additional details.
@@ -38,7 +42,7 @@ impl Document {
     }
 
     /// Perform a breadth-first (children after parent nodes) walk of the
-    /// entire `Document`, including synthetic document node, applying the
+    /// entire `Document`, including the synthetic document node, applying the
     /// provided function.
     ///
     /// See [`Document::filter_at`] for additional details.
@@ -66,7 +70,7 @@ impl Document {
     ///
     /// The `f` parameter can be a closure or free-function in the form:
     ///
-    /// ```norun
+    /// ```no_run
     /// fn a_filter_fn(pos: NodeRef<'_>, data: &mut NodeData) -> Action;
     /// ```
     ///
@@ -81,12 +85,13 @@ impl Document {
     /// `Document` by returning other [`Action`] values.
     ///
     /// For convenience and efficiency, multiple filter functions can be
-    /// combined via the [`chain_filters`] macro and run in one pass.
+    /// combined via the [`chain_filters`] macro and run in one pass. See also
+    /// the [`filter`][crate::filter] module for included functions.
     ///
     /// Note that to free up all memory associated with filtered `Node`s that
-    /// have been detached, use [`Document::compact`], or
-    /// [`Document::deep_clone`][`Document::deep_clone`] and drop the original
-    /// `Document`.
+    /// have been unlinked (`Action::Detach` or `Action::Fold`), use
+    /// [`Document::compact`], or [`Document::deep_clone`] and drop the
+    /// original `Document`.
     pub fn filter_at<F>(&mut self, id: NodeId, mut f: F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
@@ -116,10 +121,10 @@ impl Document {
         match res {
             Action::Continue => {},
             Action::Fold => {
-                self.fold(id);
+                self.fold_only(id);
             }
             Action::Detach => {
-                self.detach(id);
+                self.unlink_only(id);
             }
         }
         res
@@ -172,12 +177,14 @@ impl Document {
     fn filter_node<F>(&mut self, id: NodeId, f: &mut F) -> Action
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {
-        // We need to replace node.data with a placeholder (Hole) to appease
-        // the borrow checker. Otherwise there would be an aliasing problem
-        // where the Document (&self) reference could see the same NodeData
-        // passed as &mut.
-        let mut ndata = std::mem::replace(&mut self[id].data, NodeData::Hole);
+        // We need to temporarily replace node.data with a placeholder (Hole)
+        // to appease the borrow checker. Otherwise there would be an aliasing
+        // problem where the Document (&self) reference could see the same
+        // NodeData passed as &mut.
+        let mut ndata = self[id].take_data();
+
         let res = f(NodeRef::new(self, id), &mut ndata);
+
         // We only need to reset the potentially mutated node.data if the
         // action is to continue, as all other cases result in the node
         // being detached.

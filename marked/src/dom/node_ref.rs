@@ -2,7 +2,7 @@ use std::fmt;
 use std::iter;
 use std::ops::Deref;
 
-use crate::dom::{Document, Node, NodeId, StrTendril, push_if};
+use crate::dom::{Document, Node, NodeId, StrTendril, NodeStack1};
 
 /// A `Node` within `Document` lifetime reference.
 ///
@@ -30,8 +30,8 @@ impl<'a> NodeRef<'a> {
     ///
     /// This is a convenence short hand for `children().filter(predicate)`. The
     /// "filter" name is avoided in deference to the (mutating)
-    /// `Document::filter` method.
-    pub fn select_children<P>(&'a self, predicate: P)
+    /// [`Document::filter`] method.
+    pub fn select_children<P>(&self, predicate: P)
         -> impl Iterator<Item = NodeRef<'a>> + 'a
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
@@ -43,7 +43,7 @@ impl<'a> NodeRef<'a> {
     ///
     /// When element nodes fail the predicate, their children are scanned,
     /// depth-first, in search of all matches.
-    pub fn select<P>(&'a self, predicate: P) -> Selector<'a, P>
+    pub fn select<P>(&self, predicate: P) -> Selector<'a, P>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
         Selector::new(self.doc, self.first_child, predicate)
@@ -53,7 +53,7 @@ impl<'a> NodeRef<'a> {
     /// specified predicate.
     ///
     /// This is a convenence short hand for `children().find(predicate)`.
-    pub fn find_child<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
+    pub fn find_child<P>(&self, predicate: P) -> Option<NodeRef<'a>>
         where P: FnMut(&NodeRef<'a>) -> bool
     {
         self.children().find(predicate)
@@ -64,7 +64,7 @@ impl<'a> NodeRef<'a> {
     ///
     /// When element nodes fail the predicate, their children are scanned,
     /// depth-first, in search of the first match.
-    pub fn find<P>(&'a self, predicate: P) -> Option<NodeRef<'a>>
+    pub fn find<P>(&self, predicate: P) -> Option<NodeRef<'a>>
         where P: FnMut(&NodeRef<'a>) -> bool + 'a
     {
         Selector::new(self.doc, self.first_child, predicate).next()
@@ -72,12 +72,20 @@ impl<'a> NodeRef<'a> {
 
     /// Return an iterator over node's direct children.
     ///
-    /// Will yield nothing if the node can not or does not have children.
-    pub fn children(&'a self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
+    /// Will be empty if the node does not (or can not) have children.
+    pub fn children(&self) -> impl Iterator<Item = NodeRef<'a>> + 'a {
+        let this = *self;
         iter::successors(
-            self.for_some_node(self.first_child),
-            move |nref| self.for_some_node(nref.next_sibling)
+            this.for_some_node(this.first_child),
+            move |nref| this.for_some_node(nref.next_sibling)
         )
+    }
+
+    /// Return an iterator over all descendants in tree order, starting with
+    /// the specified node.
+    pub fn descendants(&self) -> Descender<'a>
+    {
+        Descender::new(*self)
     }
 
     /// Return an iterator yielding self and all ancestors, terminating at the
@@ -92,17 +100,17 @@ impl<'a> NodeRef<'a> {
     }
 
     /// Return any parent node or None.
-    pub fn parent(&'a self) -> Option<NodeRef<'a>> {
+    pub fn parent(&self) -> Option<NodeRef<'a>> {
         self.for_some_node(self.parent)
     }
 
     /// Return any previous (left) sibling node or None.
-    pub fn prev_sibling(&'a self) -> Option<NodeRef<'a>> {
+    pub fn prev_sibling(&self) -> Option<NodeRef<'a>> {
         self.for_some_node(self.prev_sibling)
     }
 
     /// Return any subsequent next (right) sibling node or None.
-    pub fn next_sibling(&'a self) -> Option<NodeRef<'a>> {
+    pub fn next_sibling(&self) -> Option<NodeRef<'a>> {
         self.for_some_node(self.next_sibling)
     }
 
@@ -112,18 +120,18 @@ impl<'a> NodeRef<'a> {
     /// Element node or the Document root node, return the
     /// concatentation of all text descendants, in tree order. Returns
     /// `None` for all other node types.
-    pub fn text(&'a self) -> Option<StrTendril> {
+    pub fn text(&self) -> Option<StrTendril> {
         self.doc.text(self.id)
     }
 
     /// Create a new independent `Document` from the ordered sub-tree
     /// referenced by self.
-    pub fn deep_clone(&'a self) -> Document {
+    pub fn deep_clone(&self) -> Document {
         self.doc.deep_clone(self.id)
     }
 
     #[inline]
-    fn for_some_node(&'a self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
+    fn for_some_node(&self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
         if let Some(id) = id {
             Some(NodeRef::new(self.doc, id))
         } else {
@@ -158,20 +166,14 @@ impl fmt::Debug for NodeRef<'_> {
 /// A selecting iterator returned by [`NodeRef::select`].
 pub struct Selector<'a, P> {
     doc: &'a Document,
-    next: Vec<NodeId>,
+    next: NodeStack1,
     predicate: P,
 }
 
 impl<'a, P> Selector<'a, P> {
-    fn new(doc: &'a Document, first: Option<NodeId>, predicate: P)
-        -> Selector<'a, P>
-    {
-        let next = if let Some(id) = first {
-            vec![id]
-        } else {
-            vec![]
-        };
-
+    fn new(doc: &'a Document, first: Option<NodeId>, predicate: P) -> Self {
+        let mut next = NodeStack1::new();
+        next.push_if(first);
         Selector { doc, next, predicate }
     }
 }
@@ -185,14 +187,48 @@ impl<'a, P> Iterator for Selector<'a, P>
         while let Some(id) = self.next.pop() {
             let node = NodeRef::new(self.doc, id);
             if (self.predicate)(&node) {
-                push_if(&mut self.next, node.next_sibling);
+                self.next.push_if(node.next_sibling);
                 return Some(node);
             } else {
-                push_if(&mut self.next, node.next_sibling);
-                push_if(&mut self.next, node.first_child);
+                self.next.push_if(node.next_sibling);
+                self.next.push_if(node.first_child);
             }
         }
         None
+    }
+}
+
+/// A depth-first iterator returned by [`NodeRef::descendants`].
+pub struct Descender<'a> {
+    doc: &'a Document,
+    first: Option<NodeId>,
+    next: NodeStack1
+}
+
+impl<'a> Descender<'a> {
+    fn new(first: NodeRef<'a>) -> Self {
+        let mut next = NodeStack1::new();
+        next.push_if(first.first_child);
+        Descender { doc: first.doc, first: Some(first.id), next }
+    }
+}
+
+impl<'a> Iterator for Descender<'a>
+{
+    type Item = NodeRef<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(id) = self.first.take() {
+            return Some(NodeRef::new(self.doc, id));
+        }
+        if let Some(id) = self.next.pop() {
+            let node = NodeRef::new(self.doc, id);
+            self.next.push_if(node.next_sibling);
+            self.next.push_if(node.first_child);
+            Some(node)
+        } else {
+            None
+        }
     }
 }
 
