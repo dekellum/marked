@@ -1,6 +1,29 @@
 ## 0.3.0 (unreleased)
 
+* `Document::len()` now returns u32 for compatibility to `with_capacity`, etc.
+
+* `Document::fold()` now replaces the node's data with `NodeData::Hole` and
+  returns the original `NodeData`.
+
+* `Document::detach()` now replaces all descendant node data with
+  `NodeData::Hole` and returns a new independent `Document` fragment with must
+  be used.  Added `Document::unlink()` for cases where a returned fragment is not
+  required.
+
+* Added `Document::attach_child()` and `attach_before_sibling()` as logical
+  inverses to `detach()`.
+
+* Add `Document::descendants()` as more general form of `nodes()`, as well as
+  `NodeRef::descendants()`.
+
+* Made `&self` lifetime more lenient for many `NodeRef` methods.
+
+* Misc memory use optimizations in the form of better capacity guesses and
+  selective application of `shrink_to_fit` based on tested cost, and the
+  likelihood of the latter causing a memory move by the allocator.
+
 ## 0.2.0 (2020-4-12)
+
 * The `marked::xml` module and xml-rs dependency is now under a non-default
   _xml_ feature. The xml-rs crate appears to not manage or test MSRV. Patch
   release 0.8.1 of xml-rs no longer builds on rust 0.38.0 (our MSRV). A
@@ -34,4 +57,5 @@
 * XML `Whitespace` events (a subcase of text) are now ignored on parse.
 
 ## 0.1.0 (2020-3-15)
+
 * Initial release.
