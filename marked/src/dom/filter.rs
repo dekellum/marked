@@ -30,8 +30,8 @@ pub enum Action {
 
 /// Mutating filter methods.
 impl Document {
-    /// Perform a depth-first (children before parent nodes) walk of the
-    /// entire `Document`, including synthetic document node, applying the
+    /// Perform a depth-first (children before parent nodes) walk of the entire
+    /// `Document`, including the synthetic document node, applying the
     /// provided function.
     ///
     /// See [`Document::filter_at`] for additional details.
@@ -42,7 +42,7 @@ impl Document {
     }
 
     /// Perform a breadth-first (children after parent nodes) walk of the
-    /// entire `Document`, including synthetic document node, applying the
+    /// entire `Document`, including the synthetic document node, applying the
     /// provided function.
     ///
     /// See [`Document::filter_at`] for additional details.
@@ -89,9 +89,9 @@ impl Document {
     /// the [`filter`][crate::filter] module for included functions.
     ///
     /// Note that to free up all memory associated with filtered `Node`s that
-    /// have been detached, use [`Document::compact`], or
-    /// [`Document::deep_clone`][`Document::deep_clone`] and drop the original
-    /// `Document`.
+    /// have been unlinked (`Action::Detach` or `Action::Fold`), use
+    /// [`Document::compact`], or [`Document::deep_clone`] and drop the
+    /// original `Document`.
     pub fn filter_at<F>(&mut self, id: NodeId, mut f: F)
         where F: Fn(NodeRef<'_>, &mut NodeData) -> Action
     {

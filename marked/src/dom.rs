@@ -233,7 +233,7 @@ impl Document {
     /// [`Document::unlink`] instead.
     ///
     /// Panics if called with the synthetic DOCUMENT_NODE_ID.
-    /// Detaching the root element results in an empty document with no root
+    /// Detaching the root element results in a document with no root
     /// element.
     ///
     /// Detach just removes references and replaces all node data in self with
@@ -316,7 +316,7 @@ impl Document {
     /// `NodeData`.
     ///
     /// Panics if called with the synthetic DOCUMENT_NODE_ID.
-    /// Detaching the root element results in an empty document with no root
+    /// Unlinking the root element results in an document with no root
     /// element.
     ///
     /// Unlink removes references and replaces the single node data with
