@@ -1,4 +1,4 @@
-## 0.3.0 (unreleased)
+## 0.3.0 (2021-1-3)
 
 * Update to _marked_ 0.3.0.
 

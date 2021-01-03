@@ -1,4 +1,4 @@
-## 0.3.0 (unreleased)
+## 0.3.0 (2021-1-3)
 
 * `Document::len()` now returns u32 for compatibility to `with_capacity`, etc.
 
