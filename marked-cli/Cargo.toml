@@ -1,6 +1,6 @@
 [package]
 name = "marked-cli"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["David Kellum <dek-oss@gravitext.com>"]
 license       = "MIT/Apache-2.0"
 description   = "Command line tool for markup I/O processing"
@@ -17,7 +17,7 @@ marked          = { version=">=0.3.0,  <0.4.0" }
 html5ever       = { version=">=0.25.1, <0.26" }
 encoding_rs     = { version=">=0.8.13, <0.9" }
 clap            = { version=">=2.33.0, <2.34", default-features=false, features=["wrap_help"] }
-log             = { version=">=0.4.4,  <0.4.9", features = ["std"] }
+log             = { version=">=0.4.4,  <0.4.15", features = ["std"] }
 
 [[bin]]
 name = "marked"
