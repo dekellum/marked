@@ -219,6 +219,7 @@ fn bom_enc(buff: &Tendril::<form::Bytes>) -> Option<&'static enc::Encoding>
 /// [`Document`](crate::Document) tree.
 pub struct Sink {
     document: Document,
+    #[allow(unused)]
     quirks_mode: QuirksMode,
     enc_hint: SharedEncodingHint,
     enc_check: bool,
