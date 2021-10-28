@@ -1,9 +1,9 @@
 # marked
 
 [![Rustdoc](https://docs.rs/marked/badge.svg)](https://docs.rs/marked)
-[![Change Log](https://img.shields.io/crates/v/marked.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/master/marked/CHANGELOG.md)
+[![Change Log](https://img.shields.io/crates/v/marked.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/main/marked/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/marked.svg?maxAge=3600)](https://crates.io/crates/marked)
-[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=master)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
+[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=main)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
 
 Parsing, filtering, selecting and serializing HTML/XML markup.
 
@@ -45,5 +45,5 @@ for inclusion in _märkəd_ by you, as defined by the Apache License, shall be
 dual licensed as above, without any additional terms or conditions.
 
 [../README]: https://github.com/dekellum/marked#readme
-[../LICENSE-APACHE]: https://github.com/dekellum/marked/tree/master/LICENSE-APACHE
-[../LICENSE-MIT]: https://github.com/dekellum/marked/tree/master/LICENSE-MIT
+[../LICENSE-APACHE]: https://github.com/dekellum/marked/tree/main/LICENSE-APACHE
+[../LICENSE-MIT]: https://github.com/dekellum/marked/tree/main/LICENSE-MIT

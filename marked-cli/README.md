@@ -1,8 +1,8 @@
 # marked-cli
 
-[![Change Log](https://img.shields.io/crates/v/marked-cli.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/master/marked-cli/CHANGELOG.md)
+[![Change Log](https://img.shields.io/crates/v/marked-cli.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/main/marked-cli/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/marked.svg?maxAge=3600)](https://crates.io/crates/marked-cli)
-[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=master)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
+[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=main)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
 
 A command line tool for HTML/XML markup I/O processing, using the _[marked]_ library crate.
 
@@ -34,5 +34,5 @@ shall be dual licensed as above, without any additional terms or conditions.
 
 [marked]: https://docs.rs/crate/marked
 [../README]: https://github.com/dekellum/marked#readme
-[../LICENSE-APACHE]: https://github.com/dekellum/marked/tree/master/LICENSE-APACHE
-[../LICENSE-MIT]: https://github.com/dekellum/marked/tree/master/LICENSE-MIT
+[../LICENSE-APACHE]: https://github.com/dekellum/marked/tree/main/LICENSE-APACHE
+[../LICENSE-MIT]: https://github.com/dekellum/marked/tree/main/LICENSE-MIT

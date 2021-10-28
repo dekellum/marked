@@ -23,5 +23,5 @@ License, shall be dual licensed as above, without any additional terms or
 conditions.
 
 [ammonia]: https://crates.io/crates/ammonia
-[../LICENSE-APACHE]: https://github.com/dekellum/marked/tree/master/LICENSE-APACHE
-[../LICENSE-MIT]: https://github.com/dekellum/marked/tree/master/LICENSE-MIT
+[../LICENSE-APACHE]: https://github.com/dekellum/marked/tree/main/LICENSE-APACHE
+[../LICENSE-MIT]: https://github.com/dekellum/marked/tree/main/LICENSE-MIT

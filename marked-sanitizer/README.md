@@ -1,9 +1,9 @@
 # marked-sanitizer
 
 [![Rustdoc](https://docs.rs/marked-sanitizer/badge.svg)](https://docs.rs/marked-sanitizer)
-[![Change Log](https://img.shields.io/crates/v/marked-sanitizer.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/master/marked-sanitizer/CHANGELOG.md)
+[![Change Log](https://img.shields.io/crates/v/marked-sanitizer.svg?maxAge=3600&label=change%20log&color=9cf)](https://github.com/dekellum/marked/blob/main/marked-sanitizer/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/marked-sanitizer.svg?maxAge=3600)](https://crates.io/crates/marked-sanitizer)
-[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=master)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
+[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=main)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
 
 For now, just reserving the name for potential use as a dedicated sanitizer
 crate. Such would presumably be (`Builder`) API compatible with the _[ammonia]_
@@ -28,6 +28,6 @@ License, shall be dual licensed as above, without any additional terms or
 conditions.
 
 [ammonia]: https://crates.io/crates/ammonia
-[../ammonia-compare]: https://github.com/dekellum/marked/tree/master/ammonia-compare
-[../LICENSE-APACHE]: https://github.com/dekellum/marked/tree/master/LICENSE-APACHE
-[../LICENSE-MIT]: https://github.com/dekellum/marked/tree/master/LICENSE-MIT
+[../ammonia-compare]: https://github.com/dekellum/marked/tree/main/ammonia-compare
+[../LICENSE-APACHE]: https://github.com/dekellum/marked/tree/main/LICENSE-APACHE
+[../LICENSE-MIT]: https://github.com/dekellum/marked/tree/main/LICENSE-MIT

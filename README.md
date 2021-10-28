@@ -1,7 +1,7 @@
 # The Märkəd Project
 
 [![deps status](https://deps.rs/repo/github/dekellum/marked/status.svg)](https://deps.rs/repo/github/dekellum/marked)
-[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=master)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
+[![CI Status](https://github.com/dekellum/marked/workflows/CI/badge.svg?branch=main)](https://github.com/dekellum/marked/actions?query=workflow%3ACI)
 
 A rust language project for parsing, filtering, selecting and serializing HTML
 and XML mark-up.
@@ -129,9 +129,9 @@ shall be dual licensed as above, without any additional terms or conditions.
 [marked]: https://docs.rs/crate/marked
 [marked-cli]: https://crates.io/crates/marked-cli
 [The Encoding Standard]: https://encoding.spec.whatwg.org/
-[./ammonia-compare]: https://github.com/dekellum/marked/tree/master/ammonia-compare
+[./ammonia-compare]: https://github.com/dekellum/marked/tree/main/ammonia-compare
 [victor]: https://github.com/SimonSapin/victor
 [chardet]: https://crates.io/crates/chardet
 [xml-rs]: https://crates.io/crates/xml-rs
-[LICENSE-APACHE]: https://github.com/dekellum/marked/tree/master/LICENSE-APACHE
-[LICENSE-MIT]: https://github.com/dekellum/marked/tree/master/LICENSE-MIT
+[LICENSE-APACHE]: https://github.com/dekellum/marked/tree/main/LICENSE-APACHE
+[LICENSE-MIT]: https://github.com/dekellum/marked/tree/main/LICENSE-MIT
