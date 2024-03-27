@@ -132,11 +132,7 @@ impl<'a> NodeRef<'a> {
 
     #[inline]
     fn for_some_node(&self, id: Option<NodeId>) -> Option<NodeRef<'a>> {
-        if let Some(id) = id {
-            Some(NodeRef::new(self.doc, id))
-        } else {
-            None
-        }
+        id.map(|id| NodeRef::new(self.doc, id))
     }
 }
 

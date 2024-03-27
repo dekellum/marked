@@ -70,13 +70,13 @@ impl<'a> Serialize for NodeRef<'a> {
                 serializer.write_doctype(&dt.name)
             }
             (IncludeNode, Text(ref t)) => {
-                serializer.write_text(&t)
+                serializer.write_text(t)
             }
             (IncludeNode, Comment(ref t)) => {
-                serializer.write_comment(&t)
+                serializer.write_comment(t)
             }
             (IncludeNode, Pi(ref pi)) => {
-                serializer.write_processing_instruction(&"", &pi.data)
+                serializer.write_processing_instruction("", &pi.data)
             }
         }
     }

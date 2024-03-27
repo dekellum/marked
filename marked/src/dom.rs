@@ -424,7 +424,7 @@ impl Document {
             if let NodeData::Text(t) = &node.data {
                 match &mut text {
                     None => text = Some(t.clone()),
-                    Some(text) => text.push_tendril(&t),
+                    Some(text) => text.push_tendril(t),
                 }
                 ns.push_if(node.next_sibling);
             } else {
