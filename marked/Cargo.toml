@@ -15,7 +15,7 @@ build         = "build.rs"
 doctest = false
 
 [dependencies]
-html5ever       = { version=">=0.26.0, <0.27" }
+html5ever       = { version=">=0.27.0, <0.28" }
 tendril         = { version=">=0.4.1,  <0.5", features=["encoding_rs"] }
 encoding_rs     = { version=">=0.8.13, <0.9" }
 xml-rs          = { version=">=0.8,    <0.9", package="xml-rs", optional=true }

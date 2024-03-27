@@ -14,7 +14,7 @@ edition = "2018"
 
 [dependencies]
 marked          = { version=">=0.3.0,  <0.4.0" }
-html5ever       = { version=">=0.26.0, <0.27" }
+html5ever       = { version=">=0.27.0, <0.28" }
 encoding_rs     = { version=">=0.8.13, <0.9" }
 clap            = { version=">=2.33.0, <2.34", default-features=false, features=["wrap_help"] }
 log             = { version=">=0.4.4,  <0.4.15", features = ["std"] }
