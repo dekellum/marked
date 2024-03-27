@@ -17,6 +17,7 @@ lazy_static! {
 }
 
 /// Metadata about HTML tags and their attributes.
+#[derive(Default)]
 pub struct TagMeta {
     is_empty: bool,
     is_deprecated: bool,
@@ -81,18 +82,7 @@ impl TagMeta {
     }
 }
 
-impl Default for TagMeta {
-    fn default() -> TagMeta {
-        TagMeta {
-            is_empty: false,
-            is_deprecated: false,
-            is_inline: false,
-            is_meta: false,
-            is_banned: false,
-            basic_attrs: vec![],
-        }
-    }
-}
+
 
 /// `Namespace` constants
 pub mod ns {
