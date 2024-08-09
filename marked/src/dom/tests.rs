@@ -24,9 +24,9 @@ use rand::Rng;
 #[cfg(target_pointer_width = "64")]
 fn size_of() {
     use std::mem::size_of;
-    assert_eq!(size_of::<Node>(), 80);
+    assert_eq!(size_of::<Node>(), 72);
     assert_eq!(size_of::<NodeId>(), 4);
-    assert_eq!(size_of::<NodeData>(), 56);
+    assert_eq!(size_of::<NodeData>(), 48);
     assert_eq!(size_of::<Element>(), 48);
     assert_eq!(size_of::<Attribute>(), 40);
     assert_eq!(size_of::<Vec<Attribute>>(), 24);

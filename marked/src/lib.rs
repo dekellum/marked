@@ -6,7 +6,7 @@
 
 #![warn(rust_2018_idioms)]
 
-#[macro_use] extern crate html5ever;
+#[macro_use] pub extern crate html5ever;
 
 /// Initial parse buffer size in which encoding hints are considered, possibly
 /// triggering reparse.

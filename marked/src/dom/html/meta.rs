@@ -6,17 +6,15 @@
 //! also checked in.
 
 use std::collections::HashMap;
-
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 use crate::dom::LocalName;
 
-lazy_static! {
-    /// A static lookup table for metadata on known HTML tags.
-    pub static ref TAG_META: HashMap<LocalName, TagMeta> = init_tag_metadata();
-}
+/// A static lookup table for metadata on known HTML tags.
+pub static TAG_META: LazyLock<HashMap<LocalName, TagMeta>> = LazyLock::new(init_tag_metadata);
 
 /// Metadata about HTML tags and their attributes.
+#[derive(Default)]
 pub struct TagMeta {
     is_empty: bool,
     is_deprecated: bool,
@@ -81,18 +79,7 @@ impl TagMeta {
     }
 }
 
-impl Default for TagMeta {
-    fn default() -> TagMeta {
-        TagMeta {
-            is_empty: false,
-            is_deprecated: false,
-            is_inline: false,
-            is_meta: false,
-            is_banned: false,
-            basic_attrs: vec![],
-        }
-    }
-}
+
 
 /// `Namespace` constants
 pub mod ns {
@@ -106,6 +93,7 @@ pub mod ns {
 pub mod t {
     use html5ever::local_name as lname;
     use crate::dom::LocalName;
+    use std::sync::LazyLock;
 
     /// Tag `<a>`: anchor.
     /// (meta: inline)
@@ -362,13 +350,11 @@ pub mod t {
     pub const Q:             LocalName = lname!("q");
     /// Tag `<rb>`: ruby base text.
     pub const RB:            LocalName = lname!("rb");
-    lazy_static::lazy_static! {
-        /// Tag `<rbc>`: ruby base container (complex).
-        /// (meta: undefined)
-        ///
-        /// This is a lazy static (struct) as its not defined by html5ever.
-        pub static ref RBC: LocalName = "rbc".into();
-    }
+    /// Tag `<rbc>`: ruby base container (complex).
+    /// (meta: undefined)
+    ///
+    /// This is a lazy static (struct) as its not defined by html5ever.
+    pub static RBC: LazyLock<LocalName> = LazyLock::new(|| "rbc".into());
     /// Tag `<rp>`: ruby simple text container.
     pub const RP:            LocalName = lname!("rp");
     /// Tag `<rt>`: ruby annotation text.
@@ -475,6 +461,7 @@ pub mod t {
 pub mod a {
     use html5ever::local_name as lname;
     use crate::dom::LocalName;
+    use std::sync::LazyLock;
 
     pub const ABBR:              LocalName = lname!("abbr");
     /// Attribute accept: (file) types accepted.
@@ -504,12 +491,10 @@ pub mod a {
     pub const COORDS:            LocalName = lname!("coords");
     pub const DATA:              LocalName = lname!("data");
     pub const DATETIME:          LocalName = lname!("datetime");
-    lazy_static::lazy_static! {
-        /// Attribute decoding: preferred method to decode.
-        ///
-        /// This is a lazy static (struct) as its not defined by html5ever.
-        pub static ref DECODING: LocalName = "decoding".into();
-    }
+    /// Attribute decoding: preferred method to decode.
+    ///
+    /// This is a lazy static (struct) as its not defined by html5ever.
+    pub static DECODING: LazyLock<LocalName> = LazyLock::new(|| "decoding".into());
     /// Attribute dir: Text direction; ltr or rtl.
     pub const DIR:               LocalName = lname!("dir");
     pub const FRAME:             LocalName = lname!("frame");

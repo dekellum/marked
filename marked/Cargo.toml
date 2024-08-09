@@ -2,7 +2,8 @@
 name = "marked"
 version = "0.3.0"
 authors = ["David Kellum <dek-oss@gravitext.com>"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.80"
 license       = "MIT/Apache-2.0"
 description   = "Parsing, filtering, selecting and serializing HTML/XML markup."
 repository    = "https://github.com/dekellum/marked"
@@ -15,18 +16,18 @@ build         = "build.rs"
 doctest = false
 
 [dependencies]
-html5ever       = { version=">=0.25.1, <0.26" }
-tendril         = { version=">=0.4.1,  <0.5", features=["encoding_rs"] }
-encoding_rs     = { version=">=0.8.13, <0.9" }
-xml-rs          = { version=">=0.8,    <0.9", package="xml-rs", optional=true }
-string_cache    = { version=">=0.8.0,  <0.9" }
-mime            = { version=">=0.3.14, <0.4" }
-log             = { version=">=0.4.4,  <0.5", features = ["std"] }
-lazy_static     = { version=">=1.3.0,  <1.5" }
+html5ever       = { version="0.27.*" }
+tendril         = { version="0.4.*", features=["encoding_rs"] }
+encoding_rs     = { version="0.8.12" } # Match tendril dependency
+xml-rs          = { version="0.8.*", package="xml-rs", optional=true }
+string_cache    = { version="0.8.*" }
+mime            = { version="0.3.14" }
+log             = { version="0.4.*", features = ["std"] }
 
 [features]
 default = []
 xml = ["xml-rs"]
+cargo-clippy = []
 
 [dev-dependencies]
 rand            = { version=">=0.7.0, <0.8" }
